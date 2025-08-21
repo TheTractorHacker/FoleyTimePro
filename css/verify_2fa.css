@@ -1,0 +1,88 @@
+        :root {
+            --bg-color: DarkGray;
+            --card-bg: #111827;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: #e5e7eb;
+        }
+        .container-2fa {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+        .container-2fa h2 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            letter-spacing: 0.3px;
+        }
+        .container-2fa p {
+            margin: 0 0 1.25rem 0;
+            color: #cbd5e1;
+        }
+       .field {
+    text-align: left;
+    margin-bottom: 1rem;
+   }
+
+.field label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    color: #cbd5e1;
+}
+
+.container-2fa input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    background: #0b1220;
+    color: #e5e7eb;
+    font-size: 1rem;
+    line-height: 1.5;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.container-2fa input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+}
+
+        .buttons button {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .buttons button:hover { background-color: var(--primary-hover); }
+        .error {
+            margin-top: 1rem;
+            color: #fca5a5;
+            font-weight: 600;
+        }
+        .help {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }

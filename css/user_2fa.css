@@ -1,0 +1,47 @@
+.container-2fa {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.container-2fa img {
+    margin: 20px auto;
+    display: block;
+}
+
+.container-2fa input[type="text"] {
+    padding: 0.75rem;
+    font-size: 1.2rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 250px;
+    text-align: center;
+}
+
+.container-2fa button {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #0078D7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.container-2fa button:hover {
+    background-color: #005fa3;
+}
+
+.container-2fa .message {
+    margin-top: 1rem;
+    font-weight: bold;
+}
+
+.container-2fa .error-message {
+    color: red;
+}

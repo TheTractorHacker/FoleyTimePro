@@ -1,0 +1,380 @@
+:root {
+    --primary-color: #0078D7;
+    --primary-hover: #005fa3;
+    --bg-color: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --muted-text: #666;
+    --border-radius: 8px; /* Adjusted to match size style */
+    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* Smaller shadow */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem; /* Adjusted from 16px */
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.5rem 1rem; /* Reduced from 2rem */
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Lighter shadow */
+}
+
+.logo {
+    height: 60px;
+    margin: 0 auto 0.5rem; /* Reduced bottom margin */
+    display: block;
+}
+
+nav {
+    margin-top: 1rem;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1rem; /* Reduced spacing */
+    font-weight: bold;
+    font-size: 1rem; /* Reduced from 1.1rem */
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+.dashboard-container {
+    max-width: 1600px; /* Increased width for bigger table viewer */
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+
+.container {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+
+/* Put fields + buttons on one line */
+.summary-filter {
+    display: flex;
+    flex-wrap: wrap;       /* allows wrap on small screens */
+    align-items: flex-end; /* align bottoms of inputs/buttons */
+    gap: 1rem;
+}
+
+/* Lay out the three inputs side by side */
+.summary-filter .filterrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Keep each field to a nice column width (not full width) */
+.summary-filter .field {
+    flex: 0 0 260px;   /* ~260px columns; tweak as needed */
+    min-width: 220px;
+}
+
+/* Buttons on same row, pushed to the right */
+.summary-filter .buttons {
+    margin-left: auto;     /* pushes this block to the far right */
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Inputs/selects fill their column */
+.summary-filter .field input[type="text"],
+.summary-filter .field select {
+    width: 100%;
+}
+
+/* Stack on phones */
+@media (max-width: 768px) {
+    .summary-filter { flex-direction: column; }
+    .summary-filter .buttons { margin-left: 0; }
+}
+
+
+
+input[type="text"],
+select {
+    width: 100%;
+    padding: 0.75rem; /* Adjusted for consistency */
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.summary-filter .buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.summary-filter button,
+.btn-reset {
+    padding: 0.75rem 1.25rem; /* Adjusted for consistency */
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 110px;
+}
+
+.summary-filter button {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.summary-filter button:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-reset {
+    background-color: #ccc;
+    color: #333;
+}
+
+.btn-reset:hover {
+    background-color: #999;
+    color: white;
+}
+
+/* TimeSheet Table */
+.timesheet-table {
+    width: 100%;
+    border-collapse: separate; /* Use separate for rounded corners on cells */
+    border-spacing: 0; /* Remove space between cells */
+    margin-top: 1.5rem;
+    background-color: var(--card-bg);
+    font-size: 1.1rem; /* Slightly smaller for more data */
+    border-radius: var(--border-radius);
+    overflow: hidden; /* Ensures rounded corners are visible */
+    box-shadow: var(--box-shadow);
+}
+
+.timesheet-table thead {
+    background-color: var(--primary-color); /* Use primary color for header */
+    color: white;
+    font-weight: 600; /* Slightly less bold */
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.timesheet-table th,
+.timesheet-table td {
+    padding: 0.8rem 0.6rem; /* Adjusted padding for denser table */
+    border-bottom: 1px solid #e0e0e0; /* Lighter border */
+    text-align: center;
+    vertical-align: middle; /* Center content vertically */
+}
+
+.timesheet-table th:first-child { border-top-left-radius: var(--border-radius); }
+.timesheet-table th:last-child { border-top-right-radius: var(--border-radius); }
+
+.timesheet-table tbody tr:last-child td {
+    border-bottom: none; /* No border on last row */
+}
+
+.timesheet-table tr:nth-child(even) {
+    background-color: #f8fafd; /* Very light alternate row color */
+}
+
+.timesheet-table tr:hover {
+    background-color: #f0f7ff; /* Subtle hover effect */
+}
+
+.timesheet-table input[type="time"],
+.timesheet-table input[type="text"],
+.timesheet-table select,
+.timesheet-table textarea {
+    width: calc(100% - 10px); /* Account for padding */
+    padding: 0.5rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timesheet-table input:focus,
+.timesheet-table select:focus,
+.timesheet-table textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+    outline: none;
+}
+
+.timesheet-table .total-cell {
+    font-family: 'Segoe UI', sans-serif; /* Use main font */
+    font-weight: bold;
+    background-color: #eaf3ff; /* Lighter background for totals */
+    color: var(--primary-color);
+    border-radius: 4px;
+    padding: 0.6rem;
+}
+
+/* Confirm Button */
+.confirm-btn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.confirm-btn:hover {
+    background-color: #218838;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .summary-filter {
+        flex-direction: column;
+    }
+
+    .summary-filter .buttons {
+        flex-direction: column;
+    }
+
+    .timesheet-table th,
+    .timesheet-table td {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.text-muted {
+    color: var(--muted-text);
+    font-size: 0.85rem;
+}
+
+.small-btn {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.total-highlight {
+    color: var(--primary-color);
+    font-size: 1.2em;
+}
+
+.overtime-highlight {
+    color: #dc3545; /* Red for overtime */
+    font-size: 1.2em;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    margin: -2rem -2rem 1.5rem -2rem; /* Adjust to fit card padding */
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.card-body {
+    padding: 0; /* Reset padding as it's handled by the container */
+}
+
+.card-footer {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    margin: 1.5rem -2rem -2rem -2rem; /* Adjust to fit card padding */
+    text-align: right;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.timesheet-table th:nth-child(1),
+.timesheet-table td:nth-child(1) {
+    width: 10%;
+}
+
+.timesheet-table th:nth-child(2),
+.timesheet-table td:nth-child(2),
+.timesheet-table th:nth-child(4),
+.timesheet-table td:nth-child(4),
+.timesheet-table th:nth-child(6),
+.timesheet-table td:nth-child(6),
+.timesheet-table th:nth-child(8),
+.timesheet-table td:nth-child(8) {
+    width: 8%;
+}
+
+.timesheet-table th:nth-child(3),
+.timesheet-table td:nth-child(3),
+.timesheet-table th:nth-child(5),
+.timesheet-table td:nth-child(5),
+.timesheet-table th:nth-child(7),
+.timesheet-table td:nth-child(7),
+.timesheet-table th:nth-child(9),
+.timesheet-table td:nth-child(9) {
+    width: 6%;
+}
+
+.timesheet-table th:nth-child(10),
+.timesheet-table td:nth-child(10) {
+    width: 7%;
+}
+
+.timesheet-table th:nth-child(11),
+.timesheet-table td:nth-child(11) {
+    width: 22%;
+}
+
+.timesheet-table th:nth-child(12),
+.timesheet-table td:nth-child(12) {
+    width: 5%;
+}
+

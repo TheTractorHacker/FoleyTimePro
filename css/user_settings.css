@@ -1,0 +1,257 @@
+    :root {
+        --primary-color: #0078D7;
+        --primary-hover: #005fa3;
+        --success-color: #28a745;
+        --error-color: #dc3545;
+        --bg-color: #f4f6f9;
+        --card-bg: #ffffff;
+        --border-radius: 10px;
+        --input-bg: #fcfcfc;
+        --input-border: #ced4da;
+        --input-focus: #80bdff;
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0 0;
+        gap: 1rem;
+    }
+
+    .tabs button {
+        padding: 0.8rem 1.5rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+    }
+
+    .tabs button.active,
+    .tabs button:hover {
+        background: var(--primary-hover);
+    }
+
+    .tab-content {
+        display: none;
+        max-width: 1200px; /* Changed */
+        margin: 0 auto;
+        background: var(--card-bg);
+        padding: 2rem;
+        box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        border-radius: 0 0 12px 12px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem 2rem; /* Adjusted gap */
+    }
+
+    form label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        color: #333;
+    }
+
+    form input,
+    form select {
+        width: 100%;
+        padding: 0.8rem 1rem; /* Adjusted padding */
+        border-radius: 8px; /* Changed to fixed value */
+        border: 1px solid var(--input-border);
+        background: var(--input-bg);
+        font-size: 1rem; /* Adjusted font size */
+        transition: border-color 0.3s ease;
+    }
+
+    form input:focus,
+    form select:focus {
+        border-color: var(--input-focus);
+        outline: none;
+    }
+
+    .full {
+        grid-column: 1 / -1;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .actions button, .actions a.button { /* Added a.button for consistency */
+        padding: 0.8rem 1.8rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        text-decoration: none; /* Ensure links don't have underlines */
+        display: inline-block; /* Make links behave like buttons */
+        text-align: center;
+    }
+
+    .btn-save {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .btn-save:hover {
+        background: var(--primary-hover); /* Use variable for consistency */
+    }
+
+    .btn-cancel {
+        background: var(--error-color); /* Use variable for consistency */
+        color: #fff;
+    }
+
+    .btn-cancel:hover {
+        background: #c82333; /* Darker red for hover */
+    }
+
+    .btn-done {
+        background: var(--success-color); /* Use variable for consistency */
+        color: #fff;
+    }
+
+    .btn-done:hover {
+        background: #218838; /* Darker green for hover */
+    }
+
+    .logs {
+        margin-top: 2rem;
+    }
+
+    .message {
+        background: #d4edda;
+        color: var(--success-color);
+        padding: 1rem;
+        margin: 1rem auto;
+        max-width: 900px;
+        border-radius: var(--border-radius);
+        text-align: center;
+    }
+
+    .error {
+        background: #f8d7da;
+        color: var(--error-color);
+        padding: 1rem;
+        margin: 1rem auto;
+        max-width: 900px;
+        border-radius: var(--border-radius);
+        text-align: center;
+    }
+
+    .profile-photo-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    img.profile-preview {
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid var(--primary-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    /* Password Inputs */
+.password-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.password-box input {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    transition: border 0.3s;
+}
+
+.password-box input:focus {
+    border-color: #0078D7;
+    outline: none;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    color: #888;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-password:hover {
+    color: #0078D7;
+}
+
+/* 2FA Box */
+.twofa-box {
+    background: #e8f3ff;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border-left: 6px solid #0078D7;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.twofa-box h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.twofa-box p {
+    font-size: 1.2rem;
+    color: #444;
+    margin: 0.5rem 0 1rem;
+}
+
+.twofa-box .btn-save {
+    padding: 0.5rem 1rem;
+    background-color: #0078D7;
+    color: #fff;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.twofa-box .btn-save:hover {
+    background-color: #005fa3;
+}
+
+.twofa-box .icon {
+    font-size: 1.1rem;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.disable-2fa-form .password-box {
+    width: 300px;
+    margin-bottom: 1rem;
+}
+
+#show-2fa-pass {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}

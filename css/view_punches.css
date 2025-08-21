@@ -1,0 +1,21 @@
+        .dashboard-container {
+            max-width: 1400px;
+        }
+        .btn-view {
+            background-color: #0078D7;
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn-view:hover {
+            background-color: #005fa3;
+        }
+        select.reason-dropdown {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }

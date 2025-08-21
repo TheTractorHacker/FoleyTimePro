@@ -1,0 +1,855 @@
+/* 🌐 Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* 🌙 Dark Mode Overrides */
+body[data-theme="dark"] {
+  background-color: #181a1b;
+  color: #e0e0e0;
+}
+
+body[data-theme="dark"] .card,
+body[data-theme="dark"] .tab-content,
+body[data-theme="dark"] .twofa-box,
+body[data-theme="dark"] .logs,
+body[data-theme="dark"] .modal-content,
+body[data-theme="dark"] .popup-content,
+body[data-theme="dark"] .login-container,
+body[data-theme="dark"] .date-range {
+  background-color: #222426;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea {
+  background-color: #2d2f31;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+body[data-theme="dark"] input::placeholder {
+  color: #aaa;
+}
+
+body[data-theme="dark"] .btn-save {
+  background-color: #0a84ff;
+}
+
+body[data-theme="dark"] .btn-cancel {
+  background-color: #555;
+}
+
+body[data-theme="dark"] .topnav,
+body[data-theme="dark"] .mobile-topnav,
+body[data-theme="dark"] .mobile-nav {
+  background-color: #1a1a1a;
+}
+
+body[data-theme="dark"] .dropdown-menu {
+  background-color: #2c2f33;
+  color: #e0e0e0;
+}
+
+.dropdown-menu a:hover {
+  background-color: #e0f2f7; /* Subtle light blue highlight for light mode */
+  color: #0d6efd; /* Keep original hover text color */
+}
+
+body[data-theme="dark"] .dropdown-menu a:hover {
+  background-color: #3a506b; /* Subtle dark blue highlight for dark mode */
+  color: #ffffff; /* Ensure text is white on dark blue highlight */
+}
+
+body[data-theme="dark"] table {
+  background-color: #222426; /* Dark background for tables */
+  color: #e0e0e0; /* Light text color for tables */
+}
+
+body[data-theme="dark"] table th {
+  background-color: #2a2d2e;
+  color: #ffffff; /* White color for table headers */
+}
+
+body[data-theme="dark"] table th,
+body[data-theme="dark"] table td {
+  border-bottom: 1px solid #444; /* Darker border for dark mode */
+}
+
+body[data-theme="dark"] table tr:hover {
+  background-color: #2c2f30;
+}
+
+body[data-theme="dark"] table td {
+  color: #ffffff; /* Ensure text in table cells is white */
+}
+
+body[data-theme="dark"] .suggestion-box {
+  background-color: #2c2f30;
+  border-color: #444;
+}
+
+body[data-theme="dark"] .suggestion-box li {
+  color: #e0e0e0;
+}
+
+body[data-theme="dark"] .suggestion-box li:hover {
+  background-color: #3c3f41;
+  color: #0d6efd;
+}
+
+
+body {
+  background-color: #f4f6f9;
+  color: #333;
+  font-size: 16px;
+}
+
+/* 🌐 Layout */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.main {
+  max-width: 1200px;
+  margin: auto;
+  width: 100%;
+}
+
+
+/* 🔍 Autocomplete Suggestions - Enhanced */
+.autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.suggestion-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  list-style: none;
+  margin-top: 6px;
+  padding: 6px 0;
+  background-color: #fff;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  z-index: 500;
+  max-height: 240px;
+  overflow-y: auto;
+  font-size: 15px;
+  scrollbar-width: thin;
+}
+
+.suggestion-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestion-box::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.suggestion-box li {
+  padding: 12px 16px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-box li:last-child {
+  border-bottom: none;
+}
+
+.suggestion-box li:hover,
+.suggestion-box li.active {
+  background-color: #eaf3ff;
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+
+/* 🧭 Top Navigation */
+.topnav, .mobile-topnav {
+  background-color: #0d6efd;
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 999;
+}
+
+.topnav-left, .mobile-topnav-left {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  height: 36px;
+  margin-right: 10px;
+}
+
+.nav-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.topnav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topnav a,
+.mobile-nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 15px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+body[data-theme="light"] .topnav a,
+body[data-theme="light"] .mobile-nav a {
+  color: white; /* White text for topnav and mobile-nav links in light mode */
+}
+
+.topnav a:hover,
+.mobile-nav a:hover {
+  background-color: rgba(255,255,255,0.15);
+}
+
+/* 👤 Profile Dropdown */
+.profile-dropdown {
+  position: relative;
+}
+
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  background-color: #ccc;
+}
+
+.profile-name {
+  font-weight: bold;
+  color: white;
+  font-size: 15px;
+}
+
+body[data-theme="light"] .profile-name {
+  color: white; /* White text for profile name in light mode */
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  min-width: 180px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 12px 16px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+body[data-theme="light"] .dropdown-menu a {
+  color: #000; /* Black text for dropdown menu links in light mode */
+}
+
+.dropdown-menu a:hover {
+  background-color: #f2f4f7;
+  color: #0d6efd;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+/* 🔘 Toggle Button */
+.toggle-punch {
+  padding: 20px 20px;
+  font-size: 17px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  background-color: #0d6efd;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.2s ease;
+}
+
+.toggle-punch:hover {
+  background-color: #0b5ed7;
+}
+
+/* 🔵 Headings */
+h2 {
+  font-size: 26px;
+  color: #126ab3;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+h3 {
+  font-size: 20px;
+  margin-bottom: 14px;
+  color: #333;
+}
+
+body[data-theme="dark"] h3 {
+  color: #ffffff; /* White color for h3 headers in dark mode */
+}
+
+h4 {
+  font-size: 16px;
+  color: #555;
+  margin-top: 20px;
+}
+
+/* 🧾 Card */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  margin-bottom: 25px;
+}
+
+.card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.card th, .card td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.card th {
+  background-color: #f0f2f5;
+  color: #333;
+  font-weight: 600;
+}
+
+/* 📋 Note Field */
+.card input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;;
+}
+
+/* 🕒 Hours Worked Display */
+.card .hours-live {
+  margin-top: 12px;
+  font-weight: bold;
+  color: #126ab3;
+  background-color: #eaf3ff;
+  padding: 10px 14px;
+  border-left: 5px solid #0d6efd;
+  border-radius: 6px;
+}
+
+/* 🎛️ Punch Buttons */
+.punch-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.punch-buttons button {
+  flex: 1 1 calc(50% - 12px);
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.punch-buttons .clockin    { background-color: #28a745; }
+.punch-buttons .clockin:hover { background-color: #218838; }
+
+.punch-buttons .lunchstart { background-color: #0d6efd; }
+.punch-buttons .lunchstart:hover { background-color: #0b5ed7; }
+
+.punch-buttons .lunchend   { background-color: #fd7e14; }
+.punch-buttons .lunchend:hover { background-color: #e66e0e; }
+
+.punch-buttons .clockout   { background-color: #dc3545; }
+.punch-buttons .clockout:hover { background-color: #c82333; }
+
+/* 📅 Date Range */
+.date-range {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.date-range label {
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.date-range input[type="date"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.date-range button {
+  background-color: #0d6efd;
+  color: white;
+  padding: 10px 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.date-range button:hover {
+  background-color: #0b5ed7;
+}
+
+/* 📊 Summary Table */
+table {
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  border-collapse: collapse;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.timesheet-table input[name*="Note"],
+.timesheet-table input[name*="Reason"] {
+  min-width: 150px; /* Adjust as needed */
+  width: 100%;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+table th, table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+table th {
+  background-color: #f0f2f5;
+  font-weight: 600;
+}
+
+table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* 🔐 Login Form */
+.login-container {
+  max-width: 400px;
+  margin: 80px auto;
+  background: white;
+  padding: 32px 36px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  position: relative;
+}
+
+.login-container h2 {
+  color: #126ab3;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 24px;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: #fdfdfd;
+}
+
+.login-container input:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
+.login-container button {
+  width: 100%;
+  padding: 14px;
+  background-color: #0d6efd;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-container button:hover {
+  background-color: #0b5ed7;
+}
+
+.login-container .error {
+  color: red;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ❌ Utility */
+.hidden {
+  display: none;
+}
+
+.desktop-only {
+  display: flex;
+}
+.mobile-only {
+  display: none;
+}
+
+footer {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 14px;
+  margin-top: 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+footer p {
+    margin-bottom: 1rem;
+}
+
+footer a {
+  color: #495057;
+  text-decoration: none;
+  margin: 0 15px;
+  font-weight: 600;
+}
+
+footer a:hover {
+  text-decoration: underline;
+  color: #007bff;
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 80px; /* Height of mobile nav + footer padding */
+  }
+
+  .wrapper {
+    padding: 16px;
+  }
+
+  .main {
+    padding: 0;
+  }
+
+  .topnav {
+    display: none;
+  }
+
+  .mobile-topnav {
+    display: flex;
+  }
+
+  .punch-buttons button {
+    flex: 1 1 100%;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .mobile-nav a {
+    color: #000000;
+    font-size: 16px;
+    text-decoration: none;
+    padding: 6px 10px;
+  }
+
+  .mobile-nav a:hover {
+    background-color: #f2f2f2;
+  }
+
+  table {
+    font-size: 14px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .login-container {
+    margin: 60px 16px;
+    padding: 24px 20px;
+  }
+
+  .login-container h2 {
+    font-size: 20px;
+  }
+
+  .login-container button {
+    font-size: 15px;
+  }
+
+  .desktop-only { display: none !important; }
+  .mobile-only { display: flex !important; }
+
+  .mobile-topnav {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 12px 16px;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-topnav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .profile-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dropdown-menu {
+    right: 0;
+    top: 100%;
+  }
+
+  footer {
+    padding: 1rem;
+    margin-bottom: 0;
+  }
+}
+
+.btn.primary {
+    background-color: #0078D7;
+    color: white;
+}
+
+.btn.warning {
+    background-color: #ffc107;
+    color: black;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+
+/* 🔒 Modal Overlay */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 5000;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal.show,
+.modal:not(.hidden) {
+  display: flex;
+}
+
+/* 📦 Modal Content Box */
+.modal-content {
+  background: #fff;
+  padding: 24px 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.25s ease;
+  text-align: center;
+}
+
+/* ❌ Close Button */
+.modal .close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+}
+
+.modal .close:hover {
+  color: #0d6efd;
+}
+
+/* 🔘 Modal Inputs and Buttons */
+.modal-content input[type="password"],
+.modal-content input[type="text"],
+.modal-content textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.modal-content button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background-color: #0b5ed7;
+}
+
+.modal-content .error {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* ✅ Popup Confirmation */
+.popup {
+  display: none;
+  position: fixed;
+  z-index: 6000;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.popup:not(.hidden) {
+  display: flex;
+}
+
+.popup-content {
+  background: #fff;
+  padding: 24px 30px;
+  border-radius: 10px;
+  max-width: 350px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.popup-content button {
+  margin-top: 14px;
+  padding: 10px 20px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup-content button:hover {
+  background-color: #0b5ed7;
+}
+
+/* ✨ Animation */
+@keyframes fadeIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

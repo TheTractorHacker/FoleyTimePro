@@ -1,0 +1,23 @@
+        .per-employee-summary {
+            margin-top: 1rem;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .per-employee-summary h3 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        .per-employee-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+        .per-employee-summary li {
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .per-employee-summary li:last-child {
+            border-bottom: none;
+        }

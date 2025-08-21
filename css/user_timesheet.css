@@ -1,0 +1,36 @@
+    .modal.success-popup {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .modal.success-popup .modal-content {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 1.2em;
+        border: 1px solid #c3e6cb;
+    }
+
+    .modal.success-popup .modal-content button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 15px;
+    }
+
+    .modal.success-popup .modal-content button:hover {
+        background-color: #218838;
+    }

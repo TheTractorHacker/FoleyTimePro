@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: timeclock_app
+    ports:
+      - "8080:80"
+    env_file:
+      - .env
+    networks:
+      - timeclock_network
+
+# db:
+#   image: mariadb:latest
+#   container_name: timeclock_db
+#   restart: unless-stopped
+#   env_file:
+#     - .env
+#   volumes:
+#     - ./timeclock-schema.sql:/docker-entrypoint-initdb.d/init.sql
+#   networks:
+#     - timeclock_network
+
+networks:
+  timeclock_network:
+    driver: bridge

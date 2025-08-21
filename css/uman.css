@@ -1,0 +1,320 @@
+/* === User Management Styling (uman.css) === */
+
+:root {
+    --primary-color: #0078D7;
+    --primary-hover: #005fa3;
+    --danger-color: #dc3545;
+    --danger-hover: #bb2d3b;
+    --warning-color: #ffc107;
+    --warning-hover: #e6b800;
+    --success-color: #4caf50;
+    --light-bg: #f4f6f9;
+    --light-row: #fafafa;
+    --text-color: #333;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --radius: 10px;
+    --transition: 0.2s ease-in-out;
+}
+
+/* ==== Base ==== */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--light-bg);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+/* ==== Layout ==== */
+.uman-container {
+    max-width: 1100px;
+    margin: 3rem auto;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logo {
+    height: 60px;
+    display: block;
+    margin: 0 auto 0.5rem;
+}
+
+nav {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1rem;
+    font-weight: bold;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+.uman-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.uman-header h2 {
+    margin: 0;
+}
+
+/* ==== Table ==== */
+.uman-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background-color: white;
+}
+
+.uman-table th,
+.uman-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.uman-table th {
+    background-color: var(--light-bg);
+    font-weight: bold;
+}
+
+.uman-table tr:nth-child(even) {
+    background-color: var(--light-row);
+}
+
+/* ==== Buttons ==== */
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.btn.small {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.btn.primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn.primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn.warning {
+    background-color: var(--warning-color);
+    color: black;
+}
+
+.btn.warning:hover {
+    background-color: var(--warning-hover);
+}
+
+.btn.danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn.danger:hover {
+    background-color: var(--danger-hover);
+}
+
+/* ==== Toggle Switch ==== */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    vertical-align: middle;
+}
+
+.switch-label {
+    font-weight: bold;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.gps-toggle-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: #ccc;
+    transition: var(--transition);
+    border-radius: 26px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: var(--transition);
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--success-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.switch-label {
+    font-weight: bold;
+    margin-right: 1rem;
+    vertical-align: middle;
+}
+
+/* ==== Modal ==== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+}
+
+.modal-content {
+    background: white;
+    margin: 10% auto;
+    padding: 2rem;
+    border-radius: var(--radius);
+    max-width: 450px;
+    width: 90%;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+}
+
+.modal-content input,
+.modal-content select {
+    max-width: 100%;
+    width: auto;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* ==== Forms ==== */
+.uman-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.uman-form label {
+    font-weight: 600;
+}
+
+.uman-form input,
+.uman-form select {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+}
+
+/* ==== Misc Utilities ==== */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    color: #666;
+    cursor: pointer;
+}
+
+.alert.error {
+    background-color: #ffecec;
+    color: #b30000;
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+/* ==== Responsive ==== */
+@media (max-width: 768px) {
+    .uman-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .uman-table th,
+    .uman-table td {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+    }
+}

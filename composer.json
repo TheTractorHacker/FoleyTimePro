@@ -1,0 +1,8 @@
+{
+    "require": {
+        "phpoffice/phpspreadsheet": "^4.3",
+        "spomky-labs/otphp": "^11.3",
+        "endroid/qr-code": "^6.0",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}

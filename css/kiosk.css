@@ -1,0 +1,180 @@
+/* General Styling */
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Roboto', sans-serif; /* Modern font */
+    background-color: #e9ecef; /* Lighter background */
+    color: #343a40;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.main {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px; /* Softer corners */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1); /* Enhanced shadow */
+    text-align: center;
+    width: 100%;
+    max-width: 550px; /* Slightly wider */
+    animation: fadeIn 0.8s ease-out;
+}
+
+h2 {
+    color: #0056b3; /* Primary color for heading */
+    margin-bottom: 25px;
+    font-size: 2.2em;
+    font-weight: 700;
+}
+
+#message {
+    padding: 12px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1em;
+    opacity: 0;
+    animation: fadeIn 0.5s forwards 0.2s; /* Fade in with a slight delay */
+}
+
+.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    color: #495057;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+input[type="text"] {
+    width: calc(100% - 24px); /* Account for padding */
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1.1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus {
+    border-color: #007bff; /* Highlight on focus */
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    outline: none;
+}
+
+.kiosk-actions {
+    display: grid; /* Use grid for better layout */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive grid */
+    gap: 15px;
+    margin-top: 30px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.btn-kiosk {
+    padding: 15px 25px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-kiosk:hover {
+    transform: translateY(-3px); /* Lift effect */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Specific Button Colors */
+.btn-kiosk#proceedBtn {
+    background-color: #007bff; /* Blue for Proceed */
+    display: block; /* Make it a block element */
+    margin: 0 auto; /* Center it */
+    max-width: 200px; /* Limit its width */
+}
+
+.btn-kiosk#proceedBtn:hover {
+    background-color: #0056b3;
+}
+
+.btn-in {
+    background-color: #28a745; /* Green for Clock In */
+}
+
+.btn-in:hover {
+    background-color: #218838;
+}
+
+.btn-out {
+    background-color: #dc3545; /* Red for Clock Out */
+}
+
+.btn-out:hover {
+    background-color: #c82333;
+}
+
+.btn-lunch {
+    background-color: #ffc107; /* Yellow for Start Lunch */
+    color: #343a40; /* Darker text for contrast */
+}
+
+.btn-lunch:hover {
+    background-color: #e0a800;
+}
+
+.btn-lunch-end {
+    background-color: #17a2b8; /* Cyan for End Lunch */
+}
+
+.btn-lunch-end:hover {
+    background-color: #138496;
+}
+
+#userName {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: #007bff; /* Primary color for name */
+    margin-bottom: 25px;
+    opacity: 0;
+    animation: fadeIn 1s forwards 0.5s; /* Fade in with a delay */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.btn-kiosk:hover {
+    animation: pulse 0.5s infinite alternate; /* Apply pulse on hover */
+}

@@ -1,0 +1,27 @@
+    .container {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        text-align: center;
+        max-width: 520px;
+        margin: 2rem auto;
+    }
+    .container h2 { margin: 0 0 .5rem 0; font-size: 1.6rem; }
+    .container p.sub { color: #4b5563; margin: 0 0 1rem 0; }
+    img.qr { margin: 20px auto 10px; display: block; width: 300px; height: 300px; }
+    .field { margin-top: 1rem; text-align: left; display:inline-block; }
+    .field label { display:block; font-size:.95rem; color:#374151; margin-bottom:.4rem; }
+    input[type="text"]{
+        padding:.8rem; font-size:1.2rem; border:1px solid #cbd5e1; border-radius:8px;
+        width: 100%; max-width: 280px; text-align:center; outline:none;
+        transition: box-shadow .2s ease, border-color .2s ease;
+    }
+    input[type="text"]:focus{ border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    button{
+        margin-top:1rem; padding:.8rem 1.4rem; background:#3b82f6; color:#fff; border:none;
+        border-radius:8px; font-size:1rem; cursor:pointer; font-weight:600;
+    }
+    button:hover{ background:#2563eb; }
+    .message{ margin-top:1rem; font-weight:600; }
+    .already{ color:#16a34a; font-weight:600; }

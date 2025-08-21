@@ -1,0 +1,64 @@
+<!-- Modal HTML -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <span id="modalClose" class="close">&times;</span> 
+    <div id="modalBody">
+      <h3 id="employeeName"></h3>
+     <form id="pinForm">
+  <input type="hidden" name="EmployeeID" id="modalEmployeeID">
+
+  <!-- 📍 Location fields for GPS -->
+  <input type="hidden" id="latitude" name="latitude">
+  <input type="hidden" id="longitude" name="longitude">
+  <input type="hidden" id="accuracy" name="accuracy">
+  <input type="hidden" id="ip_address" name="ip_address">
+
+
+  <!-- 🔐 PIN input -->
+  <label for="modalPIN">Enter PIN:</label><br>
+  <input type="password" id="modalPIN" name="PIN" required><br><br>
+
+  <button type="submit">Verify</button>
+</form>
+
+      <div id="statusArea" class="hidden">
+        <p id="currentStatus"></p>
+        <textarea id="note" placeholder="Optional note..."></textarea><br>
+        <button onclick="submitAction('clockin')">Clock In</button>
+        <button onclick="submitAction('lunchstart')">Lunch Start</button>
+        <button onclick="submitAction('lunchend')">Lunch End</button>
+        <button onclick="submitAction('clockout')">Clock Out</button>
+      </div>
+      <p id="modalError" class="error"></p>
+    </div>
+  </div>
+</div>
+<!-- Confirm Time Popup -->
+<div id="confirmPopup" class="modal hidden">
+  <div class="modal-content">
+    <h3>Adjust Time?</h3>
+    <p>You can manually set a different time if needed.</p>
+    <p>Time: <strong id="confirmTimeText"></strong></p>
+    <input type="hidden" id="confirmAction" />
+    <button onclick="openAdjuster()">🕓 Adjust Time</button>
+    <button onclick="confirmSubmit()">✅ Submit</button>
+  </div>
+</div>
+
+<!-- Adjust Time Popup -->
+<div id="adjustPopup" class="modal hidden">
+  <div class="modal-content">
+    <h3>Manual Time Adjust</h3>
+    <input type="text" id="adjustTimeInput" placeholder="e.g., 03:45 PM" style="text-align:center; padding:10px; font-size:18px;">
+    <br><br>
+    <button onclick="submitWithAdjustment()">✅ Submit with Adjusted Time</button>
+  </div>
+</div>
+
+<!-- ✅ Feedback Popup -->
+<div id="customPopup" class="popup hidden">
+  <div class="popup-content">
+    <p id="popupMessage"></p>
+    <button id="popupClose">OK</button>
+  </div>
+</div>

@@ -1,0 +1,223 @@
+/* Reset & Layout */
+body {
+  background: #2e2e2e;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 700px;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Header Row: Logo + Title Side-by-Side */
+.header-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  max-width: clamp(60px, 15vw, 100px);
+  height: auto;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin: 0;
+  font-weight: 600;
+  text-align: left;
+}
+
+
+/* Scan Box */
+#scanBox {
+  margin-bottom: 2rem;
+}
+
+#scanBox input[type="text"] {
+  font-size: clamp(1.4rem, 5vw, 2.5rem);
+  padding: clamp(0.8rem, 2vw, 1.2rem);
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #444;
+  color: white;
+  text-align: center;
+}
+
+#scanBox input[type="text"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 120, 215, 0.4);
+}
+
+/* Welcome + Status */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+#welcomeName {
+  font-size: clamp(1.5rem, 3.5vw, 2.3rem);
+  margin: 0;
+  flex: 1;
+  text-align: left;
+}
+
+#clockStatus {
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  margin: 0;
+  flex: 1;
+  text-align: right;
+}
+
+/* Clock Display */
+#currentTime {
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  margin-bottom: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Button Container */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Buttons */
+.action-buttons button,
+.cancel-button {
+  font-size: clamp(1rem, 3vw, 1.6rem);
+  padding: clamp(0.8rem, 2vw, 1.2rem) clamp(1.5rem, 5vw, 2.5rem);
+  min-width: clamp(120px, 30vw, 160px);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Primary Buttons */
+.action-buttons button:not(.cancel-button) {
+  background-color: #0078d7;
+  color: white;
+}
+
+.action-buttons button:not(.cancel-button)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(100, 255, 100, 0.3); /* Bright lime green overlay */
+  transition: left 0.3s ease;
+  z-index: -1;
+  border-radius: 10px;
+}
+
+.action-buttons button:not(.cancel-button):hover::before {
+  left: 0;
+}
+
+/* Cancel Button */
+.cancel-button {
+  background-color: #666;
+  color: white;
+}
+
+.cancel-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 0, 0, 0.4); /* Red on hover */
+  transition: left 0.3s ease;
+  z-index: -1;
+  border-radius: 10px;
+}
+
+.cancel-button:hover::before {
+  left: 0;
+}
+
+/* Overlay & Hidden */
+.hidden {
+  display: none !important;
+  visibility: hidden;
+  opacity: 0;
+}
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(25, 25, 25, 0.95);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 2rem;
+  box-sizing: border-box;
+  transition: opacity 0.3s ease;
+}
+
+#feedbackVideo {
+  width: 260px;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+}
+
+#overlayMessage {
+  font-size: 2.2rem;
+  margin-top: 1.5rem;
+  text-align: center;
+  color: white;
+}
+
+/* Responsive Layout */
+@media (max-width: 600px) {
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logo {
+    max-width: 120px;
+  }
+
+  .container {
+    padding: 1rem 0.5rem;
+  }
+}

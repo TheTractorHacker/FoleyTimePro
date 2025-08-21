@@ -1,0 +1,163 @@
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f4f6f9;
+        margin: 0;
+        padding: 0;
+        color: #333;
+    }
+
+    .banner {
+        background-color: #0078D7;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo {
+        height: 60px;
+        margin-bottom: 1rem;
+    }
+
+    nav {
+        margin-top: 1rem;
+    }
+
+    nav a {
+        color: white;
+        text-decoration: none;
+        margin: 0 1rem;
+        font-weight: bold;
+    }
+
+    nav a:hover {
+        text-decoration: underline;
+    }
+
+    .uman-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .uman-container h2 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .uman-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .uman-form label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .uman-form input,
+    .uman-form select {
+        width: 100%;
+        padding: 0.7rem;
+        font-size: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    .switch-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding: 0.5rem 0;
+        border-top: 1px solid #eee;
+    }
+
+    .switch-label {
+        font-weight: bold;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #0078D7;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.7rem 1.4rem;
+        font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn.primary {
+        background-color: #0078D7;
+        color: white;
+    }
+
+    .btn.primary:hover {
+        background-color: #005fa3;
+    }
+
+    .btn.danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .alert.error {
+        background-color: #ffecec;
+        color: #b30000;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
