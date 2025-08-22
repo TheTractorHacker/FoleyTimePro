@@ -52,6 +52,7 @@ while ($row = $result->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <title>Employee Punch Adjustments</title>
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/edits_timesheet.css">
 </head>

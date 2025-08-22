@@ -1,7 +1,7 @@
 <?php
 // clock_action.php
 // --- SETUP AND DEPENDENCIES ---
-require '../auth/db.php';
+require_once __DIR__ . '/../auth/db.php';
 date_default_timezone_set('America/Chicago');
 header('Content-Type: application/json');
 

@@ -125,6 +125,7 @@ if (empty($employeeID)) {
 <head>
     <meta charset="UTF-8">
     <title>Summary Reports</title>
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <link rel="stylesheet" href="../css/summary.css">
