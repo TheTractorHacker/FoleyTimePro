@@ -7,6 +7,7 @@ $message = $_GET['message'] ?? 'Something went wrong';
 <head>
   <meta charset="UTF-8" />
   <title><?= htmlspecialchars($code) ?> | Something went wrong</title>
+  <link rel="icon" type="image/webp" href="images/D-Best-favicon.webp">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
