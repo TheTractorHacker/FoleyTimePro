@@ -1,5 +1,6 @@
 <?php
-$code = $_GET['code'] ?? 'Error';
+$code = isset($_GET['code']) ? (int) $_GET['code'] : 500;
+http_response_code($code);
 $message = $_GET['message'] ?? 'Something went wrong';
 ?>
 <!DOCTYPE html>

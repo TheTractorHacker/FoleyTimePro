@@ -54,7 +54,8 @@ $sql .= " GROUP BY tp.EmployeeID, tp.Date ORDER BY tp.Date DESC";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    die("Query error: " . $conn->error);
+    header('Location: ../error.php?code=500&message=' . urlencode('Query error: ' . $conn->error));
+    exit;
 }
 
 $stmt->bind_param($types, ...$params);
