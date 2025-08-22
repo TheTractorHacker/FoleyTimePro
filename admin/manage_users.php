@@ -46,6 +46,7 @@ $gpsEnforced  = isset($gpsSetting['SettingValue']) && $gpsSetting['SettingValue'
 <head>
     <meta charset="UTF-8">
     <title>Manage Users - D-Best TimeClock</title>
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/uman.css">
     <link rel="stylesheet" href="../css/manage_users.css">
 </head>
