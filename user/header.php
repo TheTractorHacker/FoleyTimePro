@@ -42,7 +42,7 @@ foreach ($extensions as $ext) {
     <script src="../js/user_header.js"></script>
 </head>
 <body data-theme="<?= $theme ?>">
-    <?php include '../fucntions/modal.html'; ?>
+    <?php include '../functions/modal.html'; ?>
 
 <header class="topnav desktop-only">
   <div class="topnav-left">

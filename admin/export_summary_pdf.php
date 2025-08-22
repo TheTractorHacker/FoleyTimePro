@@ -13,7 +13,8 @@ $rounding = intval($_POST['rounding'] ?? 0);
 $separatePages = intval($_POST['separate_pages'] ?? 0);
 
 if (!$start || !$end) {
-    die("Start and end dates are required.");
+    header('Location: ../error.php?code=400&message=' . urlencode('Start and end dates are required.'));
+    exit;
 }
 
 // Helper to convert HH:MM:SS to decimal and round

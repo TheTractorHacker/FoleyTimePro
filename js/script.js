@@ -31,7 +31,7 @@ document.getElementById("pinForm").addEventListener("submit", function (e) {
     const empID = document.getElementById("modalEmployeeID").value;
     const pin = document.getElementById("modalPIN").value;
 
-    fetch("fucntions/verify_pin.php", {
+    fetch("functions/verify_pin.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `EmployeeID=${encodeURIComponent(empID)}&PIN=${encodeURIComponent(pin)}`
@@ -159,7 +159,7 @@ function sendPunch(empID, action, note, time, lat = '', lon = '', accuracy = '')
         clientTime: clientTime
     };
 
-    fetch("../fucntions/clock_action.php", {
+    fetch("../functions/clock_action.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)

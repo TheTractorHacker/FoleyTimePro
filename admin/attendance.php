@@ -127,6 +127,7 @@ if ($exportPDF) {
 <html>
 <head>
     <title>Attendance Report</title>
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/attendance.css">
 </head>
 <body>
