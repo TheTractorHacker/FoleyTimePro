@@ -20,6 +20,7 @@ $employeeID = $_GET['emp'] ?? '';
 <head>
     <meta charset="UTF-8">
     <title>View Punches</title>
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/timesheet.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <link rel="stylesheet" href="../css/view_punches.css">

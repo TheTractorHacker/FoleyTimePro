@@ -142,7 +142,7 @@ $gpsQuery->close();
     </div>
 </div>
 
-<?php include 'fucntions/modal.html'; ?>
+<?php include 'functions/modal.html'; ?>
 
 <script src="js/index.js"></script>
 

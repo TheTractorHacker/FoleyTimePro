@@ -30,6 +30,7 @@ if ($result) {
 <head>
     <meta charset="UTF-8">
     <title>Manage Admins</title>
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>

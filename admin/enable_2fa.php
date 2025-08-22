@@ -27,11 +27,13 @@ $adminUsername = $_SESSION['admin'];
 // Fetch admin details
 $stmt = $conn->prepare("SELECT TwoFASecret, TwoFAEnabled FROM admins WHERE username = ?");
 if (!$stmt) {
-    die("Prepare failed: (" . $conn->errno . ") " . $conn->error);
+    header('Location: ../error.php?code=500&message=' . urlencode('Prepare failed: (' . $conn->errno . ') ' . $conn->error));
+    exit;
 }
 $stmt->bind_param("s", $adminUsername);
 if (!$stmt->execute()) {
-    die("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+    header('Location: ../error.php?code=500&message=' . urlencode('Execute failed: (' . $stmt->errno . ') ' . $stmt->error));
+    exit;
 }
 $result = $stmt->get_result();
 $admin = $result->fetch_assoc();

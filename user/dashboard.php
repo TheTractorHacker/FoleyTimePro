@@ -8,7 +8,8 @@ $empID = $_SESSION['EmployeeID'] ?? null;
 $name = $_SESSION['Name'] ?? 'User';
 
 if (!$empID) {
-    die("Employee ID not found. Please log in again.");
+    header('Location: ../error.php?code=401&message=' . urlencode('Employee ID not found. Please log in again.'));
+    exit;
 }
 
 // Punch history
