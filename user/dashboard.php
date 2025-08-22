@@ -263,5 +263,6 @@ while ($row = $editResults->fetch_assoc()) {
             </table>
         </div>
         <?php endif; ?>
+<script>const empID = <?= (int)$empID ?>;</script>
 <script src="../js/user_dashboard.js"></script>
 <?php require_once 'footer.php'; ?>
