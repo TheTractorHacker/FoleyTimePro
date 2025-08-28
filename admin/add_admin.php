@@ -43,6 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Add Admin</title>
+    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
