@@ -15,6 +15,9 @@ $user = $_ENV['DB_USER'] ?? getenv('DB_USER');
 $pass = $_ENV['DB_PASS'] ?? getenv('DB_PASS');
 $tz   = $_ENV['DB_TIMEZONE'] ?? getenv('DB_TIMEZONE') ?? 'America/Chicago';
 
+// Ensure PHP operates in the configured timezone
+date_default_timezone_set($tz);
+
 if (!$host || !$db || !$user || $pass === null) {
     header('Location: ../error.php?code=500&message=' . urlencode('Database credentials not set.'));
     exit;

@@ -15,7 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let scanTimeout = null;
 
   function updateClock() {
-    currentTime.textContent = new Date().toLocaleTimeString();
+    currentTime.textContent = new Date().toLocaleTimeString('en-US', {
+      timeZone: 'America/Chicago'
+    });
   }
   updateClock();
   setInterval(updateClock, 1000);

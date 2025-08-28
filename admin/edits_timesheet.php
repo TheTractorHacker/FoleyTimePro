@@ -51,6 +51,10 @@ while ($row = $result->fetch_assoc()) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Employee Punch Adjustments</title>
+    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
+    <link rel="manifest" href="/manifest.json">
   <title>Employee Punch Adjustments</title>
     <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
     <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
