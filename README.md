@@ -29,15 +29,16 @@ Follow these steps to set up D-BEST TimeSmart using Docker:
     cd Timesmart
     ```
 
-2.  **Create a `.env` file:**
+2.  **Create a `.env` file for Docker Compose:**
 
-    Create a `.env` file in the `Install` directory and add the following environment variables:
+    In the `Install` directory, create a `.env` file containing your database credentials. Docker Compose will read this file and inject the variables into the running container:
 
     ```
     DB_HOST=your_database_host
     DB_USER=your_database_user
     DB_PASS=your_database_password
     DB_NAME=your_database_name
+    DB_TIMEZONE=America/Chicago
     ```
 
 3.  **Database Setup:**
@@ -70,7 +71,7 @@ Follow these steps to set up D-BEST TimeSmart using Docker:
 ## Troubleshooting
 
 *   **`docker-compose up` fails:** Ensure that you have Docker and Docker Compose installed correctly. Also, make sure that you are in the `Install` directory when you run the command.
-*   **Database Connection Error:** Double-check your database credentials in the `.env` file.
+*   **Database Connection Error:** Double-check your database credentials in the `.env` file used by Docker Compose.
 *   **Page Not Found (404):** Ensure that the application is running correctly by checking the Docker logs:
 
     ```bash

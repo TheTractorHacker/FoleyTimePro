@@ -1,7 +1,7 @@
 <?php
 // clock_action.php
 // --- SETUP AND DEPENDENCIES ---
-require '../auth/db.php';
+require_once __DIR__ . '/../auth/db.php';
 date_default_timezone_set('America/Chicago');
 header('Content-Type: application/json');
 
@@ -380,7 +380,15 @@ switch ($action) {
 
     case "clockout":
         if (!$lastPunch) {
-            send_json_response(false, "⚠️ No active punch to clock out from.", 400);
+            // No open punch – create a zero-duration entry so the attempt is recorded
+            $stmt = $conn->prepare("INSERT INTO timepunches (EmployeeID, Date, TimeIN, TimeOUT, TotalHours, IPAddressIN, IPAddressOut) VALUES (?, ?, ?, ?, 0, INET_ATON(?), INET_ATON(?))");
+            if ($stmt === false) { send_json_response(false, "DB prepare error (clockout-new)", 500, $conn->error); }
+            $stmt->bind_param("isssss", $empID, $date, $now, $now, $ip, $ip);
+            if (!$stmt->execute()) { send_json_response(false, "DB execute error (clockout-new)", 500, $stmt->error); }
+            $stmt->close();
+
+            setClockStatus($conn, $empID, 'Out');
+            send_json_response(true, "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " (new punch created)");
         }
 
         // Ensure lunch is properly ended if user clocks out while on lunch

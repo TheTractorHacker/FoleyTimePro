@@ -156,7 +156,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="robots" content="noindex,nofollow">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
+    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/user_verify_2fa.css">
 
 </head>
