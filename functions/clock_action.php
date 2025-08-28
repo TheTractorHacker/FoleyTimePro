@@ -400,10 +400,7 @@ switch ($action) {
             $msg .= " (submitted for approval)";
         }
         send_json_response(true, $msg);
-<<<<<<< HEAD
-=======
         send_json_response(true, "✅ Clocked in at " . date("g:i A", strtotime($now)));
->>>>>>> main
         break;
 
     case "lunchstart":
@@ -423,10 +420,7 @@ switch ($action) {
             $msg .= " (submitted for approval)";
         }
         send_json_response(true, $msg);
-<<<<<<< HEAD
-=======
         send_json_response(true, "🍽️ Lunch started at " . date("g:i A", strtotime($now)));
->>>>>>> main
         break;
 
     case "lunchend":
@@ -444,10 +438,7 @@ switch ($action) {
             $msg .= " (submitted for approval)";
         }
         send_json_response(true, $msg);
-<<<<<<< HEAD
-=======
         send_json_response(true, "✅ Lunch ended at " . date("g:i A", strtotime($now)));
->>>>>>> main
         break;
 
     case "clockout":
@@ -461,10 +452,7 @@ switch ($action) {
 
             setClockStatus($conn, $empID, 'Out');
             send_json_response(true, "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " (new punch created)");
-<<<<<<< HEAD
-=======
             send_json_response(false, "⚠️ No active punch to clock out from.", 400);
->>>>>>> main
         }
 
         // Ensure lunch is properly ended if user clocks out while on lunch
