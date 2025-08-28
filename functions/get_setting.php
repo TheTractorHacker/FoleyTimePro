@@ -1,6 +1,6 @@
 <?php
 // get_setting.php
-require 'auth/db.php';
+require_once __DIR__ . '/../auth/db.php';
 
 header('Content-Type: application/json');
 
