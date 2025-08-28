@@ -389,6 +389,7 @@ switch ($action) {
 
             setClockStatus($conn, $empID, 'Out');
             send_json_response(true, "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " (new punch created)");
+            send_json_response(false, "⚠️ No active punch to clock out from.", 400);
         }
 
         // Ensure lunch is properly ended if user clocks out while on lunch
