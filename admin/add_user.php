@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Basic validation
     if (!$firstName || !$lastName || !$office || !$password) {
-        die("First name, last name, office, and password are required.");
+        header('Location: ../error.php?code=400&message=' . urlencode('First name, last name, office, and password are required.'));
+        exit;
     }
 
     // Check for duplicate TagID if provided
@@ -27,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->store_result();
         if ($stmt->num_rows > 0) {
             $stmt->close();
-            die("Tag ID already exists.");
+            header('Location: ../error.php?code=400&message=' . urlencode('Tag ID already exists.'));
+            exit;
         }
         $stmt->close();
     }
@@ -47,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: manage_users.php");
         exit;
     } else {
-        die("Error: " . $stmt->error);
+        header('Location: ../error.php?code=500&message=' . urlencode('Error: ' . $stmt->error));
+        exit;
     }
 }
 ?>

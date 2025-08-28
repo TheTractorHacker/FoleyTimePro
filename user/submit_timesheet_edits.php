@@ -13,7 +13,8 @@ $postEmpID = $_POST['EmployeeID'] ?? null;
 $entries = $_POST['entries'] ?? [];
 
 if ($sessionEmpID != $postEmpID || empty($entries)) {
-    die("Invalid submission.");
+    header('Location: ../error.php?code=400&message=' . urlencode('Invalid submission.'));
+    exit;
 }
 
 $inserted = 0;

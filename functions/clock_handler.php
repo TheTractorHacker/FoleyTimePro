@@ -1,7 +1,7 @@
 <?php
 date_default_timezone_set('America/Chicago'); // or your desired timezone
 
-require 'auth/db.php';
+require_once __DIR__ . '/../auth/db.php';
 
 $action = $_POST['action'] ?? null;
 $empID = $_POST['EmployeeID'] ?? null;

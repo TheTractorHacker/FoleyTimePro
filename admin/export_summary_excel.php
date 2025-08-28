@@ -15,7 +15,8 @@ $rounding = intval($_POST['rounding'] ?? 0);
 $separatePages = intval($_POST['separate_pages'] ?? 0);
 
 if (!$startDate || !$endDate) {
-    die("Start and end dates are required.");
+    header('Location: ../error.php?code=400&message=' . urlencode('Start and end dates are required.'));
+    exit;
 }
 
 // === HELPER FUNCTIONS ===
