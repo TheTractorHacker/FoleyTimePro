@@ -79,6 +79,31 @@ function calculateTotalHours($clockIn, $lunchOut, $lunchIn, $clockOut) {
     return round($totalSeconds / 3600, 2);
 }
 
+
+/**
+ * Logs a pending edit when a punch time is adjusted.
+ *
+ * @param mysqli      $conn      Database connection
+ * @param int         $empID     Employee ID
+ * @param string      $date      Date of the punch
+ * @param string      $field     Column to adjust (TimeIN, TimeOut, etc.)
+ * @param string|null $newTime   Adjusted time (H:i:s) or null
+ * @param string      $note      Optional note from user
+ * @return bool                  True if pending edit inserted
+ */
+function logPendingEdit($conn, $empID, $date, $field, $newTime, $note) {
+    if (!$newTime) { return false; }
+
+    $reason = $note ?: 'Time adjustment requested at punch';
+    $sql = "INSERT INTO pending_edits (EmployeeID, Date, Note, Reason, Status, SubmittedAt, $field) VALUES (?, ?, ?, ?, 'Pending', NOW(), ? )";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) { return false; }
+    $stmt->bind_param('issss', $empID, $date, $note, $reason, $newTime);
+    $stmt->execute();
+    $stmt->close();
+    return true;
+}
+
 // --- Check TagID Status (kiosk_status) ---
 if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_status' && !empty($_POST['TagID'])) {
     $tagID = trim($_POST['TagID']);
@@ -281,6 +306,11 @@ if ($gpsRequired && ($lat === null || $lon === null) && $ip === null) {
 
 // --- Time Calculation ---
 try {
+    // Always base the punch on the actual client/server time
+    if ($clientTime) {
+        $dateTime = new DateTime($clientTime);
+        $dateTime->setTimezone(new DateTimeZone('America/Chicago'));
+    } else {
     // Prioritize the precise clientTime from JavaScript
     if ($clientTime) {
         $dateTime = new DateTime($clientTime);
@@ -297,6 +327,19 @@ try {
 } catch (Exception $e) {
     send_json_response(false, "Invalid time format provided.", 400, $e->getMessage());
 }
+
+// Parse adjusted time separately for pending approval
+$adjustedTimeFormatted = null;
+if ($adjustedTime) {
+    try {
+        $adjDate = new DateTime(date('Y-m-d') . ' ' . $adjustedTime, new DateTimeZone('America/Chicago'));
+        $adjustedTimeFormatted = $adjDate->format('H:i:s');
+    } catch (Exception $e) {
+        send_json_response(false, "Invalid adjusted time format provided.", 400, $e->getMessage());
+    }
+}
+
+$pendingTime = ($adjustedTimeFormatted && $adjustedTimeFormatted !== $now) ? $adjustedTimeFormatted : null;
 
 // --- Get User Status & Latest Punch ---
 
@@ -347,6 +390,11 @@ switch ($action) {
             send_json_response(false, "DB execute error (clockin)", 500, $stmt->error);
         }
         setClockStatus($conn, $empID, 'In');
+        $msg = "✅ Clocked in at " . date("g:i A", strtotime($now));
+        if (logPendingEdit($conn, $empID, $date, 'TimeIN', $pendingTime, $note)) {
+            $msg .= " (submitted for approval)";
+        }
+        send_json_response(true, $msg);
         send_json_response(true, "✅ Clocked in at " . date("g:i A", strtotime($now)));
         break;
 
@@ -362,6 +410,11 @@ switch ($action) {
         }
 
         setClockStatus($conn, $empID, 'Lunch');
+        $msg = "🍽️ Lunch started at " . date("g:i A", strtotime($now));
+        if (logPendingEdit($conn, $empID, $date, 'LunchStart', $pendingTime, $note)) {
+            $msg .= " (submitted for approval)";
+        }
+        send_json_response(true, $msg);
         send_json_response(true, "🍽️ Lunch started at " . date("g:i A", strtotime($now)));
         break;
 
@@ -375,6 +428,11 @@ switch ($action) {
         if (!$stmt->execute()) { send_json_response(false, "DB execute error (lunchend)", 500, $stmt->error); }
 
         setClockStatus($conn, $empID, 'In');
+        $msg = "✅ Lunch ended at " . date("g:i A", strtotime($now));
+        if (logPendingEdit($conn, $empID, $date, 'LunchEnd', $pendingTime, $note)) {
+            $msg .= " (submitted for approval)";
+        }
+        send_json_response(true, $msg);
         send_json_response(true, "✅ Lunch ended at " . date("g:i A", strtotime($now)));
         break;
 
@@ -414,6 +472,9 @@ switch ($action) {
 
         setClockStatus($conn, $empID, 'Out');
         $message = "🕔 Clocked out at " . date("g:i A", strtotime($now)) . ". Total Hours: " . number_format($totalHours, 2);
+        if (logPendingEdit($conn, $empID, $date, 'TimeOut', $pendingTime, $note)) {
+            $message .= " (submitted for approval)";
+        }
         send_json_response(true, $message);
         break;
 

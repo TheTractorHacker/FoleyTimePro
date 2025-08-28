@@ -139,7 +139,8 @@ function confirmSubmit() {
     const acc = document.getElementById("accuracy").value;
     const action = document.getElementById("confirmAction").value;
 
-    sendPunch(empID, action, note, selectedTime, lat, lon, acc);
+    // No adjustment: pass empty time so server uses actual clock time
+    sendPunch(empID, action, note, '', lat, lon, acc);
 }
 
 /**
