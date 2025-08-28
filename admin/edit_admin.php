@@ -64,11 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $admin) {
 <head>
     <meta charset="UTF-8">
     <title>Edit Admin</title>
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
     <header>
-        <img src="../images/D-Best.png" alt="Logo" class="logo">
+        <img src="/images/D-Best.png" alt="Logo" class="logo">
         <h1>Edit Admin</h1>
         <nav>
         <a href="dashboard.php">Dashboard</a>

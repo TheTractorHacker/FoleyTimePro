@@ -54,7 +54,8 @@ $sql .= " GROUP BY tp.EmployeeID, tp.Date ORDER BY tp.Date DESC";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    die("Query error: " . $conn->error);
+    header('Location: ../error.php?code=500&message=' . urlencode('Query error: ' . $conn->error));
+    exit;
 }
 
 $stmt->bind_param($types, ...$params);
@@ -125,6 +126,9 @@ if (empty($employeeID)) {
 <head>
     <meta charset="UTF-8">
     <title>Summary Reports</title>
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <link rel="stylesheet" href="../css/summary.css">
@@ -132,7 +136,7 @@ if (empty($employeeID)) {
 <body>
 
 <header>
-    <img src="../images/D-Best.png" alt="D-Best Logo" class="logo">
+    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
     <h1>Summary Reports</h1>
     <nav>
         <a href="dashboard.php">Dashboard</a>

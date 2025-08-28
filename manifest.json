@@ -1,15 +1,24 @@
 {
   "name": "D-Best TimeClock",
   "short_name": "TimeClock",
+  "description": "Track employee punches with D-Best TimeClock",
   "start_url": "/index.php",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#2c3e50",
   "icons": [
     {
-      "src": "images/D-Best-favicon.webp",
+      "src": "/images/D-Best.png",
       "sizes": "192x192",
-      "type": "image/webp"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/D-Best-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

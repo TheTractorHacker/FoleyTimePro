@@ -15,7 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let scanTimeout = null;
 
   function updateClock() {
-    currentTime.textContent = new Date().toLocaleTimeString();
+    currentTime.textContent = new Date().toLocaleTimeString('en-US', {
+      timeZone: 'America/Chicago'
+    });
   }
   updateClock();
   setInterval(updateClock, 1000);
@@ -31,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!tag) return;
       scannedTag = tag;
 
-      fetch("../fucntions/clock_action.php", {
+      fetch("../functions/clock_action.php", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ TagID: scannedTag, mode: "kiosk_status" })
@@ -57,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.submitPunch = function (action) {
     if (!scannedTag || !action) return;
 
-    fetch("../fucntions/clock_action.php", {
+    fetch("../functions/clock_action.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ TagID: scannedTag, mode: "kiosk", action })

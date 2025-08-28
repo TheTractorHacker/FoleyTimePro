@@ -13,13 +13,16 @@ if (!isset($_SESSION['admin'])) {
 <head>
     <meta charset="UTF-8">
     <title>Reports Dashboard</title>
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/reports.css">
 </head>
 <body>
 
 <header>
-    <img src="../images/D-Best.png" alt="D-Best Logo" class="logo">
+    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
     <h1>Reports Dashboard</h1>
     <nav>
         <a href="dashboard.php">Dashboard</a>

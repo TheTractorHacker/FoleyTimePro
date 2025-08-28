@@ -25,7 +25,8 @@ if ($result) { $result->free(); }
 $stmt->close();
 
 if (!$user || empty($user['Email'])) {
-    die("User not found or missing email.");
+    header('Location: ../error.php?code=404&message=' . urlencode('User not found or missing email.'));
+    exit;
 }
 
 // --- Build or reuse TOTP (persist secret during setup) ---
