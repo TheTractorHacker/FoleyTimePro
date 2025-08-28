@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kiosk TimeSmart</title>
   <link rel="stylesheet" href="kiosk.css" />
-  <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
+  <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
 </head>
 <body>

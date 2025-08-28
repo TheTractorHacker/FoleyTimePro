@@ -20,9 +20,10 @@ $employeeID = $_GET['emp'] ?? '';
 <head>
     <meta charset="UTF-8">
     <title>View Punches</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
     <link rel="stylesheet" href="../css/timesheet.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <link rel="stylesheet" href="../css/view_punches.css">
