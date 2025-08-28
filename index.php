@@ -19,7 +19,9 @@ $gpsQuery->close();
 <head>
     <title>D-Best TimeClock</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/webp" href="images/D-Best-favicon.webp">
+    <link rel="icon" type="image/png" href="images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="images/D-Best-favicon.png">
+    <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#126ab3">
 </head>
@@ -142,7 +144,7 @@ $gpsQuery->close();
     </div>
 </div>
 
-<?php include 'fucntions/modal.html'; ?>
+<?php include 'functions/modal.html'; ?>
 
 <script src="js/index.js"></script>
 

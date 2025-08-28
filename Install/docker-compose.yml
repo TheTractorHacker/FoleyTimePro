@@ -6,8 +6,12 @@ services:
     container_name: timeclock_app
     ports:
       - "8080:80"
-    env_file:
-      - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_TIMEZONE: ${DB_TIMEZONE:-America/Chicago}
     networks:
       - timeclock_network
 
@@ -15,8 +19,11 @@ services:
 #   image: mariadb:latest
 #   container_name: timeclock_db
 #   restart: unless-stopped
-#   env_file:
-#     - .env
+#   environment:
+#     MYSQL_ROOT_PASSWORD: ${DB_PASS}
+#     MYSQL_DATABASE: ${DB_NAME}
+#     MYSQL_USER: ${DB_USER}
+#     MYSQL_PASSWORD: ${DB_PASS}
 #   volumes:
 #     - ./timeclock-schema.sql:/docker-entrypoint-initdb.d/init.sql
 #   networks:
