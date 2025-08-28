@@ -380,6 +380,15 @@ switch ($action) {
 
     case "clockout":
         if (!$lastPunch) {
+            // No open punch – create a zero-duration entry so the attempt is recorded
+            $stmt = $conn->prepare("INSERT INTO timepunches (EmployeeID, Date, TimeIN, TimeOUT, TotalHours, IPAddressIN, IPAddressOut) VALUES (?, ?, ?, ?, 0, INET_ATON(?), INET_ATON(?))");
+            if ($stmt === false) { send_json_response(false, "DB prepare error (clockout-new)", 500, $conn->error); }
+            $stmt->bind_param("isssss", $empID, $date, $now, $now, $ip, $ip);
+            if (!$stmt->execute()) { send_json_response(false, "DB execute error (clockout-new)", 500, $stmt->error); }
+            $stmt->close();
+
+            setClockStatus($conn, $empID, 'Out');
+            send_json_response(true, "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " (new punch created)");
             send_json_response(false, "⚠️ No active punch to clock out from.", 400);
         }
 

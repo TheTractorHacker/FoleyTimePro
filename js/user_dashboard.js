@@ -13,6 +13,9 @@ function togglePunch() {
 
 // Submit clock actions to the server
 function submitAction(action) {
+    if (action === 'clockout' && !confirm('Are you sure you want to clock out?')) {
+        return; // User cancelled
+    }
     const note = document.getElementById('note').value;
     fetch('../functions/clock_action.php', {
         method: 'POST',
