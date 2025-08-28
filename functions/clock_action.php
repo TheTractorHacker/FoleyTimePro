@@ -79,7 +79,6 @@ function calculateTotalHours($clockIn, $lunchOut, $lunchIn, $clockOut) {
     return round($totalSeconds / 3600, 2);
 }
 
-
 /**
  * Logs a pending edit when a punch time is adjusted.
  *
@@ -331,6 +330,16 @@ try {
 // Parse adjusted time separately for pending approval
 $adjustedTimeFormatted = null;
 if ($adjustedTime) {
+    $formats = ['g:i A', 'g:i a', 'H:i', 'H:i:s'];
+    $adjDate = null;
+    foreach ($formats as $fmt) {
+        $adjDate = DateTime::createFromFormat($fmt, $adjustedTime, new DateTimeZone('America/Chicago'));
+        if ($adjDate !== false) { break; }
+    }
+    if ($adjDate) {
+        $adjustedTimeFormatted = $adjDate->format('H:i:s');
+    } else {
+        send_json_response(false, "Invalid adjusted time format provided.", 400);
     try {
         $adjDate = new DateTime(date('Y-m-d') . ' ' . $adjustedTime, new DateTimeZone('America/Chicago'));
         $adjustedTimeFormatted = $adjDate->format('H:i:s');

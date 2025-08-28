@@ -24,6 +24,16 @@
       <div id="statusArea" class="hidden">
         <p id="currentStatus"></p>
         <textarea id="note" placeholder="Optional note..."></textarea><br>
+        <div class="action-grid">
+          <div class="col">
+            <button class="clockin" onclick="submitAction('clockin')">Clock In</button>
+            <button class="clockout" onclick="submitAction('clockout')">Clock Out</button>
+          </div>
+          <div class="col">
+            <button class="lunchstart" onclick="submitAction('lunchstart')">Lunch Start</button>
+            <button class="lunchend" onclick="submitAction('lunchend')">Lunch End</button>
+          </div>
+        </div>
         <button onclick="submitAction('clockin')">Clock In</button>
         <button onclick="submitAction('lunchstart')">Lunch Start</button>
         <button onclick="submitAction('lunchend')">Lunch End</button>
