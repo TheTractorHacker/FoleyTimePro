@@ -306,19 +306,17 @@ if ($gpsRequired && ($lat === null || $lon === null) && $ip === null) {
 // --- Time Calculation ---
 try {
     // Always base the punch on the actual client/server time
+
     if ($clientTime) {
         $dateTime = new DateTime($clientTime);
         $dateTime->setTimezone(new DateTimeZone('America/Chicago'));
     } else {
     // Prioritize the precise clientTime from JavaScript
+
     if ($clientTime) {
         $dateTime = new DateTime($clientTime);
         $dateTime->setTimezone(new DateTimeZone('America/Chicago'));
-    } elseif ($adjustedTime) {
-        // Fallback to adjusted time, assuming today's date
-        $dateTime = new DateTime(date('Y-m-d') . ' ' . $adjustedTime, new DateTimeZone('America/Chicago'));
     } else {
-        // Default to current server time
         $dateTime = new DateTime('now', new DateTimeZone('America/Chicago'));
     }
     $now  = $dateTime->format('H:i:s');
@@ -340,11 +338,14 @@ if ($adjustedTime) {
         $adjustedTimeFormatted = $adjDate->format('H:i:s');
     } else {
         send_json_response(false, "Invalid adjusted time format provided.", 400);
+<<<<<<< HEAD
+=======
     try {
         $adjDate = new DateTime(date('Y-m-d') . ' ' . $adjustedTime, new DateTimeZone('America/Chicago'));
         $adjustedTimeFormatted = $adjDate->format('H:i:s');
     } catch (Exception $e) {
         send_json_response(false, "Invalid adjusted time format provided.", 400, $e->getMessage());
+>>>>>>> main
     }
 }
 
@@ -404,7 +405,10 @@ switch ($action) {
             $msg .= " (submitted for approval)";
         }
         send_json_response(true, $msg);
+<<<<<<< HEAD
+=======
         send_json_response(true, "✅ Clocked in at " . date("g:i A", strtotime($now)));
+>>>>>>> main
         break;
 
     case "lunchstart":
@@ -424,7 +428,10 @@ switch ($action) {
             $msg .= " (submitted for approval)";
         }
         send_json_response(true, $msg);
+<<<<<<< HEAD
+=======
         send_json_response(true, "🍽️ Lunch started at " . date("g:i A", strtotime($now)));
+>>>>>>> main
         break;
 
     case "lunchend":
@@ -442,7 +449,10 @@ switch ($action) {
             $msg .= " (submitted for approval)";
         }
         send_json_response(true, $msg);
+<<<<<<< HEAD
+=======
         send_json_response(true, "✅ Lunch ended at " . date("g:i A", strtotime($now)));
+>>>>>>> main
         break;
 
     case "clockout":
@@ -456,7 +466,10 @@ switch ($action) {
 
             setClockStatus($conn, $empID, 'Out');
             send_json_response(true, "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " (new punch created)");
+<<<<<<< HEAD
+=======
             send_json_response(false, "⚠️ No active punch to clock out from.", 400);
+>>>>>>> main
         }
 
         // Ensure lunch is properly ended if user clocks out while on lunch

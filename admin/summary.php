@@ -126,6 +126,9 @@ if (empty($employeeID)) {
 <head>
     <meta charset="UTF-8">
     <title>Summary Reports</title>
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
     <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
@@ -137,7 +140,7 @@ if (empty($employeeID)) {
 <body>
 
 <header>
-    <img src="../images/D-Best.png" alt="D-Best Logo" class="logo">
+    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
     <h1>Summary Reports</h1>
     <nav>
         <a href="dashboard.php">Dashboard</a>

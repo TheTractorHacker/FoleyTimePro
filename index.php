@@ -19,6 +19,8 @@ $gpsQuery->close();
 <head>
     <title>D-Best TimeClock</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
     <link rel="icon" type="image/png" href="images/D-Best-favicon.png">
     <link rel="apple-touch-icon" href="images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
@@ -30,7 +32,7 @@ $gpsQuery->close();
 <!-- 🌐 Desktop Nav -->
 <header class="topnav desktop-only">
   <div class="topnav-left">
-    <img src="images/D-Best.png" class="nav-logo" alt="Logo">
+    <img src="/images/D-Best.png" class="nav-logo" alt="Logo">
     <span class="nav-title">D-BEST TimeSmart</span>
   </div>
   <div class="topnav-right">
@@ -49,7 +51,7 @@ $gpsQuery->close();
 
 <!-- 📱 Mobile Banner -->
 <div class="mobile-banner mobile-only">
-  <img src="images/D-Best.png" alt="Logo" class="nav-logo">
+  <img src="/images/D-Best.png" alt="Logo" class="nav-logo">
   <span class="nav-title">D-BEST TimeSmart</span>
 </div>
 
