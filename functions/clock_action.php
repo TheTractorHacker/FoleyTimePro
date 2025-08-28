@@ -336,14 +336,11 @@ if ($adjustedTime) {
         $adjustedTimeFormatted = $adjDate->format('H:i:s');
     } else {
         send_json_response(false, "Invalid adjusted time format provided.", 400);
-<<<<<<< HEAD
-=======
     try {
         $adjDate = new DateTime(date('Y-m-d') . ' ' . $adjustedTime, new DateTimeZone('America/Chicago'));
         $adjustedTimeFormatted = $adjDate->format('H:i:s');
     } catch (Exception $e) {
         send_json_response(false, "Invalid adjusted time format provided.", 400, $e->getMessage());
->>>>>>> main
     }
 }
 
