@@ -39,6 +39,8 @@ foreach ($extensions as $ext) {
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/png" href="/images/D-Best.png">
     <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="../js/user_header.js"></script>
@@ -48,6 +50,11 @@ foreach ($extensions as $ext) {
 <header class="topnav desktop-only">
   <div class="topnav-left">
     <img src="/images/D-Best.png" class="nav-logo" alt="Logo">
+    <?php include '../functions/modal.html'; ?>
+
+<header class="topnav desktop-only">
+  <div class="topnav-left">
+    <img src="../images/D-Best-favicon.png" class="nav-logo" alt="Logo">
     <span class="nav-title">D-BEST TimeSmart</span>
   </div>
   <div class="topnav-right">
