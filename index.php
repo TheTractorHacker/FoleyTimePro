@@ -19,6 +19,8 @@ $gpsQuery->close();
 <head>
     <title>D-Best TimeClock</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
     <link rel="icon" type="image/png" href="images/D-Best-favicon.png">
     <link rel="apple-touch-icon" href="images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
