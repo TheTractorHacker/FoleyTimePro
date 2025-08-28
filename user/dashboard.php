@@ -1,14 +1,11 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once 'header.php';
 $empID = $_SESSION['EmployeeID'] ?? null;
 $name = $_SESSION['Name'] ?? 'User';
 
 if (!$empID) {
-    die("Employee ID not found. Please log in again.");
+    header('Location: ../error.php?code=401&message=' . urlencode('Employee ID not found. Please log in again.'));
+    exit;
 }
 
 // Punch history
@@ -94,62 +91,6 @@ while ($row = $editResults->fetch_assoc()) {
     $editRequests[] = $row;
 }
 ?>
-<style>
-    .status-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        color: white;
-        text-transform: capitalize;
-    }
-    .badge-pending { background-color: #FFA500; }
-    .badge-approved { background-color: #28a745; }
-    .badge-rejected { background-color: #dc3545; }
-    .badge-unknown { background-color: #6c757d; }
-
-    .edit-status-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
-    .edit-status-table th,
-    .edit-status-table td {
-        padding: 0.5rem;
-        border-bottom: 1px solid #ccc;
-        text-align: left;
-    }
-
-    .current-status-badge {
-        display: inline-block;
-        padding: 8px 12px;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: bold;
-        color: white;
-        text-transform: uppercase;
-    }
-
-    .status-in {
-        background-color: #28a745;
-        padding: 20px;
-        font-size: 17px;
-    }
-
-    .status-out {
-        background-color: #dc3545;
-        padding: 20px;
-        font-size: 17px;
-    }
-
-    .status-on-lunch {
-        background-color: #FFA500;
-        padding: 20px;
-        font-size: 17px;
-    }
-
-</style>
         <h2>Welcome, <?= htmlspecialchars($name) ?>!</h2>
         
         <div class="card">
@@ -262,5 +203,6 @@ while ($row = $editResults->fetch_assoc()) {
             </table>
         </div>
         <?php endif; ?>
+<script>const empID = <?= (int)$empID ?>;</script>
 <script src="../js/user_dashboard.js"></script>
 <?php require_once 'footer.php'; ?>

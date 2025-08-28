@@ -97,13 +97,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Edit User - D-Best TimeClock</title>
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/edit_user.css">
 
 </head>
 <body>
 
 <header class="banner">
-    <img src="../images/D-Best.png" alt="D-Best Logo" class="logo">
+    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
     <h1>Edit User - <?= htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']) ?></h1>
     <nav>
         <a href="dashboard.php">Dashboard</a>

@@ -127,12 +127,15 @@ if ($exportPDF) {
 <html>
 <head>
     <title>Attendance Report</title>
+    <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="../css/attendance.css">
 </head>
 <body>
 
 <header>
-    <img src="../images/D-Best.png" alt="TimeClock Logo" class="logo">
+    <img src="/images/D-Best.png" alt="TimeClock Logo" class="logo">
     <h1>Attendance Report</h1>
 </header>
 

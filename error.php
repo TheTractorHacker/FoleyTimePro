@@ -1,5 +1,6 @@
 <?php
-$code = $_GET['code'] ?? 'Error';
+$code = isset($_GET['code']) ? (int) $_GET['code'] : 500;
+http_response_code($code);
 $message = $_GET['message'] ?? 'Something went wrong';
 ?>
 <!DOCTYPE html>
@@ -7,6 +8,9 @@ $message = $_GET['message'] ?? 'Something went wrong';
 <head>
   <meta charset="UTF-8" />
   <title><?= htmlspecialchars($code) ?> | Something went wrong</title>
+  <link rel="icon" type="image/png" href="/images/D-Best.png">
+    <link rel="apple-touch-icon" href="/images/D-Best.png">
+    <link rel="manifest" href="/manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
