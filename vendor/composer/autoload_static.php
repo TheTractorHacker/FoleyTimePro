@@ -33,6 +33,7 @@ class ComposerStaticInit62e10e6c8df9afc192311b196c75bb33
             'PhpOption\\' => 10,
             'PhpOffice\\PhpSpreadsheet\\' => 25,
             'ParagonIE\\ConstantTime\\' => 23,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'O' => 
         array (
@@ -111,6 +112,10 @@ class ComposerStaticInit62e10e6c8df9afc192311b196c75bb33
         'ParagonIE\\ConstantTime\\' => 
         array (
             0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'OTPHP\\' => 
         array (

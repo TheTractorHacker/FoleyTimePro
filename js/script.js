@@ -57,6 +57,29 @@ let selectedTime = "";
 
 // ⏱ Trigger punch action and gather GPS
 async function submitAction(action) {
+    if (action === 'clockout') {
+        const popup = document.getElementById('confirmationPopup');
+        const message = document.getElementById('confirmationMessage');
+        const yesBtn = document.getElementById('confirmYes');
+        const noBtn = document.getElementById('confirmNo');
+
+        message.textContent = 'Are you sure you want to clock out?';
+        popup.classList.remove('hidden');
+
+        yesBtn.onclick = () => {
+            popup.classList.add('hidden');
+            proceedWithAction(action);
+        };
+
+        noBtn.onclick = () => {
+            popup.classList.add('hidden');
+        };
+    } else {
+        proceedWithAction(action);
+    }
+}
+
+async function proceedWithAction(action) {
     // Reset hidden location values
     document.getElementById('latitude').value = '';
     document.getElementById('longitude').value = '';

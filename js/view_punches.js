@@ -1,5 +1,24 @@
-    new Litepicker({ element: document.getElementById('weekFrom'), singleMode: true, format: 'MM/DD/YYYY' });
-    new Litepicker({ element: document.getElementById('weekTo'), singleMode: true, format: 'MM/DD/YYYY' });
+    document.addEventListener('DOMContentLoaded', function () {
+    new Litepicker({
+        element: document.getElementById('daterange'),
+        singleMode: false,
+        numberOfMonths: 1,
+        numberOfColumns: 1,
+        format: 'MM/DD/YYYY',
+        maxDays: 31,
+        dropdowns: {
+            minYear: 2020,
+            maxYear: null,
+            months: true,
+            years: true
+        },
+        autoApply: true,
+        tooltipText: {
+            one: 'day',
+            other: 'days'
+        },
+        tooltipNumber: totalDays => totalDays - 1
+    });
 
     function toMinutes(timeStr) {
         if (!timeStr) return null;
@@ -37,12 +56,17 @@
             }
         });
 
-        document.getElementById('weekly-total').innerText = weeklyTotal.toFixed(2) + "h";
-        document.getElementById('weekly-overtime').innerText = (weeklyTotal > 40 ? (weeklyTotal - 40).toFixed(2) : "0.00") + "h";
+        const weeklyTotalEl = document.getElementById('weekly-total');
+        if (weeklyTotalEl) {
+            weeklyTotalEl.innerText = weeklyTotal.toFixed(2) + "h";
+        }
+        const weeklyOvertimeEl = document.getElementById('weekly-overtime');
+        if (weeklyOvertimeEl) {
+            weeklyOvertimeEl.innerText = (weeklyTotal > 40 ? (weeklyTotal - 40).toFixed(2) : "0.00") + "h";
+        }
     }
 
     document.querySelectorAll('input[type="time"]').forEach(input => {
         input.addEventListener('change', updateTotals);
     });
-
-    updateTotals();
+});

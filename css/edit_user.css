@@ -1,4 +1,4 @@
-    body {
+body {
         font-family: 'Segoe UI', sans-serif;
         background-color: #f4f6f9;
         margin: 0;
@@ -7,7 +7,7 @@
     }
 
     .banner {
-        background-color: #0078D7;
+        background-color: #073851;
         color: white;
         padding: 1.5rem;
         text-align: center;
@@ -117,7 +117,7 @@
     }
 
     input:checked + .slider {
-        background-color: #0078D7;
+        background-color: #073851;
     }
 
     input:checked + .slider:before {
@@ -140,12 +140,12 @@
     }
 
     .btn.primary {
-        background-color: #0078D7;
+        background-color: #073851;
         color: white;
     }
 
     .btn.primary:hover {
-        background-color: #005fa3;
+        background-color: #042a3d;
     }
 
     .btn.danger {

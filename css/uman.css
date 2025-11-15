@@ -1,8 +1,8 @@
 /* === User Management Styling (uman.css) === */
 
 :root {
-    --primary-color: #0078D7;
-    --primary-hover: #005fa3;
+    --primary-color: #073851;
+    --primary-hover: #042a3d;
     --danger-color: #dc3545;
     --danger-hover: #bb2d3b;
     --warning-color: #ffc107;
@@ -82,7 +82,6 @@ nav a:hover {
     width: 100%;
     border-collapse: collapse;
     border-radius: var(--radius);
-    overflow: hidden;
     background-color: white;
 }
 

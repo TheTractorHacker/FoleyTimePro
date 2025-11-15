@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #0078D7;
-    --primary-hover: #005fa3;
+    --primary-color: #073851;
+    --primary-hover: #042a3d;
     --bg-color: #f4f6f9;
     --card-bg: #ffffff;
     --text-color: #333;
@@ -378,3 +378,181 @@ select {
     width: 5%;
 }
 
+/* Timesheet Summary */
+.timesheet-summary {
+    background-color: var(--card-bg);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.timesheet-summary p {
+    margin: 0.5rem 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+/* Options Bar */
+.options-bar {
+    background-color: var(--card-bg);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.options-bar label {
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.options-bar select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Timesheet Edit Container */
+.timesheet-edit-container {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-top: 1.5rem;
+}
+
+.timesheet-edit-container h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Timesheet Edit Table */
+.timesheet-edit-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1.5rem;
+    background-color: var(--card-bg);
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.timesheet-edit-table thead {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.timesheet-edit-table th,
+.timesheet-edit-table td {
+    padding: 0.8rem 0.6rem;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.timesheet-edit-table th:first-child { border-top-left-radius: var(--border-radius); }
+.timesheet-edit-table th:last-child { border-top-right-radius: var(--border-radius); }
+
+.timesheet-edit-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.timesheet-edit-table tr:nth-child(even) {
+    background-color: #f8fafd;
+}
+
+.timesheet-edit-table tbody tr:hover {
+    background-color: #f0f7ff;
+}
+
+.timesheet-edit-table input[type="date"],
+.timesheet-edit-table input[type="time"] {
+    width: calc(100% - 10px);
+    padding: 0.5rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timesheet-edit-table input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+    outline: none;
+}
+
+.timesheet-edit-table .total-hours {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Buttons within edit table */
+.timesheet-edit-table button {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-delete-punch {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete-punch:hover {
+    background-color: #c82333;
+}
+
+/* Add New Punch and Save Changes Buttons */
+#btn-add-new-punch,
+#btn-save-changes {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 1.5rem;
+}
+
+#btn-add-new-punch {
+    background-color: #007bff;
+    color: white;
+    margin-right: 1rem;
+}
+
+#btn-add-new-punch:hover {
+    background-color: #0056b3;
+}
+
+#btn-save-changes {
+    background-color: #28a745;
+    color: white;
+}
+
+#btn-save-changes:hover {
+    background-color: #218838;
+}

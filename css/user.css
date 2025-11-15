@@ -58,7 +58,7 @@ body[data-theme="dark"] .dropdown-menu {
 
 .dropdown-menu a:hover {
   background-color: #e0f2f7; /* Subtle light blue highlight for light mode */
-  color: #0d6efd; /* Keep original hover text color */
+  color: #073851; /* Keep original hover text color */
 }
 
 body[data-theme="dark"] .dropdown-menu a:hover {
@@ -100,7 +100,7 @@ body[data-theme="dark"] .suggestion-box li {
 
 body[data-theme="dark"] .suggestion-box li:hover {
   background-color: #3c3f41;
-  color: #0d6efd;
+  color: #073851;
 }
 
 
@@ -173,15 +173,15 @@ body {
 .suggestion-box li:hover,
 .suggestion-box li.active {
   background-color: #eaf3ff;
-  color: #0d6efd;
+  color: #073851;
   font-weight: 600;
 }
 
 
 /* 🧭 Top Navigation */
 .topnav, .mobile-topnav {
-  background-color: #0d6efd;
-  color: white;
+  background-color: #073851;
+  color: #FFFFFF;
   padding: 12px 20px;
   display: flex;
   justify-content: space-between;
@@ -289,7 +289,7 @@ body[data-theme="light"] .dropdown-menu a {
 
 .dropdown-menu a:hover {
   background-color: #f2f4f7;
-  color: #0d6efd;
+  color: #073851;
 }
 
 .dropdown-menu.hidden {
@@ -303,7 +303,7 @@ body[data-theme="light"] .dropdown-menu a {
   font-weight: bold;
   border: none;
   border-radius: 6px;
-  background-color: #0d6efd;
+  background-color: #073851;
   color: white;
   cursor: pointer;
   margin-bottom: 20px;
@@ -311,13 +311,13 @@ body[data-theme="light"] .dropdown-menu a {
 }
 
 .toggle-punch:hover {
-  background-color: #0b5ed7;
+  background-color: #042a3d;
 }
 
 /* 🔵 Headings */
 h2 {
   font-size: 26px;
-  color: #126ab3;
+  color: #1f5a78;
   margin-bottom: 20px;
   font-weight: bold;
 }
@@ -378,10 +378,10 @@ h4 {
 .card .hours-live {
   margin-top: 12px;
   font-weight: bold;
-  color: #126ab3;
+  color: #1f5a78;
   background-color: #eaf3ff;
   padding: 10px 14px;
-  border-left: 5px solid #0d6efd;
+  border-left: 5px solid #073851;
   border-radius: 6px;
 }
 
@@ -408,8 +408,8 @@ h4 {
 .punch-buttons .clockin    { background-color: #28a745; }
 .punch-buttons .clockin:hover { background-color: #218838; }
 
-.punch-buttons .lunchstart { background-color: #0d6efd; }
-.punch-buttons .lunchstart:hover { background-color: #0b5ed7; }
+.punch-buttons .lunchstart { background-color: #073851; }
+.punch-buttons .lunchstart:hover { background-color: #042a3d; }
 
 .punch-buttons .lunchend   { background-color: #fd7e14; }
 .punch-buttons .lunchend:hover { background-color: #e66e0e; }
@@ -445,7 +445,7 @@ h4 {
 }
 
 .date-range button {
-  background-color: #0d6efd;
+  background-color: #073851;
   color: white;
   padding: 10px 16px;
   font-weight: bold;
@@ -457,7 +457,7 @@ h4 {
 }
 
 .date-range button:hover {
-  background-color: #0b5ed7;
+  background-color: #042a3d;
 }
 
 /* 📊 Summary Table */
@@ -511,7 +511,7 @@ table tr:hover {
 }
 
 .login-container h2 {
-  color: #126ab3;
+  color: #1f5a78;
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 24px;
@@ -530,14 +530,14 @@ table tr:hover {
 
 .login-container input:focus {
   outline: none;
-  border-color: #0d6efd;
+  border-color: #073851;
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
 }
 
 .login-container button {
   width: 100%;
   padding: 14px;
-  background-color: #0d6efd;
+  background-color: #073851;
   color: white;
   font-weight: bold;
   border: none;
@@ -547,7 +547,7 @@ table tr:hover {
 }
 
 .login-container button:hover {
-  background-color: #0b5ed7;
+  background-color: #042a3d;
 }
 
 .login-container .error {
@@ -570,8 +570,8 @@ table tr:hover {
 }
 
 footer {
-  background-color: #f8f9fa;
-  color: #6c757d;
+  background-color: #073851;
+  color: #FFFFFF;
   text-align: center;
   padding: 2rem 1rem;
   font-size: 14px;
@@ -584,7 +584,7 @@ footer p {
 }
 
 footer a {
-  color: #495057;
+  color: #FFFFFF;
   text-decoration: none;
   margin: 0 15px;
   font-weight: 600;
@@ -592,7 +592,7 @@ footer a {
 
 footer a:hover {
   text-decoration: underline;
-  color: #007bff;
+  color: #1f5a78;
 }
 
 /* 📱 Responsive */
@@ -621,13 +621,13 @@ footer a:hover {
     flex: 1 1 100%;
   }
 
-  .mobile-nav {
+      .mobile-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     height: 60px;
-    background-color: #ffffff;
+    background-color: #073851;
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -636,7 +636,7 @@ footer a:hover {
   }
 
   .mobile-nav a {
-    color: #000000;
+    color: #FFFFFF;
     font-size: 16px;
     text-decoration: none;
     padding: 6px 10px;
@@ -670,8 +670,8 @@ footer a:hover {
   .mobile-only { display: flex !important; }
 
   .mobile-topnav {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #073851;
+    color: #FFFFFF;
     padding: 12px 16px;
     justify-content: space-between;
     align-items: center;
@@ -701,7 +701,7 @@ footer a:hover {
 }
 
 .btn.primary {
-    background-color: #0078D7;
+    background-color: #073851;
     color: white;
 }
 
@@ -760,7 +760,7 @@ footer a:hover {
 }
 
 .modal .close:hover {
-  color: #0d6efd;
+  color: #073851;
 }
 
 /* 🔘 Modal Inputs and Buttons */
@@ -779,7 +779,7 @@ footer a:hover {
   width: 100%;
   margin-top: 10px;
   padding: 12px;
-  background-color: #0d6efd;
+  background-color: #073851;
   color: white;
   border: none;
   border-radius: 8px;
@@ -789,7 +789,7 @@ footer a:hover {
 }
 
 .modal-content button:hover {
-  background-color: #0b5ed7;
+  background-color: #042a3d;
 }
 
 .modal-content .error {
@@ -830,7 +830,7 @@ footer a:hover {
 .popup-content button {
   margin-top: 14px;
   padding: 10px 20px;
-  background-color: #0d6efd;
+  background-color: #073851;
   color: white;
   border: none;
   border-radius: 8px;
@@ -839,7 +839,7 @@ footer a:hover {
 }
 
 .popup-content button:hover {
-  background-color: #0b5ed7;
+  background-color: #042a3d;
 }
 
 /* ✨ Animation */

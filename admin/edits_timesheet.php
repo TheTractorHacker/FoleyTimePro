@@ -30,7 +30,7 @@ while ($row = $result->fetch_assoc()) {
     if (!$original) continue;
 
     // Check the pending_edits
-    foreach (['TimeIN', 'LunchStart', 'LunchEnd', 'TimeIN', 'TimeOut'] as $field) {
+    foreach (['TimeIN', 'LunchStart', 'LunchEnd', 'TimeOut'] as $field) {
         if (array_key_exists($field, $row) && !is_null($row[$field]) && $row[$field] !== '' && $row[$field] !== $original[$field]) {
             $edits[] = [
                 'ID' => $row['ID'],
@@ -58,6 +58,13 @@ while ($row = $result->fetch_assoc()) {
     <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
     <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
     <link rel="manifest" href="/manifest.json">
+  <title>Employee Punch Adjustments</title>
+    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
+    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/edits_timesheet.css">
 </head>
 <body>
 <header>
@@ -69,7 +76,10 @@ while ($row = $result->fetch_assoc()) {
     <a href="dashboard.php">Dashboard</a>
     <a href="view_punches.php">Timesheets</a>
     <a href="summary.php">Summary</a>
+    <a href="reports.php">Reports</a>
     <a href="manage_users.php">Users</a>
+    <a href="manage_offices.php">Offices</a>
+    <a href="attendance.php">Attendance</a>
     <a href="manage_admins.php">Admins</a>
     <a href="../logout.php">Logout</a>
 </nav>

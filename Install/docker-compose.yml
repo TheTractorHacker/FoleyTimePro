@@ -1,34 +1,25 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: timeclock_app
-    ports:
-      - "8080:80"
+    image: dbest25/timesmart:beta
+    container_name: COMPANY_NAME_PLACEHOLDER
+    # ports:
+    #   - "8080:80"
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      DB_TIMEZONE: ${DB_TIMEZONE:-America/Chicago}
-    networks:
-      - timeclock_network
+      DB_HOST: DB_HOST_PLACEHOLDER
+      DB_NAME: DB_NAME_PLACEHOLDER
+      DB_USER: DB_USER_PLACEHOLDER
+      DB_PASS: DB_PASS_PLACEHOLDER
+      DB_TIMEZONE: America/Chicago
+    network_mode: bridge
 
 # db:
 #   image: mariadb:latest
 #   container_name: timeclock_db
 #   restart: unless-stopped
 #   environment:
-#     MYSQL_ROOT_PASSWORD: ${DB_PASS}
-#     MYSQL_DATABASE: ${DB_NAME}
-#     MYSQL_USER: ${DB_USER}
-#     MYSQL_PASSWORD: ${DB_PASS}
+#     MYSQL_ROOT_PASSWORD: DB_PASS_PLACEHOLDER
+#     MYSQL_DATABASE: DB_NAME_PLACEHOLDER
+#     MYSQL_USER: DB_USER_PLACEHOLDER
+#     MYSQL_PASSWORD: DB_PASS_PLACEHOLDER
 #   volumes:
 #     - ./timeclock-schema.sql:/docker-entrypoint-initdb.d/init.sql
-#   networks:
-#     - timeclock_network
-
-networks:
-  timeclock_network:
-    driver: bridge

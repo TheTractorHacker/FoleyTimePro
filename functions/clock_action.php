@@ -1,9 +1,126 @@
 <?php
+// For debugging: uncomment the following lines to display errors
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+
 // clock_action.php
 // --- SETUP AND DEPENDENCIES ---
 require_once __DIR__ . '/../auth/db.php';
+require_once __DIR__ . '/../vendor/autoload.php'; // For PHPMailer
+require_once __DIR__ . '/settings_helper.php'; // Use the new helper for settings
 date_default_timezone_set('America/Chicago');
 header('Content-Type: application/json');
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// --- Encryption/Decryption Functions ---
+// For demonstration, a simple key. In production, this should be a strong, securely stored key.
+define('ENCRYPTION_KEY', 'a_very_secret_key_for_encryption_32_chars'); // 32 bytes for AES-256
+define('CIPHER_METHOD', 'aes-256-cbc');
+
+function encrypt_data($data) {
+    $iv_len = openssl_cipher_iv_length(CIPHER_METHOD);
+    $iv = openssl_random_pseudo_bytes($iv_len);
+    $encrypted = openssl_encrypt($data, CIPHER_METHOD, ENCRYPTION_KEY, 0, $iv);
+    return base64_encode($encrypted . '::' . $iv);
+}
+
+function decrypt_data($data) {
+    $parts = explode('::', base64_decode($data), 2);
+    if (count($parts) === 2) {
+        list($encrypted_data, $iv) = $parts;
+        return openssl_decrypt($encrypted_data, CIPHER_METHOD, ENCRYPTION_KEY, 0, $iv);
+    }
+    return false;
+}
+// --- End Encryption/Decryption Functions ---
+
+
+/**
+ * Sends an email notification for a time adjustment.
+ *
+ * @param int $employeeID The ID of the employee whose time was adjusted.
+ * @param string $oldTime The original time.
+ * @param string $newTime The new adjusted time.
+ * @param string $note The note/reason for the adjustment.
+ * @param mysqli $conn The database connection.
+ * @return bool True on success, false on failure.
+ */
+function sendAdjustmentEmail($employeeID, $oldTime, $newTime, $note, $conn) {
+    try {
+        // Fetch mail settings from the database using the helper function
+        $mailSettings = [];
+        $mailSettingKeys = ['mail_server', 'mail_port', 'mail_username', 'mail_password', 'mail_from_address', 'mail_from_name', 'mail_encryption', 'mail_admin_address'];
+        foreach ($mailSettingKeys as $key) {
+            $mailSettings[$key] = getSettingValue($key, $conn);
+        }
+
+        // Check if essential mail server settings are configured
+        if (empty($mailSettings['mail_server']) || empty($mailSettings['mail_username']) || empty($mailSettings['mail_from_address'])) {
+            error_log("Skipping email notification: Essential mail server settings are not configured.");
+            return true; // Indicate success as email sending was intentionally skipped
+        }
+
+        // Decrypt password
+        $mailSettings['mail_password'] = decrypt_data($mailSettings['mail_password']);
+        if ($mailSettings['mail_password'] === false) {
+            error_log("Failed to decrypt mail password.");
+            return false;
+        }
+
+        $employeeName = 'Unknown Employee';
+        $stmt = $conn->prepare("SELECT FirstName, LastName FROM users WHERE ID = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $employeeID);
+            $stmt->execute();
+            $stmt->bind_result($firstName, $lastName);
+            if ($stmt->fetch()) {
+                $employeeName = $firstName . ' ' . $lastName;
+            }
+            $stmt->close();
+        }
+
+        $mail = new PHPMailer(true);
+
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host       = $mailSettings['mail_server'];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $mailSettings['mail_username'];
+        $mail->Password   = $mailSettings['mail_password'];
+        $mail->SMTPSecure = $mailSettings['mail_encryption'];
+        $mail->Port       = $mailSettings['mail_port'];
+
+        // Recipients
+        $mail->setFrom($mailSettings['mail_from_address'], $mailSettings['mail_from_name']);
+        $mail->addAddress($mailSettings['mail_admin_address']);
+
+        // Format times for email
+        $oldTimeFormatted = date('g:i A', strtotime($oldTime));
+        $newTimeFormatted = date('g:i A', strtotime($newTime));
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Time Adjustment Notification';
+        $mail->Body    = "
+            <h2>Time Adjustment Notification</h2>
+            <p>Employee: {$employeeName} (ID: {$employeeID})</p>
+            <p>Original Time: {$oldTimeFormatted}</p>
+            <p>Adjusted Time: {$newTimeFormatted}</p>
+            <p>Note: {$note}</p>
+            <p>Adjusted by: " . ($_SESSION['admin_username'] ?? 'System/User') . "</p>
+            <p>Date of Adjustment: " . date('Y-m-d H:i:s') . "</p>
+        ";
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        error_log("Message could not be sent. Mailer Error: {$e->getMessage()}");
+        return false;
+    }
+}
 
 /**
  * Gets the real client IP address, accounting for proxies.
@@ -27,12 +144,16 @@ function get_client_ip() {
  * @param int $http_code The HTTP status code to send.
  * @param string|null $log_error An optional internal error message to log.
  */
-function send_json_response($success, $message, $http_code = 200, $log_error = null) {
+function send_json_response($success, $message, $http_code = 200, $log_error = null, $data = []) {
     if ($log_error !== null) {
         error_log('TimeClock API Error: ' . $log_error);
     }
     http_response_code($http_code);
-    echo json_encode(['success' => $success, 'message' => $message]);
+    $response = ['success' => $success, 'message' => $message];
+    if (!empty($data)) {
+        $response = array_merge($response, $data);
+    }
+    echo json_encode($response);
     exit;
 }
 
@@ -124,7 +245,6 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_status' && !empty($_POST
     $punch->bind_param("i", $empID);
     $punch->execute();
     $punch->store_result();
-    $punch->bind_result($timeIn, $lunchStart, $lunchEnd, $timeOut);
     $status = 'Out';
     $action = 'clockin';
     $actionText = 'Clock In';
@@ -311,12 +431,6 @@ try {
         $dateTime = new DateTime($clientTime);
         $dateTime->setTimezone(new DateTimeZone('America/Chicago'));
     } else {
-    // Prioritize the precise clientTime from JavaScript
-
-    if ($clientTime) {
-        $dateTime = new DateTime($clientTime);
-        $dateTime->setTimezone(new DateTimeZone('America/Chicago'));
-    } else {
         $dateTime = new DateTime('now', new DateTimeZone('America/Chicago'));
     }
     $now  = $dateTime->format('H:i:s');
@@ -338,14 +452,6 @@ if ($adjustedTime) {
         $adjustedTimeFormatted = $adjDate->format('H:i:s');
     } else {
         send_json_response(false, "Invalid adjusted time format provided.", 400);
-<<<<<<< HEAD
-=======
-    try {
-        $adjDate = new DateTime(date('Y-m-d') . ' ' . $adjustedTime, new DateTimeZone('America/Chicago'));
-        $adjustedTimeFormatted = $adjDate->format('H:i:s');
-    } catch (Exception $e) {
-        send_json_response(false, "Invalid adjusted time format provided.", 400, $e->getMessage());
->>>>>>> main
     }
 }
 
@@ -403,21 +509,26 @@ switch ($action) {
         $msg = "✅ Clocked in at " . date("g:i A", strtotime($now));
         if (logPendingEdit($conn, $empID, $date, 'TimeIN', $pendingTime, $note)) {
             $msg .= " (submitted for approval)";
+            if ($pendingTime !== null) {
+                sendAdjustmentEmail($empID, $now, $pendingTime, $note, $conn);
+            }
         }
         send_json_response(true, $msg);
-<<<<<<< HEAD
-=======
-        send_json_response(true, "✅ Clocked in at " . date("g:i A", strtotime($now)));
->>>>>>> main
         break;
 
     case "lunchstart":
         if ($userStatus !== 'In') { send_json_response(false, "⚠️ You must be clocked in to start lunch.", 400); }
         if (!$lastPunch || !empty($lastPunch['LunchStart'])) { send_json_response(false, "⚠️ No active punch, or lunch already started.", 400); }
         
-        $stmt = $conn->prepare("UPDATE timepunches SET LunchStart = ?, Note = CONCAT(Note, ?), LatitudeLunchStart = ?, LongitudeLunchStart = ?, AccuracyLunchStart = ?, IPAddressLunchStart = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
-        $full_note = "\nLunch Start Note: " . $note;
-        $stmt->bind_param("ssdddsi", $now, $full_note, $lat, $lon, $accuracy, $ip, $empID);
+        if (!empty($note)) {
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchStart = ?, Note = CONCAT(Note, ?), LatitudeLunchStart = ?, LongitudeLunchStart = ?, AccuracyLunchStart = ?, IPAddressLunchStart = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $full_note = "\nLunch Start Note: " . $note;
+            $stmt->bind_param("ssdddsi", $now, $full_note, $lat, $lon, $accuracy, $ip, $empID);
+        } else {
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchStart = ?, LatitudeLunchStart = ?, LongitudeLunchStart = ?, AccuracyLunchStart = ?, IPAddressLunchStart = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $stmt->bind_param("sdddsi", $now, $lat, $lon, $accuracy, $ip, $empID);
+        }
+
         if (!$stmt->execute()) {
             send_json_response(false, "DB execute error (lunchstart)", 500, $stmt->error);
         }
@@ -426,33 +537,37 @@ switch ($action) {
         $msg = "🍽️ Lunch started at " . date("g:i A", strtotime($now));
         if (logPendingEdit($conn, $empID, $date, 'LunchStart', $pendingTime, $note)) {
             $msg .= " (submitted for approval)";
+            if ($pendingTime !== null) {
+                sendAdjustmentEmail($empID, $now, $pendingTime, $note, $conn);
+            }
         }
         send_json_response(true, $msg);
-<<<<<<< HEAD
-=======
-        send_json_response(true, "🍽️ Lunch started at " . date("g:i A", strtotime($now)));
->>>>>>> main
         break;
 
     case "lunchend":
         if ($userStatus !== 'Lunch') { send_json_response(false, "⚠️ You are not on lunch.", 400); }
         if (!$lastPunch || empty($lastPunch['LunchStart']) || !empty($lastPunch['LunchEnd'])) { send_json_response(false, "⚠️ No active lunch punch found.", 400); }
 
-        $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd = ?, Note = CONCAT(Note, ?), LatitudeLunchEnd = ?, LongitudeLunchEnd = ?, AccuracyLunchEnd = ?, IPAddressLunchEnd = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
-        $full_note = "\nLunch End Note: " . $note;
-        $stmt->bind_param("ssdddsi", $now, $full_note, $lat, $lon, $accuracy, $ip, $empID);
+        if (!empty($note)) {
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd = ?, Note = CONCAT(Note, ?), LatitudeLunchEnd = ?, LongitudeLunchEnd = ?, AccuracyLunchEnd = ?, IPAddressLunchEnd = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $full_note = "\nLunch End Note: " . $note;
+            $stmt->bind_param("ssdddsi", $now, $full_note, $lat, $lon, $accuracy, $ip, $empID);
+        } else {
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd = ?, LatitudeLunchEnd = ?, LongitudeLunchEnd = ?, AccuracyLunchEnd = ?, IPAddressLunchEnd = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $stmt->bind_param("sdddsi", $now, $lat, $lon, $accuracy, $ip, $empID);
+        }
+        
         if (!$stmt->execute()) { send_json_response(false, "DB execute error (lunchend)", 500, $stmt->error); }
 
         setClockStatus($conn, $empID, 'In');
         $msg = "✅ Lunch ended at " . date("g:i A", strtotime($now));
         if (logPendingEdit($conn, $empID, $date, 'LunchEnd', $pendingTime, $note)) {
             $msg .= " (submitted for approval)";
+            if ($pendingTime !== null) {
+                sendAdjustmentEmail($empID, $now, $pendingTime, $note, $conn);
+            }
         }
         send_json_response(true, $msg);
-<<<<<<< HEAD
-=======
-        send_json_response(true, "✅ Lunch ended at " . date("g:i A", strtotime($now)));
->>>>>>> main
         break;
 
     case "clockout":
@@ -466,10 +581,6 @@ switch ($action) {
 
             setClockStatus($conn, $empID, 'Out');
             send_json_response(true, "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " (new punch created)");
-<<<<<<< HEAD
-=======
-            send_json_response(false, "⚠️ No active punch to clock out from.", 400);
->>>>>>> main
         }
 
         // Ensure lunch is properly ended if user clocks out while on lunch
@@ -485,7 +596,7 @@ switch ($action) {
             $stmt->bind_param("ssdsdddsi", $now, $lastPunch['LunchEnd'], $totalHours, $full_note, $lat, $lon, $accuracy, $ip, $empID);
         } else {
             $stmt = $conn->prepare("UPDATE timepunches SET TimeOUT = ?, LunchEnd = ?, TotalHours = ?, LatitudeOut = ?, LongitudeOut = ?, AccuracyOut = ?, IPAddressOut = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
-            $stmt->bind_param("ssdddsii", $now, $lastPunch['LunchEnd'], $totalHours, $lat, $lon, $accuracy, $ip, $empID);
+            $stmt->bind_param("ssdddssi", $now, $lastPunch['LunchEnd'], $totalHours, $lat, $lon, $accuracy, $ip, $empID);
         }
 
         if (!$stmt->execute()) {
@@ -493,14 +604,18 @@ switch ($action) {
         }
 
         setClockStatus($conn, $empID, 'Out');
-        $message = "🕔 Clocked out at " . date("g:i A", strtotime($now)) . ". Total Hours: " . number_format($totalHours, 2);
+        $message = "🕔 Clocked out at " . date("g:i A", strtotime($now));
         if (logPendingEdit($conn, $empID, $date, 'TimeOut', $pendingTime, $note)) {
             $message .= " (submitted for approval)";
+            if ($pendingTime !== null) {
+                sendAdjustmentEmail($empID, $now, $pendingTime, $note, $conn);
+            }
         }
-        send_json_response(true, $message);
+        send_json_response(true, $message, 200, null, ['hoursWorked' => number_format($totalHours, 2)]);
         break;
 
     default:
-        send_json_response(false, "❌ Invalid action specified.", 400);
+        send_json_response(false, "Unknown punch state", 500);
         break;
 }
+

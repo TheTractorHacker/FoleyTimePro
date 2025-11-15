@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #0078D7;
-    --primary-hover: #005fa3;
+    --primary-color: #073851;
+    --primary-hover: #042a3d;
     --bg-color: #f4f6f9;
     --card-bg: #ffffff;
     --text-color: #333;
@@ -25,8 +25,8 @@ body {
 
 /* HEADER */
 header {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: #073851;
+    color: #FFFFFF;
     padding: 1.5rem 1rem;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -44,7 +44,7 @@ nav {
 }
 
 nav a {
-    color: white;
+    color: #FFFFFF;
     text-decoration: none;
     margin: 0 1rem;
     font-weight: bold;
@@ -406,7 +406,7 @@ tr.summary-overtime {
 .users { background-color: #6c757d; }      /* Gray */
 .in { background-color: #198754; }         /* Green */
 .lunch { background-color: #fd7e14; }      /* Orange */
-.out { background-color: #0d6efd; }        /* Blue */
+.out { background-color: #073851; }        /* Blue */
 
 /* Styles for admin navigation */
 .admin-nav {
@@ -418,7 +418,7 @@ tr.summary-overtime {
 }
 
 .admin-nav a {
-    color: white;
+    color: #FFFFFF;
     text-decoration: none;
     padding: 8px 15px;
     border-radius: 5px;
@@ -440,8 +440,8 @@ footer {
     text-align: center;
     padding: 20px;
     margin-top: 40px;
-    background-color: #f0f0f0;
-    color: #555;
+    background-color: #073851;
+    color: #FFFFFF;
     font-size: 0.9rem;
     border-top: 1px solid #e0e0e0;
 }

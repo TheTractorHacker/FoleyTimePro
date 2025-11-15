@@ -1,0 +1,4 @@
+CREATE USER 'timeclock'@'%' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON *.* TO 'timeclock'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+

@@ -141,17 +141,19 @@ if ($exportPDF) {
 <header>
     <img src="/images/D-Best.png" alt="TimeClock Logo" class="logo">
     <h1>Attendance Report</h1>
+    <nav>
+        <a href="dashboard.php">Dashboard</a>
+        <a href="view_punches.php">Timesheets</a>
+        <a href="summary.php">Summary</a>
+        <a href="reports.php">Reports</a>
+        <a href="manage_users.php">Users</a>
+        <a href="manage_offices.php">Offices</a>
+        <a href="attendance.php" class="active">Attendance</a>
+        <a href="manage_admins.php">Admins</a>
+        <a href="settings.php">Settings</a>
+        <a href="../logout.php">Logout</a>
+    </nav>
 </header>
-
-<nav>
-    <a href="dashboard.php">Dashboard</a>
-    <a href="view_punches.php">Timesheets</a>
-    <a href="summary.php">Summary</a>
-    <a href="manage_users.php">Users</a>
-    <a href="attendance.php" class="active">Attendance</a>
-    <a href="manage_admins.php">Admins</a>
-    <a href="../logout.php">Logout</a>
-</nav>
 
 <div class="container">
 

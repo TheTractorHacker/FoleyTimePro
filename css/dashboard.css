@@ -1,4 +1,4 @@
-        .info-stats {
+.info-stats {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
@@ -14,6 +14,10 @@
             color: white;
             font-family: 'Segoe UI', sans-serif;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        a.info-card {
+            text-decoration: none;
+            color: white;
         }
         .info-card h3 {
             font-size: 13px;

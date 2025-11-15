@@ -34,10 +34,6 @@
             <button class="lunchend" onclick="submitAction('lunchend')">Lunch End</button>
           </div>
         </div>
-        <button onclick="submitAction('clockin')">Clock In</button>
-        <button onclick="submitAction('lunchstart')">Lunch Start</button>
-        <button onclick="submitAction('lunchend')">Lunch End</button>
-        <button onclick="submitAction('clockout')">Clock Out</button>
       </div>
       <p id="modalError" class="error"></p>
     </div>
@@ -52,6 +48,15 @@
     <input type="hidden" id="confirmAction" />
     <button onclick="openAdjuster()">🕓 Adjust Time</button>
     <button onclick="confirmSubmit()">✅ Submit</button>
+  </div>
+</div>
+
+<!-- Confirmation Popup -->
+<div id="confirmationPopup" class="popup hidden">
+  <div class="popup-content">
+    <p id="confirmationMessage"></p>
+    <button id="confirmYes">Yes</button>
+    <button id="confirmNo">No</button>
   </div>
 </div>
 

@@ -1,6 +1,26 @@
 <?php
 require_once 'header.php';
 
+// Display status messages
+$statusMessage = '';
+if (isset($_GET['status'])) {
+    if ($_GET['status'] === 'submitted') {
+        $statusMessage = '<div class="alert alert-success">Your time adjustment request has been submitted for approval.</div>';
+    } elseif ($_GET['status'] === 'nochange') {
+        $statusMessage = '<div class="alert alert-info">No changes were submitted.</div>';
+    }
+}
+
+if (isset($_GET['email_status'])) {
+    $emailStatus = $_GET['email_status'];
+    if ($emailStatus === 'sent') {
+        $statusMessage .= '<div class="alert alert-success">Admin notification email sent successfully.</div>';
+    } elseif (strpos($emailStatus, 'error:') === 0) {
+        $errorMessage = substr($emailStatus, 6);
+        $statusMessage .= '<div class="alert alert-danger">Failed to send admin notification email: ' . htmlspecialchars($errorMessage) . '</div>';
+    }
+}
+
 $start = $_GET['start'] ?? date('Y-m-d', strtotime('monday this week'));
 $end   = $_GET['end'] ?? date('Y-m-d', strtotime('friday this week'));
 
@@ -14,9 +34,9 @@ while ($row = $result->fetch_assoc()) {
     $punches[] = $row;
 }
 ?>
-<?php endif; ?>
 <link rel="stylesheet" href="../css/user_timesheet.css">
 
+<?= $statusMessage ?>
 
     <h2>Submit Time Changes for Approval</h2>
 

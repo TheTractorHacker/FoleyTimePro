@@ -45,3 +45,58 @@ function confirm2FA(action) {
         form.submit();
     }
 }
+
+// Archive User Modal
+function showArchiveModal(userId) {
+    document.getElementById('archiveUserId').value = userId;
+    document.getElementById('archiveModal').style.display = 'block';
+}
+
+function closeArchiveModal() {
+    document.getElementById('archiveModal').style.display = 'none';
+}
+
+// Delete User Modal
+function showDeleteModal(userId) {
+    document.getElementById('deleteUserId').value = userId;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+function toggleActionsMenu(button) {
+    const menu = button.parentElement;
+    const menuContent = menu.querySelector('.actions-menu-content');
+    const isActive = menu.classList.contains('active');
+
+    // Close all other menus
+    document.querySelectorAll('.actions-menu.active').forEach(otherMenu => {
+        if (otherMenu !== menu) {
+            otherMenu.classList.remove('active');
+            otherMenu.querySelector('.actions-menu-content').classList.remove('up');
+        }
+    });
+
+    if (isActive) {
+        menu.classList.remove('active');
+        menuContent.classList.remove('up');
+    } else {
+        menu.classList.add('active');
+        const rect = menuContent.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        if (rect.bottom > viewportHeight) {
+            menuContent.classList.add('up');
+        }
+    }
+}
+
+window.onclick = function(event) {
+    if (!event.target.matches('.actions-menu button')) {
+        document.querySelectorAll('.actions-menu.active').forEach(menu => {
+            menu.classList.remove('active');
+            menu.querySelector('.actions-menu-content').classList.remove('up');
+        });
+    }
+}

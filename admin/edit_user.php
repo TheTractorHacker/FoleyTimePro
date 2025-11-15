@@ -38,6 +38,12 @@ $checkAdmin->execute();
 $checkAdmin->store_result();
 $isAdmin = $checkAdmin->num_rows > 0;
 
+$offices_result = $conn->query("SELECT OfficeName FROM Offices ORDER BY OfficeName");
+$offices_data = [];
+while ($row = $offices_result->fetch_assoc()) {
+    $offices_data[] = $row;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $firstName = trim($_POST['FirstName']);
     $lastName = trim($_POST['LastName']);
@@ -118,6 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="summary.php">Summary</a>
         <a href="reports.php" class="active">Reports</a>
         <a href="manage_users.php">Users</a>
+        <a href="manage_offices.php">Offices</a>
         <a href="attendance.php">Attendance</a>
         <a href="manage_admins.php">Admins</a>
         <a href="../logout.php">Logout</a>
@@ -158,9 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label>Office
             <select name="Office" required>
-                <option value="Fort Smith" <?= $user['Office'] === 'Fort Smith' ? 'selected' : '' ?>>Fort Smith</option>
-                <option value="Fayetteville" <?= $user['Office'] === 'Fayetteville' ? 'selected' : '' ?>>Fayetteville</option>
-                <option value="Overseas" <?= $user['Office'] === 'Overseas' ? 'selected' : '' ?>>Overseas</option>
+                <?php foreach ($offices_data as $office): ?>
+                    <option value="<?= htmlspecialchars($office['OfficeName']) ?>" <?= ($user['Office'] === $office['OfficeName']) ? 'selected' : '' ?>><?= htmlspecialchars($office['OfficeName']) ?></option>
+                <?php endforeach; ?>
             </select>
         </label>
 

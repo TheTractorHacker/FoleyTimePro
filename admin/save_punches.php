@@ -30,6 +30,59 @@ function calculateTotalHours($clockIn, $lunchOut, $lunchIn, $clockOut) {
     return round($total, 2);
 }
 
+// ADD PUNCH
+if (isset($_POST['add'])) {
+    $employeeID = intval($_POST['employeeID']);
+    $date = $_POST['date'];
+    $clockIn = $_POST['clockin'] ?: null;
+    $lunchOut = $_POST['lunchout'] ?: null;
+    $lunchIn = $_POST['lunchin'] ?: null;
+    $clockOut = $_POST['clockout'] ?: null;
+    $reason = trim($_POST['reason'] ?? '');
+    $totalHours = calculateTotalHours($clockIn, $lunchOut, $lunchIn, $clockOut);
+
+    $insertStmt = $conn->prepare("INSERT INTO timepunches (EmployeeID, Date, TimeIN, LunchStart, LunchEnd, TimeOut, Note, TotalHours) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $insertStmt->bind_param("issssssd", $employeeID, $date, $clockIn, $lunchOut, $lunchIn, $clockOut, $reason, $totalHours);
+    $insertStmt->execute();
+
+    $logStmt = $conn->prepare("INSERT INTO punch_changelog (EmployeeID, Date, ChangedBy, FieldChanged, OldValue, NewValue, Reason) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $adminUser = $_SESSION['admin'];
+    $logStmt->bind_param("issssss", $employeeID, $date, $adminUser, 'ALL', 'NONE', 'CREATED', $reason);
+    $logStmt->execute();
+
+    header("Location: view_punches.php?emp=" . urlencode($employeeID) . "&from=" . urlencode($_POST['from']) . "&to=" . urlencode($_POST['to']) . "&success=1");
+    exit;
+}
+
+// DELETE PUNCH
+if (isset($_POST['delete'])) {
+    $punchId = intval($_POST['delete'][0]);
+    $employeeID = intval($_POST['employeeID']);
+
+    $checkStmt = $conn->prepare("SELECT * FROM timepunches WHERE id = ?");
+    $checkStmt->bind_param("i", $punchId);
+    $checkStmt->execute();
+    $result = $checkStmt->get_result();
+    $existing = $result->fetch_assoc();
+
+    if ($existing) {
+        $date = $existing['Date'];
+
+        $deleteStmt = $conn->prepare("DELETE FROM timepunches WHERE id = ?");
+        $deleteStmt->bind_param("i", $punchId);
+        $deleteStmt->execute();
+
+        $logStmt = $conn->prepare("INSERT INTO punch_changelog (EmployeeID, Date, ChangedBy, FieldChanged, OldValue, NewValue, Reason) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $adminUser = $_SESSION['admin'];
+        $logStmt->bind_param("issssss", $employeeID, $date, $adminUser, 'ALL', 'DELETED', 'NONE', 'Punch deleted');
+        $logStmt->execute();
+    }
+
+    header("Location: view_punches.php?emp=" . urlencode($employeeID) . "&from=" . urlencode($_POST['from']) . "&to=" . urlencode($_POST['to']) . "&success=1");
+    exit;
+}
+
+
 // Validate input
 if (
     !isset($_POST['employeeID'], $_POST['from'], $_POST['to'], $_POST['confirm']) ||

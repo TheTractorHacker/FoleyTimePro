@@ -80,6 +80,69 @@ foreach ($entries as $entry) {
     }
 }
 
-header("Location: timesheet.php?status=" . ($inserted ? "submitted" : "nochange"));
+if ($inserted > 0) {
+    // Email sending logic
+    $emailStatus = 'not_attempted'; // Default status
+
+    require_once '../vendor/autoload.php';
+
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
+
+    // Fetch mail settings from database
+    $mailSettings = [];
+    $result = $conn->query("SELECT SettingKey, SettingValue FROM settings WHERE SettingKey LIKE 'mail_%'");
+    while ($row = $result->fetch_assoc()) {
+        $mailSettings[$row['SettingKey']] = $row['SettingValue'];
+    }
+
+    if (
+        isset($mailSettings['mail_server']) &&
+        isset($mailSettings['mail_port']) &&
+        isset($mailSettings['mail_username']) &&
+        isset($mailSettings['mail_password']) &&
+        isset($mailSettings['mail_from_address']) &&
+        isset($mailSettings['mail_from_name']) &&
+        isset($mailSettings['mail_encryption']) &&
+        isset($mailSettings['mail_admin_address'])
+    ) {
+        $mail = new PHPMailer(true);
+        try {
+            //Server settings
+            $mail->isSMTP();
+            $mail->Host       = $mailSettings['mail_server'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $mailSettings['mail_username'];
+            $mail->Password   = $mailSettings['mail_password'];
+            $mail->SMTPSecure = $mailSettings['mail_encryption'];
+            $mail->Port       = $mailSettings['mail_port'];
+
+            //Recipients
+            $mail->setFrom($mailSettings['mail_from_address'], $mailSettings['mail_from_name']);
+            $mail->addAddress($mailSettings['mail_admin_address']);
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Time Adjustment Request Submitted';
+            $mail->Body    = "A new time adjustment request has been submitted by Employee ID: {$sessionEmpID} for the following dates:<br><br>";
+            foreach ($entries as $entry) {
+                $mail->Body .= "Date: " . htmlspecialchars($entry['Date']) . "<br>";
+                $mail->Body .= "Reason: " . htmlspecialchars($entry['Reason']) . "<br><br>";
+            }
+            $mail->Body .= "Please review the pending edits in the admin panel.";
+
+            $mail->send();
+            $emailStatus = 'sent';
+        } catch (Exception $e) {
+            error_log("Mailer Error: " . $mail->ErrorInfo);
+            $emailStatus = 'error:' . $mail->ErrorInfo;
+        }
+    } else {
+        error_log("Mail settings are incomplete. Email not sent.");
+        $emailStatus = 'error:incomplete_settings';
+    }
+}
+
+header("Location: timesheet.php?status=" . ($inserted ? "submitted" : "nochange") . "&email_status=" . urlencode($emailStatus));
 exit;
 ?>

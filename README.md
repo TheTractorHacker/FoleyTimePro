@@ -1,87 +1,103 @@
-# D-BEST TimeSmart
+# 🕒 D-BEST TimeSmart
 
-D-BEST TimeSmart is a web-based time clock application designed to manage employee time attendance records efficiently. It provides functionalities for employees to clock in/out and for administrators to manage users, view reports, and export data.
+**D-BEST TimeSmart** is a modern, web-based time clock application built for small businesses, schools, and organizations needing efficient time tracking and user management. It supports employees clocking in/out and offers powerful tools for administrators to manage users, view reports, and export data — all in a secure and user-friendly interface.
 
-## Features
+---
 
-*   **Employee Time Tracking:** Clock-in and clock-out functionality.
-*   **User Management:** Add, edit, and manage employee accounts.
-*   **Admin Dashboard:** Overview of time clock activities.
-*   **Reporting:** Generate attendance reports, summaries, and export data (Excel, PDF).
-*   **Two-Factor Authentication (2FA):** Enhanced security for user logins.
-*   **Privacy Policy & Terms of Use:** Dedicated pages for legal information.
+## ✅ Key Features
 
-## Prerequisites
+- **🕘 Employee Time Tracking**  
+  Clock In, Lunch, Break, and Clock Out with GPS and device logging.
+  
+- **👥 User Management**  
+  Add, update, or remove employee accounts and manage permissions.
+  
+- **📊 Admin Dashboard**  
+  Get real-time overviews of employee activity and time logs.
+  
+- **📁 Reports & Exports**  
+  Generate and export attendance data (PDF, Excel, summary reports).
+  
+- **🔐 Two-Factor Authentication (2FA)**  
+  Built-in support for optional 2FA via email or SMS.
+  
+- **📄 Legal Pages**  
+  Includes Privacy Policy and Terms of Use pages.
 
-Before you begin, ensure you have the following installed on your system:
+---
 
-*   **Docker:** For running the application in a container.
-*   **Docker Compose:** For managing the Docker containers.
+## 🧰 Prerequisites
 
-## Installation
+Ensure the following are installed:
 
-Follow these steps to set up D-BEST TimeSmart using Docker:
+- **Docker**  
+  Required for containerized deployment.
+  
+- **MySQL Client**  
+  Required to create the database during setup.
 
-1.  **Clone the repository:**
+---
 
-    ```bash
-    git clone https://github.com/D-Best-Apps/Timesmart.git
-    cd Timesmart
-    ```
+## 🚀 Quick Installation
 
-2.  **Create a `.env` file for Docker Compose:**
+Run the official installation script to deploy a new instance:
 
-    In the `Install` directory, create a `.env` file containing your database credentials. Docker Compose will read this file and inject the variables into the running container:
+```bash
+curl -o install.sh https://raw.githubusercontent.com/D-Best-App/Timesmart/main/Install/install.sh
+chmod +x install.sh
+sudo ./install.sh
+```
 
-    ```
-    DB_HOST=your_database_host
-    DB_USER=your_database_user
-    DB_PASS=your_database_password
-    DB_NAME=your_database_name
-    DB_TIMEZONE=America/Chicago
-    ```
+### 🧩 What the script does:
 
-3.  **Database Setup:**
+- Prompts for **Company Name**, which sets the container/database name.
+- Asks for **Database Host, User, and Password**.
+- Downloads `docker-compose.yml` and SQL schema from GitHub.
+- Creates the Docker container from the image: `dbest25/timesmart:latest`
+- Initializes a new MySQL database (if requested).
 
-    This Docker setup does not include a database. You will need to provide your own MySQL or MariaDB database. Once you have created your database, you can import the database schema from the `Install/timeclock-schema.sql` file. This will create the necessary tables and seed them with some initial data.
+---
 
-4.  **Build and Run the Application:**
+## 🌐 Accessing the App
 
-    From the `Install` directory, run the following command to build and start the application:
+After installation, determine the container’s IP (if not using port mapping):
 
-    ```bash
-    docker-compose up -d
-    ```
+```bash
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' Timeclock-<YourCompanyName>
+```
 
-5.  **Access the Application:**
+Replace `<YourCompanyName>` with your actual name used during setup.
 
-    *   Open your web browser and navigate to `http://localhost:8080`.
+Then open in your browser:
 
-## Usage
+```
+http://<container_ip>
+```
 
-*   **Admin Login:**
-    *   Navigate to `http://localhost:8080/admin/login.php` to access the admin login page.
-    *   The default admin credentials are:
-        *   **Username:** admin
-        *   **Password:** password
-*   **Employee Login:**
-    *   Navigate to `http://localhost:8080/user/login.php` to access the employee login page.
-    *   Employees can log in with the credentials created by the administrator.
+---
 
-## Troubleshooting
+## 👨‍💼 Admin Access
 
-*   **`docker-compose up` fails:** Ensure that you have Docker and Docker Compose installed correctly. Also, make sure that you are in the `Install` directory when you run the command.
-*   **Database Connection Error:** Double-check your database credentials in the `.env` file used by Docker Compose.
-*   **Page Not Found (404):** Ensure that the application is running correctly by checking the Docker logs:
+- URL: `http://<container_ip>/admin/login.php`
+- **Default Credentials:**
+  - Username: `admin`
+  - Password: `admin`
 
-    ```bash
-    docker-compose logs -f
-    ```
+You should change this password immediately after first login.
 
-## Contributing
+---
 
-Contributions are welcome! Please feel free to fork the repository, make your changes, and submit a pull request.
+## 👷 Employee Access
 
-## License
+- URL: `http://<container_ip>/user/login.php`
+- Credentials must be created by the administrator.
 
-[Specify your license here, e.g., MIT License]
+---
+
+## 🛠️ Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `docker: command not found` | Install Docker and ensure it is in your PATH |
+| `mysql: command not found` | Install the MySQL/MariaDB client |
+| Database connection fails | Re-run the script and verify credentials are correct |

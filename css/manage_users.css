@@ -1,4 +1,4 @@
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
         .modal-content { background: white; padding: 2rem; border-radius: 10px; width: 400px; max-width: 90%; margin: 10% auto; position: relative; }
         .modal-content h3 { margin-top: 0; }
         .modal-actions { margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
@@ -11,3 +11,43 @@
             margin-left: -110px; opacity: 0; transition: opacity 0.3s;
         }
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+.actions-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.actions-menu-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 6px;
+    padding: 5px 0;
+}
+
+.actions-menu-content button {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #333;
+}
+
+.actions-menu-content button:hover {
+    background-color: #f1f1f1;
+}
+
+.actions-menu.active .actions-menu-content {
+    display: block;
+}
+
+.actions-menu-content.up {
+    bottom: 100%;
+    top: auto;
+}

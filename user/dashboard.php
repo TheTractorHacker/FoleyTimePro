@@ -1,7 +1,13 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once 'header.php';
 $empID = $_SESSION['EmployeeID'] ?? null;
-$name = $_SESSION['Name'] ?? 'User';
+$fullName = $_SESSION['Name'] ?? 'User';
+$nameParts = explode(' ', $fullName);
+$firstName = $nameParts[0];
 
 if (!$empID) {
     header('Location: ../error.php?code=401&message=' . urlencode('Employee ID not found. Please log in again.'));
@@ -24,12 +30,25 @@ while ($row = $result->fetch_assoc()) {
     $date = $row['Date'];
     $in   = $row['TimeIN'] ? strtotime($row['Date'] . ' ' . $row['TimeIN']) : 0;
     $out  = $row['TimeOUT'] ? strtotime($row['Date'] . ' ' . $row['TimeOUT']) : 0;
-    $worked = ($in && $out) ? $out - $in : 0;
+    
+    $lunchStart = $row['LunchStart'] ? strtotime($row['Date'] . ' ' . $row['LunchStart']) : 0;
+    $lunchEnd   = $row['LunchEnd'] ? strtotime($row['Date'] . ' ' . $row['LunchEnd']) : 0;
+    
+    $workDuration = ($in && $out) ? $out - $in : 0;
+    $lunchDuration = ($lunchStart && $lunchEnd) ? $lunchEnd - $lunchStart : 0;
+    
+    $worked = $workDuration - $lunchDuration;
+    if ($worked < 0) {
+        $worked = 0;
+    }
+    
     $totalSeconds += $worked;
 
     $punches[] = [
         'date' => date("m/d/Y", strtotime($date)),
         'in' => $in ? date("g:i A", $in) : '-',
+        'lunch_start' => $lunchStart ? date("g:i A", $lunchStart) : '-',
+        'lunch_end' => $lunchEnd ? date("g:i A", $lunchEnd) : '-',
         'out' => $out ? date("g:i A", $out) : '-',
         'hours' => $worked ? round($worked / 3600, 2) : '-',
         'note' => $row['Note'] ?? '-'
@@ -91,6 +110,79 @@ while ($row = $editResults->fetch_assoc()) {
     $editRequests[] = $row;
 }
 ?>
+<style>
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: white;
+        text-transform: capitalize;
+    }
+    .badge-pending { background-color: #FFA500; }
+    .badge-approved { background-color: #28a745; }
+    .badge-rejected { background-color: #dc3545; }
+    .badge-unknown { background-color: #6c757d; }
+
+    .edit-status-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .edit-status-table th,
+    .edit-status-table td {
+        padding: 0.5rem;
+        border-bottom: 1px solid #ccc;
+        text-align: left;
+    }
+
+    .current-status-badge {
+        display: inline-block;
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 17px;
+        font-weight: bold;
+        color: white;
+        text-transform: uppercase;
+        background-color: #6c757d; /* Default/Disabled background */
+    }
+
+    .status-in {
+        background-color: #28a745;
+    }
+
+    .status-out {
+        background-color: #dc3545;
+    }
+
+    .status-on-lunch {
+        background-color: #FFA500;
+    }
+
+    .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .popup.hidden {
+        display: none;
+    }
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+</style>
         <h2>Welcome, <?= htmlspecialchars($name) ?>!</h2>
         
         <div class="card">
@@ -150,12 +242,14 @@ while ($row = $editResults->fetch_assoc()) {
             </form>
 
             <table>
-                <thead><tr><th>Date</th><th>Time In</th><th>Time Out</th><th>Hours</th></tr></thead>
+                <thead><tr><th>Date</th><th>Time In</th><th>Lunch Start</th><th>Lunch End</th><th>Time Out</th><th>Hours</th></tr></thead>
                 <tbody>
                     <?php foreach ($punches as $p): ?>
                     <tr>
                         <td><?= $p['date'] ?></td>
                         <td><?= $p['in'] ?></td>
+                        <td><?= $p['lunch_start'] ?></td>
+                        <td><?= $p['lunch_end'] ?></td>
                         <td><?= $p['out'] ?></td>
                         <td><?= $p['hours'] ?></td>
                     </tr>
@@ -203,6 +297,22 @@ while ($row = $editResults->fetch_assoc()) {
             </table>
         </div>
         <?php endif; ?>
+<!-- Confirmation Popup -->
+<div id="confirmationPopup" class="popup hidden">
+  <div class="popup-content">
+    <p id="confirmationMessage"></p>
+    <button id="confirmYes">Yes</button>
+    <button id="confirmNo">No</button>
+  </div>
+</div>
+
+<!-- ✅ Feedback Popup -->
+<div id="customPopup" class="popup hidden">
+  <div class="popup-content">
+    <p id="popupMessage"></p>
+    <button id="popupClose">OK</button>
+  </div>
+</div>
 <script>const empID = <?= (int)$empID ?>;</script>
 <script src="../js/user_dashboard.js"></script>
 <?php require_once 'footer.php'; ?>

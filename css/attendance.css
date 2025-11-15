@@ -1,5 +1,5 @@
 :root {
-            --primary-color: #0078D7;
+            --primary-color: #073851;
         }
 
         body {
@@ -44,8 +44,8 @@
             margin-top: 30px;
             text-align: center;
             padding: 1rem;
-            background: #e9ecef;
-            color: #555;
+            background: #073851;
+            color: #FFFFFF;
             font-size: 14px;
         }
 
@@ -161,4 +161,3 @@
             visibility: visible;
             opacity: 1;
         }
-    

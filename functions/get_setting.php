@@ -1,6 +1,7 @@
 <?php
 // get_setting.php
 require_once __DIR__ . '/../auth/db.php';
+require_once __DIR__ . '/settings_helper.php'; // Include the new helper
 
 header('Content-Type: application/json');
 
@@ -11,22 +12,13 @@ if (empty($settingKey)) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT SettingValue FROM settings WHERE SettingKey = ? LIMIT 1");
-if (!$stmt) {
-    echo json_encode(['success' => false, 'message' => 'Database query failed.']);
-    exit;
-}
+$value = getSettingValue($settingKey, $conn); // Use the helper function
 
-$stmt->bind_param("s", $settingKey);
-$stmt->execute();
-$stmt->bind_result($value);
-
-if ($stmt->fetch()) {
+if ($value !== null) {
     echo json_encode(['success' => true, 'setting' => $settingKey, 'value' => $value]);
 } else {
     echo json_encode(['success' => false, 'message' => "Setting '{$settingKey}' not found."]);
 }
 
-$stmt->close();
 $conn->close();
 ?>
