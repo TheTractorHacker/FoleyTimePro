@@ -1,6 +1,6 @@
-# 🕒 D-BEST TimeSmart
+# 🕒 FoleyTimePro
 
-**D-BEST TimeSmart** is a modern, web-based time clock application built for small businesses, schools, and organizations needing efficient time tracking and user management. It supports employees clocking in/out and offers powerful tools for administrators to manage users, view reports, and export data — all in a secure and user-friendly interface.
+**FoleyTimePro** is a modern, web-based time clock application built for small businesses, schools, and organizations needing efficient time tracking and user management. It supports employees clocking in/out and offers powerful tools for administrators to manage users, view reports, and export data — all in a secure and user-friendly interface.
 
 ---
 
