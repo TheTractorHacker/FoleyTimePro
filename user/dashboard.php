@@ -1,22 +1,40 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+session_set_cookie_params(['lifetime'=>0,'path'=>'/','secure'=>true,'httponly'=>true,'samesite'=>'Strict']);
+session_start();
 
-require_once 'header.php';
+date_default_timezone_set('America/Chicago');
+require_once __DIR__ . '/../auth/db.php';
+
 $empID = $_SESSION['EmployeeID'] ?? null;
-$fullName = $_SESSION['Name'] ?? 'User';
-$nameParts = explode(' ', $fullName);
-$firstName = $nameParts[0];
 
 if (!$empID) {
     header('Location: ../error.php?code=401&message=' . urlencode('Employee ID not found. Please log in again.'));
     exit;
 }
 
-// Punch history
+// Fetch user info
+$uStmt = $conn->prepare("SELECT FirstName, LastName FROM users WHERE ID = ?");
+$uStmt->bind_param("i", $empID);
+$uStmt->execute();
+$uRow     = $uStmt->get_result()->fetch_assoc();
+$name     = $uRow['FirstName'] ?? $_SESSION['FirstName'] ?? 'Employee';
+$fullName = ($uRow['FirstName'] ?? '') . ' ' . ($uRow['LastName'] ?? '');
+
+// Current status — must be fetched BEFORE last-punch block so timer check works
+$currentStatus = 'Out';
+$statusQuery = $conn->prepare("SELECT ClockStatus FROM users WHERE id = ?");
+if ($statusQuery) {
+    $statusQuery->bind_param("s", $empID);
+    $statusQuery->execute();
+    $sRow = $statusQuery->get_result()->fetch_assoc();
+    if ($sRow && isset($sRow['ClockStatus'])) {
+        $currentStatus = $sRow['ClockStatus'];
+    }
+}
+
+// Punch history (this week)
 $start = $_GET['start'] ?? date('Y-m-d', strtotime('monday this week'));
-$end   = $_GET['end'] ?? date('Y-m-d', strtotime('friday this week'));
+$end   = $_GET['end']   ?? date('Y-m-d', strtotime('friday this week'));
 
 $query = $conn->prepare("SELECT Date, TimeIN, LunchStart, LunchEnd, TimeOUT, Note FROM timepunches WHERE EmployeeID = ? AND Date BETWEEN ? AND ? ORDER BY Date DESC, TimeIN DESC");
 $query->bind_param("sss", $empID, $start, $end);
@@ -27,31 +45,21 @@ $punches = [];
 $totalSeconds = 0;
 
 while ($row = $result->fetch_assoc()) {
-    $date = $row['Date'];
-    $in   = $row['TimeIN'] ? strtotime($row['Date'] . ' ' . $row['TimeIN']) : 0;
-    $out  = $row['TimeOUT'] ? strtotime($row['Date'] . ' ' . $row['TimeOUT']) : 0;
-    
-    $lunchStart = $row['LunchStart'] ? strtotime($row['Date'] . ' ' . $row['LunchStart']) : 0;
-    $lunchEnd   = $row['LunchEnd'] ? strtotime($row['Date'] . ' ' . $row['LunchEnd']) : 0;
-    
-    $workDuration = ($in && $out) ? $out - $in : 0;
-    $lunchDuration = ($lunchStart && $lunchEnd) ? $lunchEnd - $lunchStart : 0;
-    
-    $worked = $workDuration - $lunchDuration;
-    if ($worked < 0) {
-        $worked = 0;
-    }
-    
+    $in  = $row['TimeIN']  ? strtotime($row['Date'] . ' ' . $row['TimeIN'])  : 0;
+    $out = $row['TimeOUT'] ? strtotime($row['Date'] . ' ' . $row['TimeOUT']) : 0;
+    $lS  = $row['LunchStart'] ? strtotime($row['Date'] . ' ' . $row['LunchStart']) : 0;
+    $lE  = $row['LunchEnd']   ? strtotime($row['Date'] . ' ' . $row['LunchEnd'])   : 0;
+
+    $worked = max(0, (($in && $out) ? $out - $in : 0) - (($lS && $lE) ? $lE - $lS : 0));
     $totalSeconds += $worked;
 
     $punches[] = [
-        'date' => date("m/d/Y", strtotime($date)),
-        'in' => $in ? date("g:i A", $in) : '-',
-        'lunch_start' => $lunchStart ? date("g:i A", $lunchStart) : '-',
-        'lunch_end' => $lunchEnd ? date("g:i A", $lunchEnd) : '-',
-        'out' => $out ? date("g:i A", $out) : '-',
-        'hours' => $worked ? round($worked / 3600, 2) : '-',
-        'note' => $row['Note'] ?? '-'
+        'date'        => date("m/d/Y", strtotime($row['Date'])),
+        'in'          => $in ? date("g:i A", $in) : '-',
+        'lunch_start' => $lS ? date("g:i A", $lS) : '-',
+        'lunch_end'   => $lE ? date("g:i A", $lE) : '-',
+        'out'         => $out ? date("g:i A", $out) : '-',
+        'hours'       => $worked ? round($worked / 3600, 2) : '-',
     ];
 }
 
@@ -59,260 +67,286 @@ $totalHours = round($totalSeconds / 3600, 2);
 
 // Last punch info
 $last = $conn->query("SELECT * FROM timepunches WHERE EmployeeID = '$empID' ORDER BY Date DESC, TimeIN DESC LIMIT 1")->fetch_assoc();
-$lastLabel = $lastTime = $lastDate = $lastNote = '-';
+$lastLabel = $lastTime = '-';
 $clockInUnix = null;
 
 if ($last) {
-    $lastDate = $last['Date'];
-    $lastNote = $last['Note'] ?? '-';
-
+    // Last punch label — what was the most recent action
     if (!empty($last['TimeOUT'])) {
         $lastLabel = "Clock Out";
-        $lastTime = date("g:i A", strtotime($last['TimeOUT']));
+        $lastTime  = date("g:i A", strtotime($last['TimeOUT']));
     } elseif (!empty($last['LunchEnd'])) {
         $lastLabel = "Lunch End";
-        $lastTime = date("g:i A", strtotime($last['LunchEnd']));
+        $lastTime  = date("g:i A", strtotime($last['LunchEnd']));
     } elseif (!empty($last['LunchStart'])) {
         $lastLabel = "Lunch Start";
-        $lastTime = date("g:i A", strtotime($last['LunchStart']));
+        $lastTime  = date("g:i A", strtotime($last['LunchStart']));
     } elseif (!empty($last['TimeIN'])) {
         $lastLabel = "Clock In";
-        $lastTime = date("g:i A", strtotime($last['TimeIN']));
-        if (empty($last['TimeOUT'])) {
-            $clockInUnix = strtotime($last['Date'] . ' ' . $last['TimeIN']);
+        $lastTime  = date("g:i A", strtotime($last['TimeIN']));
+    }
+
+    // Timer — independent of last action; runs whenever status is In and punch is open today
+    if ($currentStatus === 'In' && empty($last['TimeOUT']) && !empty($last['TimeIN']) && $last['Date'] === date('Y-m-d')) {
+        $clockInUnix = strtotime($last['Date'] . ' ' . $last['TimeIN']);
+        // Shift start forward by any completed lunch so timer shows net time worked
+        if (!empty($last['LunchStart']) && !empty($last['LunchEnd'])) {
+            $lunchSec = strtotime($last['Date'].' '.$last['LunchEnd'])
+                      - strtotime($last['Date'].' '.$last['LunchStart']);
+            if ($lunchSec > 0) $clockInUnix += $lunchSec;
         }
     }
 }
-
-// Determine current status from the users table
-$currentStatus = 'Out'; // Default status
-$statusQuery = $conn->prepare("SELECT ClockStatus FROM users WHERE id = ?");
-if ($statusQuery) {
-    $statusQuery->bind_param("s", $empID);
-    $statusQuery->execute();
-    $statusResult = $statusQuery->get_result();
-    if ($statusResult) {
-        $statusRow = $statusResult->fetch_assoc();
-        if ($statusRow && isset($statusRow['ClockStatus'])) {
-            $currentStatus = $statusRow['ClockStatus'];
-        }
-    }
-}
-
 
 // Edit requests
 $editStmt = $conn->prepare("SELECT Date, TimeIN, LunchStart, LunchEnd, TimeOUT, Note, Reason, Status FROM pending_edits WHERE EmployeeID = ? ORDER BY SubmittedAt DESC LIMIT 10");
 $editStmt->bind_param("i", $empID);
 $editStmt->execute();
-$editResults = $editStmt->get_result();
-$editRequests = [];
-while ($row = $editResults->fetch_assoc()) {
-    $editRequests[] = $row;
-}
+$editRequests = $editStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// Branding + derived display values
+require_once __DIR__ . '/../functions/get_branding.php';
+$branding    = getBranding($conn);
+$statusClass = strtolower($currentStatus ?: 'out');
+$statusLabel = match($currentStatus) {
+    'In'    => 'Clocked In',
+    'Lunch' => 'On Lunch',
+    default => 'Clocked Out',
+};
 ?>
-<style>
-    .status-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        color: white;
-        text-transform: capitalize;
-    }
-    .badge-pending { background-color: #FFA500; }
-    .badge-approved { background-color: #28a745; }
-    .badge-rejected { background-color: #dc3545; }
-    .badge-unknown { background-color: #6c757d; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — <?= htmlspecialchars($branding['CompanyName']) ?></title>
+  <link rel="icon" type="image/webp" href="<?= htmlspecialchars($branding['FaviconPath']) ?>">
+  <link rel="manifest" href="/manifest.php">
+  <link rel="stylesheet" href="../css/user-portal.css">
+</head>
+<body>
+<?php include '../functions/modal.html'; ?>
 
-    .edit-status-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
-    .edit-status-table th,
-    .edit-status-table td {
-        padding: 0.5rem;
-        border-bottom: 1px solid #ccc;
-        text-align: left;
-    }
+<header class="u-nav">
+  <a href="dashboard.php" class="u-nav-brand">
+    <img src="<?= htmlspecialchars($branding['LogoPath']) ?>" alt="" class="u-nav-logo"
+         onerror="this.onerror=null;this.src='../images/FoleyTimePro-favicon.webp'">
+    <span><?= htmlspecialchars($branding['CompanyName']) ?></span>
+  </a>
+  <nav class="u-nav-links">
+    <a href="dashboard.php" class="active">Dashboard</a>
+    <a href="timesheet.php">Timesheet</a>
+    <a href="time_off.php">Time Off</a>
+    <a href="settings.php">Settings</a>
+  </nav>
+  <div class="u-nav-user">
+    Hi, <?= htmlspecialchars($name) ?>
+    <a href="../logout.php" class="u-nav-logout">Logout</a>
+  </div>
+</header>
 
-    .current-status-badge {
-        display: inline-block;
-        padding: 20px;
-        border-radius: 12px;
-        font-size: 17px;
-        font-weight: bold;
-        color: white;
-        text-transform: uppercase;
-        background-color: #6c757d; /* Default/Disabled background */
-    }
+<nav class="u-bottom-nav">
+  <div class="u-bottom-nav-inner">
+    <a href="dashboard.php" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Home
+    </a>
+    <a href="timesheet.php">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Timesheet
+    </a>
+    <a href="time_off.php">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Time Off
+    </a>
+    <a href="settings.php">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </a>
+    <a href="../logout.php">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </a>
+  </div>
+</nav>
 
-    .status-in {
-        background-color: #28a745;
-    }
+<div class="u-content">
 
-    .status-out {
-        background-color: #dc3545;
-    }
-
-    .status-on-lunch {
-        background-color: #FFA500;
-    }
-
-    .popup {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-    .popup.hidden {
-        display: none;
-    }
-    .popup-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 5px;
-        text-align: center;
-    }
-
-</style>
-        <h2>Welcome, <?= htmlspecialchars($name) ?>!</h2>
-        
-        <div class="card">
-            <h3>Status & Actions</h3>
-            <div class="current-status-badge status-<?= strtolower(str_replace(' ', '-', $currentStatus)) ?>">
-                Current Status: <?= $currentStatus ?>
-            </div>
-
-            <button class="toggle-punch" onclick="togglePunch()">⏱ Show Punch In / Out</button>
-            <div class="punch-area" id="punchArea" style="display: none;">
-                <table>
-                    <thead><tr><th>Type</th><th>Time</th><th>Date</th><th>Note</th></tr></thead>
-                    <tbody><tr>
-                        <td><?= $lastLabel ?></td>
-                        <td><?= $lastTime ?></td>
-                        <td><?= $lastDate ?></td>
-                        <td><?= htmlspecialchars($lastNote) ?></td>
-                    </tr></tbody>
-                </table>
-                <?php if ($clockInUnix !== null): ?>
-                <p class="hours-live" id="liveHours">⏳ Hours Worked Since Clock In: <strong>Loading...</strong></p>
-                <script>
-                    const clockInTime = <?= $clockInUnix * 1000 ?>;
-                    function formatTimeSince(start) {
-                        const now = Date.now();
-                        const diff = now - start;
-                        const hours = Math.floor(diff / 3600000);
-                        const minutes = Math.floor((diff % 3600000) / 60000);
-                        const seconds = Math.floor((diff % 60000) / 1000);
-                        return `${hours} hrs ${minutes} mins ${seconds} secs`;
-                    }
-                    function updateLiveHours() {
-                        document.querySelector("#liveHours strong").textContent = formatTimeSince(clockInTime);
-                    }
-                    updateLiveHours();
-                    setInterval(updateLiveHours, 1000);
-                </script>
-                <?php endif; ?>
-                <input type="text" id="note" placeholder="Optional note...">
-                <div class="punch-buttons">
-                    <button class="clockin" onclick="submitAction('clockin')">Clock In</button>
-                    <button class="lunchstart" onclick="submitAction('lunchstart')">Lunch Start</button>
-                    <button class="lunchend" onclick="submitAction('lunchend')">Lunch End</button>
-                    <button class="clockout" onclick="submitAction('clockout')">Clock Out</button>
-                </div>
-            </div>
+  <!-- ── Hero Banner ─────────────────────────────────────────── -->
+  <div class="db-hero db-hero-<?= $statusClass ?>">
+    <div class="db-hero-left">
+      <p class="db-hero-greeting">Welcome back</p>
+      <h1 class="db-hero-name"><?= htmlspecialchars($name) ?></h1>
+      <div class="db-status-pill db-status-<?= $statusClass ?>">
+        <span class="db-status-dot"></span>
+        <?= htmlspecialchars($statusLabel) ?>
+      </div>
+    </div>
+    <div class="db-hero-right">
+      <?php if ($clockInUnix !== null): ?>
+      <div class="db-hero-timer-wrap">
+        <div class="db-hero-timer-label">Time Worked Today</div>
+        <div class="db-hero-timer" id="liveTimer">0:00:00</div>
+      </div>
+      <?php else: ?>
+      <div class="db-hero-stats">
+        <div class="db-hero-stat">
+          <div class="db-hero-stat-val"><?= number_format($totalHours, 1) ?></div>
+          <div class="db-hero-stat-lbl">Hrs This Week</div>
         </div>
-
-        <div class="card">
-            <h3>Time History</h3>
-            <form method="get" class="date-range">
-                <label>From:</label>
-                <input type="date" name="start" value="<?= $start ?>">
-                <label>To:</label>
-                <input type="date" name="end" value="<?= $end ?>">
-                <button type="submit">Apply</button>
-            </form>
-
-            <table>
-                <thead><tr><th>Date</th><th>Time In</th><th>Lunch Start</th><th>Lunch End</th><th>Time Out</th><th>Hours</th></tr></thead>
-                <tbody>
-                    <?php foreach ($punches as $p): ?>
-                    <tr>
-                        <td><?= $p['date'] ?></td>
-                        <td><?= $p['in'] ?></td>
-                        <td><?= $p['lunch_start'] ?></td>
-                        <td><?= $p['lunch_end'] ?></td>
-                        <td><?= $p['out'] ?></td>
-                        <td><?= $p['hours'] ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-
-            <h4>Total Hours This Range: <strong><?= $totalHours ?> hrs</strong></h4>
-        </div>
-
-        <?php if (!empty($editRequests)): ?>
-        <div class="card">
-            <h3>Your Recent Edit Requests</h3>
-            <table class="edit-status-table">
-                <thead><tr><th>Date</th><th>Field</th><th>New Value</th><th>Reason</th><th>Status</th></tr></thead>
-                <tbody>
-                    <?php foreach ($editRequests as $edit): ?>
-                    <?php
-                        $status = strtolower($edit['Status']);
-                        $badgeClass = match ($status) {
-                            'pending' => 'badge-pending',
-                            'approved' => 'badge-approved',
-                            'rejected' => 'badge-rejected',
-                            default => 'badge-unknown'
-                        };
-                        $field = '-';
-                        $value = '-';
-                        foreach (['TimeIN', 'LunchStart', 'LunchEnd', 'TimeOUT', 'Note'] as $key) {
-                            if (!empty($edit[$key])) {
-                                $field = $key;
-                                $value = htmlspecialchars($edit[$key]);
-                                break;
-                            }
-                        }
-                    ?>
-                    <tr>
-                        <td><?= htmlspecialchars($edit['Date']) ?></td>
-                        <td><?= $field ?></td>
-                        <td><?= $value ?></td>
-                        <td><?= htmlspecialchars($edit['Reason']) ?></td>
-                        <td><span class="status-badge <?= $badgeClass ?>"><?= ucfirst($status) ?></span></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        <?php if ($lastTime !== '-'): ?>
+        <div class="db-hero-stat-div"></div>
+        <div class="db-hero-stat">
+          <div class="db-hero-stat-val"><?= htmlspecialchars($lastTime) ?></div>
+          <div class="db-hero-stat-lbl">Last <?= htmlspecialchars($lastLabel) ?></div>
         </div>
         <?php endif; ?>
-<!-- Confirmation Popup -->
-<div id="confirmationPopup" class="popup hidden">
-  <div class="popup-content">
-    <p id="confirmationMessage"></p>
-    <button id="confirmYes">Yes</button>
-    <button id="confirmNo">No</button>
+      </div>
+      <?php endif; ?>
+    </div>
   </div>
-</div>
 
-<!-- ✅ Feedback Popup -->
-<div id="customPopup" class="popup hidden">
-  <div class="popup-content">
-    <p id="popupMessage"></p>
-    <button id="popupClose">OK</button>
+  <!-- ── Main Grid (actions left, punches right) ────────────── -->
+  <div class="db-grid">
+
+    <!-- Clock Actions -->
+    <div class="u-card db-actions-card">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Clock Actions
+      </h2>
+      <textarea class="db-note" id="dashNote" placeholder="Optional note for this punch…"></textarea>
+      <div class="u-punch-grid">
+        <button class="u-punch-btn u-punch-in"  onclick="submitAction('clockin')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Clock In
+        </button>
+        <button class="u-punch-btn u-punch-ls" onclick="submitAction('lunchstart')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Lunch Start
+        </button>
+        <button class="u-punch-btn u-punch-le" onclick="submitAction('lunchend')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Lunch End
+        </button>
+        <button class="u-punch-btn u-punch-out" onclick="submitAction('clockout')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Clock Out
+        </button>
+      </div>
+    </div>
+
+    <!-- This Week -->
+    <div class="u-card db-week-card" style="padding:0;overflow:hidden">
+      <div class="db-card-header">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          This Week
+        </h2>
+        <a href="timesheet.php" class="u-btn u-btn-secondary u-btn-sm">View All</a>
+      </div>
+      <?php if (empty($punches)): ?>
+      <div class="db-empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>No punches this week.</p>
+      </div>
+      <?php else: ?>
+      <div class="u-table-wrap">
+        <table class="u-table">
+          <thead>
+            <tr><th>Date</th><th>In</th><th>Lunch</th><th>Out</th><th>Hrs</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($punches as $p): ?>
+            <tr>
+              <td class="db-td-date"><?= htmlspecialchars($p['date']) ?></td>
+              <td><?= htmlspecialchars($p['in']) ?></td>
+              <td class="db-td-muted"><?= $p['lunch_start'] !== '-' ? htmlspecialchars($p['lunch_start']).'–'.htmlspecialchars($p['lunch_end']) : '—' ?></td>
+              <td><?= htmlspecialchars($p['out']) ?></td>
+              <td><strong><?= $p['hours'] !== '-' ? $p['hours'].' h' : '—' ?></strong></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <div class="db-week-total">
+        Total this period: <strong><?= $totalHours ?> hrs</strong>
+      </div>
+      <?php endif; ?>
+    </div>
+
+  </div><!-- /.db-grid -->
+
+  <?php if (!empty($editRequests)): ?>
+  <!-- Edit Requests -->
+  <div class="u-card" style="padding:0;overflow:hidden">
+    <div class="db-card-header">
+      <h2>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit Requests
+      </h2>
+    </div>
+    <div class="u-table-wrap">
+      <table class="u-table">
+        <thead><tr><th>Date</th><th>Change</th><th>Reason</th><th>Status</th></tr></thead>
+        <tbody>
+        <?php foreach ($editRequests as $edit):
+          $s = strtolower($edit['Status'] ?? 'pending');
+          $field = '-'; $value = '-';
+          foreach (['TimeIN','LunchStart','LunchEnd','TimeOUT','Note'] as $k) {
+            if (!empty($edit[$k])) { $field=$k; $value=htmlspecialchars($edit[$k]); break; }
+          }
+        ?>
+        <tr>
+          <td class="db-td-date"><?= htmlspecialchars($edit['Date'] ?? '') ?></td>
+          <td class="db-td-sm"><?= $field ?>: <?= $value ?></td>
+          <td class="db-td-sm db-td-muted"><?= htmlspecialchars($edit['Reason'] ?? '') ?></td>
+          <td><span class="u-badge u-badge-<?= $s ?>"><?= ucfirst($s) ?></span></td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
-<script>const empID = <?= (int)$empID ?>;</script>
-<script src="../js/user_dashboard.js"></script>
-<?php require_once 'footer.php'; ?>
+  <?php endif; ?>
+
+</div><!-- /.u-content -->
+
+<footer class="u-footer">
+  <span>&copy; <?= date('Y') ?> <?= htmlspecialchars($branding['CompanyName']) ?> — Powered by Foley IT</span>
+  <span><a href="/docs/privacy.php">Privacy</a> <a href="/docs/terms.php">Terms</a></span>
+</footer>
+
+<?php if ($clockInUnix !== null): ?>
+<script>
+(function(){
+  var start = <?= $clockInUnix * 1000 ?>;
+  function tick(){
+    var d = Math.max(0, Math.floor((Date.now()-start)/1000));
+    var h = Math.floor(d/3600), m = Math.floor((d%3600)/60), s = d%60;
+    document.getElementById('liveTimer').textContent =
+      h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  }
+  tick(); setInterval(tick,1000);
+})();
+</script>
+<?php endif; ?>
+
+<script src="../js/script.js"></script>
+<script>
+document.getElementById('modalEmployeeID').value = <?= json_encode($empID) ?>;
+
+// Sync dashboard note textarea → modal note field before every punch submit,
+// because getElementById('note') returns the modal's textarea (first in DOM).
+(function() {
+  var orig = window.confirmSubmit;
+  window.confirmSubmit = function() {
+    var dash  = document.getElementById('dashNote');
+    var modal = document.getElementById('note');
+    if (dash && modal) modal.value = dash.value;
+    orig.call(this);
+  };
+})();
+</script>
+</body>
+</html>

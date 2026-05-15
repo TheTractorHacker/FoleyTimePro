@@ -30,7 +30,7 @@ if (!$user || empty($user['Email'])) {
 }
 
 // --- Build or reuse TOTP (persist secret during setup) ---
-$ISSUER = 'D-Best Timeclock'; // <- exact issuer text requested
+$ISSUER = 'FoleyTimePro'; // <- exact issuer text requested
 if (empty($_SESSION['2fa_secret'])) {
     $totp = TOTP::create(); // 30s period, 6 digits
     $totp->setLabel($user['Email']);
@@ -42,26 +42,43 @@ if (empty($_SESSION['2fa_secret'])) {
     $totp->setIssuer($ISSUER);
 }
 
-// --- QR (constructor style for your package version) ---
-$logoPath = realpath(__DIR__ . '/../images/D-Best.png'); // keep PNG logo
+// --- QR code builder ---
+$logoPath = realpath(__DIR__ . '/../images/FoleyTimePro-logo.png');
+$hasLogo  = $logoPath && is_readable($logoPath);
 
-$builder = new Builder(
-    writer: new PngWriter(),
-    writerOptions: [],
-    validateResult: false,
-    data: $totp->getProvisioningUri(),
-    encoding: new Encoding('UTF-8'),
-    errorCorrectionLevel: ErrorCorrectionLevel::High,
-    size: 300,
-    margin: 10,
-    roundBlockSizeMode: RoundBlockSizeMode::Margin,
-    logoPath: $logoPath && is_readable($logoPath) ? $logoPath : null,
-    logoResizeToWidth: 60,
-    logoPunchoutBackground: true,
-    labelText: 'Scan with Authenticator',
-    labelFont: new OpenSans(16),
-    labelAlignment: LabelAlignment::Center
-);
+// Builder's $logoPath is typed string (non-nullable) — use conditional to avoid passing null
+$builder = $hasLogo
+    ? new Builder(
+        writer: new PngWriter(),
+        writerOptions: [],
+        validateResult: false,
+        data: $totp->getProvisioningUri(),
+        encoding: new Encoding('UTF-8'),
+        errorCorrectionLevel: ErrorCorrectionLevel::High,
+        size: 300,
+        margin: 10,
+        roundBlockSizeMode: RoundBlockSizeMode::Margin,
+        logoPath: $logoPath,
+        logoResizeToWidth: 60,
+        logoPunchoutBackground: true,
+        labelText: 'Scan with Authenticator',
+        labelFont: new OpenSans(16),
+        labelAlignment: LabelAlignment::Center
+    )
+    : new Builder(
+        writer: new PngWriter(),
+        writerOptions: [],
+        validateResult: false,
+        data: $totp->getProvisioningUri(),
+        encoding: new Encoding('UTF-8'),
+        errorCorrectionLevel: ErrorCorrectionLevel::High,
+        size: 300,
+        margin: 10,
+        roundBlockSizeMode: RoundBlockSizeMode::Margin,
+        labelText: 'Scan with Authenticator',
+        labelFont: new OpenSans(16),
+        labelAlignment: LabelAlignment::Center
+    );
 
 $result = $builder->build();
 $imgData = base64_encode($result->getString());

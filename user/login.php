@@ -211,220 +211,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Employee Login</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="robots" content="noindex,nofollow">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-
-    <link rel="stylesheet" href="../css/user.css">
-    <link rel="stylesheet" href="../css/style.css">
-
-    <link rel="stylesheet" href="../css/user_login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Login</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/webp" href="../images/FoleyTimePro-favicon.webp">
+  <link rel="stylesheet" href="../css/user-portal.css">
 </head>
-<body>
+<body style="padding-bottom:0">
 
-<!-- 🌐 Desktop Nav -->
-<header class="topnav desktop-only">
-  <div class="topnav-left">
-    <img src="../images/D-Best.png" class="nav-logo" alt="Logo">
-    <span class="nav-title">D-BEST TimeSmart</span>
-  </div>
-  <div class="topnav-right">
-    <span class="nav-date"><?= htmlspecialchars(date('F j, Y'), ENT_QUOTES, 'UTF-8') ?></span>
-    <a href="../index.php">🏠 Home</a>
-    <a href="./login.php">🔐 User Login</a>
-    <div class="dropdown">
-      <button class="dropbtn">⏱ Settings ▾</button>
-      <div class="dropdown-content">
-        <a href="../admin/login.php">Admin Login</a>
-        <a href="../admin/reports.php">Timeclock Reports</a>
+<div class="u-login-wrap">
+  <div class="u-login-card">
+
+    <div class="u-login-logo">
+      <img src="../images/FoleyTimePro-logo.png" alt="Logo"
+           onerror="this.onerror=null;this.src='../images/FoleyTimePro-favicon.webp'">
+      <div>
+        <div class="u-login-logo-name">FoleyTimePro</div>
+        <div class="u-login-logo-sub">Employee Portal</div>
       </div>
     </div>
-  </div>
-</header>
 
-<!-- 📱 Mobile Banner -->
-<div class="mobile-banner mobile-only">
-  <img src="../images/D-Best.png" alt="Logo" class="nav-logo">
-  <span class="nav-title">D-BEST TimeSmart</span>
-</div>
+    <h1>Sign In</h1>
+    <p>Enter your name and PIN to continue.</p>
 
-<!-- 📱 Mobile Menu Trigger -->
-<nav class="mobile-nav mobile-only">
-  <a href="../index.php">🏠 Home</a>
-  <a href="./login.php">🔐 User Login</a>
-  <button class="menu-toggle" id="menuBtn">☰</button>
-</nav>
+    <?php if (!empty($error)): ?>
+      <div class="u-alert u-alert-error" role="alert">
+        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
+      </div>
+    <?php endif; ?>
 
-<!-- 📱 Modal Mobile Menu -->
-<div class="mobile-menu-overlay" id="mobileMenuOverlay">
-  <div class="mobile-menu-content">
-    <button class="close-mobile-menu" id="closeMenu">&times;</button>
-    <a href="../admin/admin.php">🛠️ Administration</a>
-    <a href="../reports.php">📊 Reports</a>
-    <a href="../clock.php">⏱️ Export Hours</a>
-  </div>
-</div>
+    <form method="POST" novalidate>
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
-<div class="wrapper">
-  <div class="main">
-    <div class="login-container" role="main" aria-labelledby="login-title">
-      <div class="login-logo-wrap">
-        <img src="../images/D-Best.png" alt="Company Logo">
+      <div class="u-form-group u-field-wrap" id="nameField">
+        <label for="nameInput">Full Name</label>
+        <input
+          type="text"
+          name="name"
+          id="nameInput"
+          placeholder="First Last  or  Last, First"
+          value="<?= htmlspecialchars($namePrefill, ENT_QUOTES, 'UTF-8') ?>"
+          required
+          autocomplete="name"
+          spellcheck="false"
+          autocapitalize="words"
+          aria-autocomplete="list"
+          aria-controls="suggestions"
+          aria-expanded="false">
+        <ul id="suggestions" class="suggestion-box" role="listbox" aria-label="Name suggestions"></ul>
       </div>
 
-      <h2 id="login-title">Employee Login</h2>
+      <div class="u-form-group">
+        <label for="passInput">PIN / Password</label>
+        <input
+          type="password"
+          name="password"
+          id="passInput"
+          placeholder="Enter your PIN"
+          required
+          autocomplete="current-password"
+          inputmode="numeric">
+      </div>
 
-      <?php if (!empty($error)): ?>
-        <div class="error" aria-live="assertive"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
-      <?php endif; ?>
+      <button type="submit" class="u-login-submit">Sign In</button>
+    </form>
 
-      <?php if ($attemptsLeftForView !== null && $attemptsLeftForView > 0): ?>
-        <div class="info" aria-live="polite">
-            Attempts remaining: <?= (int)$attemptsLeftForView ?> of <?= (int)MAX_LOGIN_ATTEMPTS_USER ?>.
-        </div>
-      <?php endif; ?>
-
-      <form method="POST" novalidate>
-        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-
-        <div class="field" id="nameField">
-          <label for="nameInput">Name</label>
-          <input
-            type="text"
-            name="name"
-            id="nameInput"
-            placeholder="Start typing name..."
-            value="<?= htmlspecialchars($namePrefill, ENT_QUOTES, 'UTF-8') ?>"
-            required
-            autocomplete="name"
-            spellcheck="false"
-            autocapitalize="words"
-            aria-autocomplete="list"
-            aria-controls="suggestions"
-            aria-expanded="false">
-          <ul id="suggestions" class="suggestion-box" role="listbox" aria-label="Name suggestions"></ul>
-        </div>
-
-        <div class="field">
-          <label for="passInput">PIN / Password</label>
-          <input
-            type="password"
-            name="password"
-            id="passInput"
-            placeholder="PIN / Password"
-            required
-            autocomplete="current-password">
-        </div>
-
-        <button type="submit">Login</button>
-
-        <div class="help" style="margin-top:0.75rem; font-size:0.85rem; color:#9ca3af;" aria-live="polite">
-            Tip: You can type “Last, First” or “First Last”.
-        </div>
-      </form>
+    <div class="u-login-footer">
+      <a href="/index.php">Back to Home</a>
+      <a href="/admin/login.php">Admin Login</a>
+      <a href="/docs/privacy.php">Privacy</a>
     </div>
+
   </div>
 </div>
-
-<footer>
-  <p>D-BEST TimeSmart &copy; <?= htmlspecialchars(date('Y'), ENT_QUOTES, 'UTF-8') ?>. All rights reserved.</p>
-  <p style="margin-top: 0.3rem;">
-    <a href="/docs/privacy.php">Privacy Policy</a>
-    <a href="/docs/terms.php">Terms of Use</a>
-    <a href="/docs/report.php">Report Issues</a>
-  </p>
-</footer>
 
 <script>
-// ===== Autocomplete (debounced) =====
 const nameInput = document.getElementById("nameInput");
 const suggestionsBox = document.getElementById("suggestions");
 const nameField = document.getElementById("nameField");
-
-let acAbort = null;
-let debounceTimer = null;
-let activeIndex = -1;
+let acAbort = null, debounceTimer = null, activeIndex = -1;
 
 function clearSuggestions() {
   suggestionsBox.innerHTML = '';
-  suggestionsBox.classList.remove('show');
   nameInput.setAttribute('aria-expanded', 'false');
   activeIndex = -1;
 }
 function showSuggestions(items) {
   clearSuggestions();
   if (!items || !items.length) return;
-
-  suggestionsBox.classList.add('show');
   nameInput.setAttribute('aria-expanded', 'true');
-
-  items.forEach((fullName, idx) => {
-    const li = document.createElement("li");
-    li.textContent = fullName;
-    li.role = "option";
-    li.id = `sug-${idx}`;
+  items.forEach((name, idx) => {
+    const li = document.createElement('li');
+    li.textContent = name;
+    li.role = 'option';
     li.tabIndex = -1;
-    li.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      nameInput.value = fullName;
-      clearSuggestions();
-    });
+    li.addEventListener('mousedown', e => { e.preventDefault(); nameInput.value = name; clearSuggestions(); });
     suggestionsBox.appendChild(li);
   });
 }
-function highlight(index) {
-  Array.from(suggestionsBox.children).forEach((li, i) => {
-    if (i === index) {
-      li.setAttribute('aria-selected', 'true');
-      li.scrollIntoView({ block: 'nearest' });
-    } else {
-      li.removeAttribute('aria-selected');
-    }
+function highlight(i) {
+  Array.from(suggestionsBox.children).forEach((li, j) => {
+    li[i===j ? 'setAttribute' : 'removeAttribute']('aria-selected', 'true');
+    if (i===j) li.scrollIntoView({ block: 'nearest' });
   });
 }
-function fetchNames(q) {
-  if (acAbort) acAbort.abort();
-  acAbort = new AbortController();
-  fetch(`autocomplete.php?search=${encodeURIComponent(q)}`, { signal: acAbort.signal })
-    .then(res => res.ok ? res.json() : [])
-    .then(data => showSuggestions(Array.isArray(data) ? data : []))
-    .catch(() => {});
-}
-nameInput.addEventListener("input", () => {
+nameInput.addEventListener('input', () => {
   const q = nameInput.value.trim();
   if (q.length < 2) { clearSuggestions(); return; }
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => fetchNames(q), 180);
+  debounceTimer = setTimeout(() => {
+    if (acAbort) acAbort.abort();
+    acAbort = new AbortController();
+    fetch(`autocomplete.php?search=${encodeURIComponent(q)}`, { signal: acAbort.signal })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => showSuggestions(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, 180);
 });
-nameInput.addEventListener("keydown", (e) => {
+nameInput.addEventListener('keydown', e => {
   const items = Array.from(suggestionsBox.children);
   if (!items.length) return;
-
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    activeIndex = (activeIndex + 1) % items.length;
-    highlight(activeIndex);
-  } else if (e.key === "ArrowUp") {
-    e.preventDefault();
-    activeIndex = (activeIndex - 1 + items.length) % items.length;
-    highlight(activeIndex);
-  } else if (e.key === "Enter") {
-    if (activeIndex >= 0 && activeIndex < items.length) {
-      e.preventDefault();
-      nameInput.value = items[activeIndex].textContent;
-      clearSuggestions();
-    }
-  } else if (e.key === "Escape") {
-    clearSuggestions();
-  }
+  if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex = (activeIndex+1) % items.length; highlight(activeIndex); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex = (activeIndex-1+items.length) % items.length; highlight(activeIndex); }
+  else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); nameInput.value = items[activeIndex].textContent; clearSuggestions(); }
+  else if (e.key === 'Escape') clearSuggestions();
 });
-document.addEventListener("click", (e) => {
-  if (!nameField.contains(e.target)) clearSuggestions();
-});
+document.addEventListener('click', e => { if (!nameField.contains(e.target)) clearSuggestions(); });
 </script>
-<script src="../js/script.js"></script>
 </body>
 </html>
