@@ -61,22 +61,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Bulk user assignment ──────────────────────────────────────
     if (isset($_POST['assign_users'])) {
         $selectedUsers = array_map('intval', (array)($_POST['assigned_users'] ?? []));
-        $adminId = (int)($_SESSION['admin_id'] ?? 0);
 
-        // Remove this shift from anyone currently on it who wasn't re-selected
-        $conn->prepare("DELETE FROM user_shifts WHERE ShiftID=?")->execute([$shiftId]) || true;
+        // Resolve admin numeric ID from session username (FK requires a real admins.id or NULL)
+        $adminId = null;
+        $adminUser = $_SESSION['admin'] ?? '';
+        if ($adminUser) {
+            $aStmt = $conn->prepare("SELECT id FROM admins WHERE username=? LIMIT 1");
+            $aStmt->bind_param("s", $adminUser);
+            $aStmt->execute();
+            $aRow = $aStmt->get_result()->fetch_assoc();
+            if ($aRow) $adminId = (int)$aRow['id'];
+            $aStmt->close();
+        }
+
+        // Clear existing assignments for this shift
         $delStmt = $conn->prepare("DELETE FROM user_shifts WHERE ShiftID=?");
         $delStmt->bind_param("i", $shiftId);
         $delStmt->execute();
+        $delStmt->close();
 
-        // Also clear this shift from users who were on OTHER shifts
-        // (each user can only be on one shift, so overwrite)
+        // Insert selected users (ON DUPLICATE KEY handles users already on another shift)
         if (!empty($selectedUsers)) {
+            $ins = $conn->prepare("INSERT INTO user_shifts (UserID,ShiftID,AssignedBy) VALUES (?,?,?) ON DUPLICATE KEY UPDATE ShiftID=VALUES(ShiftID),AssignedBy=VALUES(AssignedBy),AssignedAt=NOW()");
             foreach ($selectedUsers as $uid) {
-                $ins = $conn->prepare("INSERT INTO user_shifts (UserID,ShiftID,AssignedBy) VALUES (?,?,?) ON DUPLICATE KEY UPDATE ShiftID=?,AssignedBy=?,AssignedAt=NOW()");
-                $ins->bind_param("iiiii", $uid, $shiftId, $adminId, $shiftId, $adminId);
+                $ins->bind_param("iii", $uid, $shiftId, $adminId);
                 $ins->execute();
             }
+            $ins->close();
         }
         $success = 'User assignments saved — ' . count($selectedUsers) . ' user(s) assigned.';
     }
