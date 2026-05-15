@@ -2,11 +2,6 @@
 require_once '../auth/db.php';
 session_start();
 
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 if (!isset($_SESSION['admin'])) {
     header("Location: login.php");
     exit;
@@ -18,19 +13,16 @@ if (!$id || !is_numeric($id)) {
     exit;
 }
 
-// Get user
 $stmt = $conn->prepare("SELECT * FROM users WHERE ID = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+$user = $stmt->get_result()->fetch_assoc();
 
 if (!$user) {
-    echo "User not found.";
+    header("Location: manage_users.php");
     exit;
 }
 
-// Check if user is admin
 $adminUsername = $user['FirstName'] . strtoupper(substr($user['LastName'], 0, 1));
 $checkAdmin = $conn->prepare("SELECT ID FROM admins WHERE username = ?");
 $checkAdmin->bind_param("s", $adminUsername);
@@ -39,177 +31,255 @@ $checkAdmin->store_result();
 $isAdmin = $checkAdmin->num_rows > 0;
 
 $offices_result = $conn->query("SELECT OfficeName FROM Offices ORDER BY OfficeName");
-$offices_data = [];
-while ($row = $offices_result->fetch_assoc()) {
-    $offices_data[] = $row;
-}
+$offices_data = $offices_result ? $offices_result->fetch_all(MYSQLI_ASSOC) : [];
+
+// Fetch shifts for assignment dropdown
+$shiftsResult = $conn->query("SELECT ShiftID, ShiftName FROM shifts WHERE IsActive=1 ORDER BY ShiftName");
+$allShifts = $shiftsResult ? $shiftsResult->fetch_all(MYSQLI_ASSOC) : [];
+
+// Current shift assignment
+$assignedShift = null;
+$shiftStmt = $conn->prepare("SELECT ShiftID FROM user_shifts WHERE UserID=?");
+$shiftStmt->bind_param("i", $id);
+$shiftStmt->execute();
+$shiftRow = $shiftStmt->get_result()->fetch_assoc();
+if ($shiftRow) $assignedShift = (int)$shiftRow['ShiftID'];
+
+$error = '';
+$success = '';
+$newPasswordSet = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $firstName = trim($_POST['FirstName']);
-    $lastName = trim($_POST['LastName']);
-    $email = trim($_POST['Email']);
-    $tagID = trim($_POST['TagID']);
-    $clockStatus = trim($_POST['ClockStatus']);
-    $office = trim($_POST['Office']);
-    $jobTitle = trim($_POST['JobTitle']);
-    $phone = trim($_POST['PhoneNumber']);
-    $password = $_POST['Password'];
-    $makeAdmin = isset($_POST['MakeAdmin']);
-    $enable2FA = isset($_POST['Enable2FA']) ? 1 : 0;
-    $recoveryCode = trim($_POST['RecoveryCode']);
+    $firstName   = trim($_POST['FirstName'] ?? '');
+    $lastName    = trim($_POST['LastName']  ?? '');
+    $email       = trim($_POST['Email']     ?? '');
+    $tagID       = trim($_POST['TagID']     ?? '');
+    $clockStatus = trim($_POST['ClockStatus'] ?? '');
+    $office      = trim($_POST['Office']    ?? '');
+    $jobTitle    = trim($_POST['JobTitle']  ?? '');
+    $phone       = trim($_POST['PhoneNumber'] ?? '');
+    $password    = $_POST['Password'] ?? '';
+    $lockOut     = isset($_POST['LockOut']) ? 1 : 0;
+    $makeAdmin   = isset($_POST['MakeAdmin']);
+    $enable2FA   = isset($_POST['Enable2FA']) ? 1 : 0;
+    $newShiftId  = (int)($_POST['ShiftID'] ?? 0);
 
-    if ($firstName && $lastName && $email && $clockStatus && $office) {
+    if (!$firstName || !$lastName || !$email || !$clockStatus || !$office) {
+        $error = "First name, last name, email, clock status, and office are required.";
+    } else {
         if (!empty($password)) {
             $hashed = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-            $stmt = $conn->prepare("UPDATE users SET FirstName = ?, LastName = ?, Email = ?, TagID = ?, ClockStatus = ?, Office = ?, Pass = ?, JobTitle = ?, PhoneNumber = ?, TwoFAEnabled = ?, TwoFARecoveryCode = ? WHERE ID = ?");
-            $stmt->bind_param("ssssssssissi", $firstName, $lastName, $email, $tagID, $clockStatus, $office, $hashed, $jobTitle, $phone, $enable2FA, $recoveryCode, $id);
+            $stmt = $conn->prepare("UPDATE users SET FirstName=?,LastName=?,Email=?,TagID=?,ClockStatus=?,Office=?,Pass=?,JobTitle=?,PhoneNumber=?,TwoFAEnabled=?,LockOut=? WHERE ID=?");
+            $stmt->bind_param("sssssssssiis", $firstName, $lastName, $email, $tagID, $clockStatus, $office, $hashed, $jobTitle, $phone, $enable2FA, $lockOut, $id);
+            $newPasswordSet = $password;
         } else {
-            $stmt = $conn->prepare("UPDATE users SET FirstName = ?, LastName = ?, Email = ?, TagID = ?, ClockStatus = ?, Office = ?, JobTitle = ?, PhoneNumber = ?, TwoFAEnabled = ?, TwoFARecoveryCode = ? WHERE ID = ?");
-            $stmt->bind_param("sssssssissi", $firstName, $lastName, $email, $tagID, $clockStatus, $office, $jobTitle, $phone, $enable2FA, $recoveryCode, $id);
+            $stmt = $conn->prepare("UPDATE users SET FirstName=?,LastName=?,Email=?,TagID=?,ClockStatus=?,Office=?,JobTitle=?,PhoneNumber=?,TwoFAEnabled=?,LockOut=? WHERE ID=?");
+            $stmt->bind_param("ssssssssiis", $firstName, $lastName, $email, $tagID, $clockStatus, $office, $jobTitle, $phone, $enable2FA, $lockOut, $id);
         }
-
         $stmt->execute();
 
-        // Handle Admin switch
+        // Admin toggle
         if ($makeAdmin) {
-            $check = $conn->prepare("SELECT ID FROM admins WHERE username = ?");
+            $check = $conn->prepare("SELECT ID FROM admins WHERE username=?");
             $check->bind_param("s", $adminUsername);
             $check->execute();
             $check->store_result();
-
             if ($check->num_rows === 0) {
                 $adminPass = !empty($password) ? $hashed : $user['Pass'];
-                $insert = $conn->prepare("INSERT INTO admins (username, password) VALUES (?, ?)");
+                $insert = $conn->prepare("INSERT INTO admins (username, password) VALUES (?,?)");
                 $insert->bind_param("ss", $adminUsername, $adminPass);
                 $insert->execute();
             }
         } else {
-            $delete = $conn->prepare("DELETE FROM admins WHERE username = ?");
-            $delete->bind_param("s", $adminUsername);
-            $delete->execute();
+            $del = $conn->prepare("DELETE FROM admins WHERE username=?");
+            $del->bind_param("s", $adminUsername);
+            $del->execute();
         }
 
-        header("Location: manage_users.php");
-        exit;
-    } else {
-        $error = "All fields except password are required.";
+        // Shift assignment
+        if ($newShiftId > 0) {
+            $conn->prepare("DELETE FROM user_shifts WHERE UserID=?")->execute([$id]) || true;
+            $usDel = $conn->prepare("DELETE FROM user_shifts WHERE UserID=?");
+            $usDel->bind_param("i", $id);
+            $usDel->execute();
+            $usIns = $conn->prepare("INSERT INTO user_shifts (UserID,ShiftID) VALUES (?,?) ON DUPLICATE KEY UPDATE ShiftID=?");
+            $usIns->bind_param("iii", $id, $newShiftId, $newShiftId);
+            $usIns->execute();
+        } else {
+            $usDel = $conn->prepare("DELETE FROM user_shifts WHERE UserID=?");
+            $usDel->bind_param("i", $id);
+            $usDel->execute();
+        }
+
+        $success = "User updated successfully.";
+        // Reload user
+        $stmt2 = $conn->prepare("SELECT * FROM users WHERE ID=?");
+        $stmt2->bind_param("i", $id);
+        $stmt2->execute();
+        $user = $stmt2->get_result()->fetch_assoc();
+        $assignedShift = $newShiftId ?: null;
     }
 }
+
+$pageTitle   = 'Edit User — ' . htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? ''));
+$headerTitle = 'Edit User';
+include 'includes/header.php';
 ?>
 
+<div class="page-header" style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+  <a href="manage_users.php" class="btn btn-secondary btn-sm">&#8592; Back</a>
+  <div>
+    <h1 style="margin:0">Edit User</h1>
+    <p style="margin:0;font-size:13px;color:var(--text-muted)">#<?= (int)$id ?> &mdash; <?= htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')) ?></p>
+  </div>
+</div>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Edit User - D-Best TimeClock</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/edit_user.css">
+<?php if ($error): ?>
+<div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
 
-</head>
-<body>
+<?php if ($success): ?>
+<div class="alert alert-success">
+  <?= htmlspecialchars($success) ?>
+  <?php if ($newPasswordSet): ?>
+  &nbsp;&mdash; New password set: <strong style="font-family:monospace;letter-spacing:.05em"><?= htmlspecialchars($newPasswordSet) ?></strong>
+  &nbsp;<button type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($newPasswordSet,ENT_QUOTES) ?>');this.textContent='Copied!'" style="border:none;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700">Copy</button>
+  <?php endif; ?>
+</div>
+<?php endif; ?>
 
-<header class="banner">
-    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
-    <h1>Edit User - <?= htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']) ?></h1>
-    <nav>
-        <a href="dashboard.php">Dashboard</a>
-        <a href="view_punches.php">Timesheets</a>
-        <a href="summary.php">Summary</a>
-        <a href="reports.php" class="active">Reports</a>
-        <a href="manage_users.php">Users</a>
-        <a href="manage_offices.php">Offices</a>
-        <a href="attendance.php">Attendance</a>
-        <a href="manage_admins.php">Admins</a>
-        <a href="../logout.php">Logout</a>
-    </nav>
-</header>
+<form method="POST">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
-<div class="uman-container">
-    <h2>Edit User</h2>
-    <?php if (!empty($error)): ?>
-        <div class="alert error"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-
-    <form method="POST" class="uman-form">
-        <label>First Name
+    <!-- Left column -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Personal Info</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label>First Name *</label>
             <input type="text" name="FirstName" value="<?= htmlspecialchars($user['FirstName'] ?? '') ?>" required>
-        </label>
-
-        <label>Last Name
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
             <input type="text" name="LastName" value="<?= htmlspecialchars($user['LastName'] ?? '') ?>" required>
-        </label>
-
-        <label>Email
-            <input type="text" name="Email" value="<?= htmlspecialchars($user['Email'] ?? '') ?>" required>
-        </label>
-
-        <label>Tag ID
-            <input type="text" name="TagID" value="<?= htmlspecialchars($user['TagID'] ?? '') ?>">
-        </label>
-
-        <label>Clock Status
-            <select name="ClockStatus" required>
-                <option value="In" <?= $user['ClockStatus'] === 'In' ? 'selected' : '' ?>>In</option>
-                <option value="Out" <?= $user['ClockStatus'] === 'Out' ? 'selected' : '' ?>>Out</option>
-                <option value="Break" <?= $user['ClockStatus'] === 'Break' ? 'selected' : '' ?>>Break</option>
-                <option value="Lunch" <?= $user['ClockStatus'] === 'Lunch' ? 'selected' : '' ?>>Lunch</option>
-            </select>
-        </label>
-
-        <label>Office
-            <select name="Office" required>
-                <?php foreach ($offices_data as $office): ?>
-                    <option value="<?= htmlspecialchars($office['OfficeName']) ?>" <?= ($user['Office'] === $office['OfficeName']) ? 'selected' : '' ?>><?= htmlspecialchars($office['OfficeName']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-
-        <label>Job Title
-            <input type="text" name="JobTitle" value="<?= htmlspecialchars($user['JobTitle'] ?? '') ?>">
-        </label>
-
-        <label>Phone Number
-            <input type="text" name="PhoneNumber" value="<?= htmlspecialchars($user['PhoneNumber'] ?? '') ?>">
-        </label>
-
-        <label>Password <small>(leave blank to keep current)</small>
-            <input type="password" name="Password">
-        </label>
-
-        <label>Recovery Code
-            <input type="text" name="RecoveryCode" value="<?= htmlspecialchars($user['TwoFARecoveryCode'] ?? '') ?>">
-        </label>
-
-        <div class="switch-wrapper">
-    <span class="switch-label">Enable 2FA</span>
-    <label class="switch">
-        <input type="checkbox" name="Enable2FA" <?= $user['TwoFAEnabled'] ? 'checked' : '' ?>>
-        <span class="slider"></span>
-    </label>
-</div>
-
-<div class="switch-wrapper">
-    <span class="switch-label">Make Admin (<?= $adminUsername ?>)</span>
-    <label class="switch">
-        <input type="checkbox" name="MakeAdmin" <?= $isAdmin ? 'checked' : '' ?>>
-        <span class="slider"></span>
-    </label>
-</div>
-
-
-        <div class="modal-actions">
-            <a href="manage_users.php" class="btn danger">Cancel</a>
-            <button type="submit" class="btn primary">Save Changes</button>
+          </div>
         </div>
-    </form>
-</div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" name="Email" value="<?= htmlspecialchars($user['Email'] ?? '') ?>" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" name="PhoneNumber" value="<?= htmlspecialchars($user['PhoneNumber'] ?? '') ?>">
+          </div>
+          <div class="form-group">
+            <label>Job Title</label>
+            <input type="text" name="JobTitle" value="<?= htmlspecialchars($user['JobTitle'] ?? '') ?>">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tag / Badge ID</label>
+          <input type="text" name="TagID" value="<?= htmlspecialchars($user['TagID'] ?? '') ?>">
+        </div>
+      </div>
 
-</body>
-</html>
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Reset Password</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Leave blank to keep the current password. Password is also the employee PIN.</p>
+        <div class="form-group" style="position:relative">
+          <label>New Password / PIN</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" name="Password" id="passwordField"
+                   placeholder="Type or generate a new password"
+                   autocomplete="new-password"
+                   style="flex:1;font-family:monospace;letter-spacing:.05em">
+            <button type="button" onclick="generatePassword()"
+                    style="white-space:nowrap;padding:8px 12px;background:#f0f2f5;border:1.5px solid #e1e4e8;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;color:#374151">
+              &#9881; Generate
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Work Settings</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label>Office *</label>
+            <select name="Office" required>
+              <?php foreach ($offices_data as $off): ?>
+                <option value="<?= htmlspecialchars($off['OfficeName']) ?>" <?= $user['Office']===$off['OfficeName']?'selected':'' ?>><?= htmlspecialchars($off['OfficeName']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Clock Status *</label>
+            <select name="ClockStatus" required>
+              <?php foreach (['In','Out','Lunch','Break'] as $s): ?>
+                <option value="<?= $s ?>" <?= $user['ClockStatus']===$s?'selected':'' ?>><?= $s ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Assigned Shift <small style="font-weight:400;color:var(--text-muted)">(required for auto clock-out)</small></label>
+          <select name="ShiftID">
+            <option value="0">— No shift assigned —</option>
+            <?php foreach ($allShifts as $sh): ?>
+              <option value="<?= $sh['ShiftID'] ?>" <?= $assignedShift===$sh['ShiftID']?'selected':'' ?>><?= htmlspecialchars($sh['ShiftName']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Account Controls</h3>
+
+        <div class="switch-wrapper" style="margin-bottom:12px">
+          <span class="switch-label">Account Locked</span>
+          <label class="switch">
+            <input type="checkbox" name="LockOut" <?= $user['LockOut'] ? 'checked' : '' ?>>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="switch-wrapper" style="margin-bottom:12px">
+          <span class="switch-label">Enable 2FA</span>
+          <label class="switch">
+            <input type="checkbox" name="Enable2FA" <?= $user['TwoFAEnabled'] ? 'checked' : '' ?>>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="switch-wrapper">
+          <span class="switch-label">Admin Access <small style="font-size:11px;color:var(--text-muted)">(<?= htmlspecialchars($adminUsername) ?>)</small></span>
+          <label class="switch">
+            <input type="checkbox" name="MakeAdmin" <?= $isAdmin ? 'checked' : '' ?>>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <a href="manage_users.php" class="btn btn-secondary" style="flex:1;text-align:center">Cancel</a>
+        <button type="submit" class="btn btn-primary" style="flex:2">Save Changes</button>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<script>
+function generatePassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+  let pw = '';
+  for (let i = 0; i < 10; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('passwordField').value = pw;
+  document.getElementById('passwordField').select();
+}
+</script>
+
+<?php include 'includes/footer.php'; ?>

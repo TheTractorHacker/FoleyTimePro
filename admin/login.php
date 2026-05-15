@@ -147,68 +147,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Login</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/admin.css">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="robots" content="noindex,nofollow">
-    <link rel="stylesheet" href="../css/login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — FoleyTimePro</title>
+  <link rel="icon" type="image/webp" href="../images/FoleyTimePro-favicon.webp">
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #040d14 0%, #073851 50%, #0a2a3d 100%);
+  }
+  .al-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 44px 40px 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.45);
+  }
+  .al-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .al-logo img {
+    width: 44px; height: 44px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: #f0f2f5;
+    padding: 4px;
+  }
+  .al-brand { font-size: 20px; font-weight: 800; color: #073851; }
+  .al-sub   { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+  .al-card h1 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 6px; }
+  .al-card > p { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+  .al-alert {
+    background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
+    padding: 11px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .al-field { margin-bottom: 16px; }
+  .al-field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: #374151; margin-bottom: 5px;
+  }
+  .al-field input {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid #e1e4e8; border-radius: 9px;
+    font-size: 14px; font-family: inherit; color: #111827;
+    background: #fff; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .al-field input:focus {
+    border-color: #073851;
+    box-shadow: 0 0 0 3px rgba(7,56,81,.1);
+  }
+  .al-btn {
+    width: 100%; padding: 13px;
+    background: #073851; color: #fff;
+    border: none; border-radius: 9px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background .15s; margin-top: 6px;
+  }
+  .al-btn:hover { background: #042a3d; }
+  .al-footer {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #e1e4e8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #9ca3af;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .al-footer a { color: #073851; text-decoration: none; font-weight: 600; }
+  .al-footer a:hover { text-decoration: underline; }
+  .al-lock {
+    font-size: 13px; color: #d97706; font-weight: 600;
+    background: #fef3c7; padding: 10px 14px;
+    border-radius: 8px; margin-top: 14px;
+    border: 1px solid #fde68a;
+  }
+  .al-badge {
+    display: inline-block;
+    background: #073851; color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-left: 6px; vertical-align: middle;
+  }
+  </style>
 </head>
 <body>
 
-<div class="login-box" role="main" aria-labelledby="login-title">
-    <h2 id="login-title">Admin Login</h2>
-    <form method="POST" novalidate>
-        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+<div class="al-card">
+  <div class="al-logo">
+    <img src="../images/FoleyTimePro-logo.png" alt="Logo"
+         onerror="this.onerror=null;this.src='../images/FoleyTimePro-favicon.webp'">
+    <div>
+      <div class="al-brand">FoleyTimePro</div>
+      <div class="al-sub">Admin Portal</div>
+    </div>
+  </div>
 
-        <div class="field">
-            <label for="username">Username</label>
-            <input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Username"
-                required
-                autocomplete="username"
-                value="<?= htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-        </div>
+  <h1>Administrator Sign In <span class="al-badge">Admin</span></h1>
+  <p>Restricted access. Authorized personnel only.</p>
 
-        <div class="field">
-            <label for="password">Password</label>
-            <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Password"
-                required
-                autocomplete="current-password">
-        </div>
+  <?php if (!empty($error)): ?>
+  <div class="al-alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
+  <?php endif; ?>
 
-        <button type="submit">Login</button>
+  <form method="POST" novalidate>
+    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
-        <?php if (!empty($error)): ?>
-            <div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
-        <?php endif; ?>
+    <div class="al-field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text"
+             placeholder="Admin username"
+             required autocomplete="username"
+             value="<?= htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+    </div>
 
-        <div class="help" aria-live="polite">
-            <?php if (isset($_SESSION['admin_lock_until']) && time() < ($_SESSION['admin_lock_until'])):
-                $remaining = $_SESSION['admin_lock_until'] - time();
-                $mins = floor($remaining / 60);
-                $secs = $remaining % 60;
-            ?>
-                Too many attempts. Try again in ~<?= (int)$mins ?>m <?= (int)$secs ?>s.
-            <?php else: ?>
-                Use a strong, unique password. 2FA is supported.
-            <?php endif; ?>
-        </div>
-    </form>
+    <div class="al-field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+             placeholder="Password"
+             required autocomplete="current-password">
+    </div>
+
+    <button type="submit" class="al-btn">Sign In</button>
+
+    <?php if (isset($_SESSION['admin_lock_until']) && time() < $_SESSION['admin_lock_until']):
+      $remaining = $_SESSION['admin_lock_until'] - time();
+      $mins = floor($remaining / 60);
+      $secs = $remaining % 60;
+    ?>
+    <div class="al-lock">
+      &#128274; Too many failed attempts. Try again in <?= (int)$mins ?>m <?= (int)$secs ?>s.
+    </div>
+    <?php endif; ?>
+  </form>
+
+  <div class="al-footer">
+    <a href="../user/login.php">&#8592; Employee Portal</a>
+    <span>2FA supported</span>
+  </div>
 </div>
 
 </body>

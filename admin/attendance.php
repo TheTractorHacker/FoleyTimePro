@@ -98,7 +98,7 @@ if ($exportPDF) {
         .absent { background-color: #f8d7da; }
     </style>";
 
-    $html .= "<table><tr><th>Employee</th>";
+    $html .= "<table class='data-table'><tr><th>Employee</th>";
     foreach ($dates as $d) {
         $html .= "<th>" . date('D m/d', strtotime($d)) . "</th>";
     }
@@ -123,113 +123,101 @@ if ($exportPDF) {
     exit;
 }
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Attendance Report</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/attendance.css">
-</head>
-<body>
 
-<header>
-    <img src="/images/D-Best.png" alt="TimeClock Logo" class="logo">
-    <h1>Attendance Report</h1>
-    <nav>
-        <a href="dashboard.php">Dashboard</a>
-        <a href="view_punches.php">Timesheets</a>
-        <a href="summary.php">Summary</a>
-        <a href="reports.php">Reports</a>
-        <a href="manage_users.php">Users</a>
-        <a href="manage_offices.php">Offices</a>
-        <a href="attendance.php" class="active">Attendance</a>
-        <a href="manage_admins.php">Admins</a>
-        <a href="settings.php">Settings</a>
-        <a href="../logout.php">Logout</a>
-    </nav>
-</header>
+<?php
+$pageTitle   = 'Attendance';
+$headerTitle = 'Attendance';
+$additionalCSS = [
+    '../css/attendance.css',
+];
+include 'includes/header.php';
+?>
 
-<div class="container">
-
-    <form method="get">
-        <label>From:</label>
-        <input type="date" name="start" value="<?= $startDate ?>">
-        <label>To:</label>
-        <input type="date" name="end" value="<?= $endDate ?>">
-        <label>Employee:</label>
-        <select name="emp">
-            <option value="all">All Employees</option>
-            <?php foreach ($employees as $id => $name): ?>
-                <option value="<?= $id ?>" <?= $selectedEmp == $id ? 'selected' : '' ?>><?= $name ?></option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit">Filter</button>
-        <button type="submit" name="export" value="pdf">📄 Export PDF</button>
-    </form>
-
-    <div class="status-cards">
-        <div class="card present-card">
-            <h3>Present</h3>
-            <p><?= $totalPresent ?></p>
-        </div>
-        <div class="card incomplete-card">
-            <h3>Incomplete</h3>
-            <p><?= $totalIncomplete ?></p>
-        </div>
-        <div class="card absent-card">
-            <h3>Absent</h3>
-            <p><?= $totalAbsent ?></p>
-        </div>
-    </div>
-
-    <div class="legend">
-        <strong>Legend:</strong>
-        <span class="green"></span> Present
-        <span class="yellow"></span> Incomplete
-        <span class="red"></span> Absent
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <?php foreach ($dates as $date): ?>
-                    <th><?= date('D m/d', strtotime($date)) ?></th>
-                <?php endforeach; ?>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach (($selectedEmp === 'all' ? array_keys($employees) : [$selectedEmp]) as $eid): ?>
-                <tr>
-                    <td><?= htmlspecialchars($employees[$eid]) ?></td>
-                    <?php foreach ($dates as $d): ?>
-                        <?php
-                        $e = $attendance[$eid][$d] ?? ['status' => 'Absent', 'hours' => null, 'TimeIN' => null, 'TimeOUT' => null];
-                        $label = $e['status'];
-                        if ($e['hours']) $label .= "<br>{$e['hours']} hrs";
-                        $class = strtolower($e['status']);
-                        $tip = '';
-                        if ($e['TimeIN'] || $e['TimeOUT']) {
-                            $tip = "<div class='tooltiptext'>IN: {$e['TimeIN']}<br>OUT: {$e['TimeOUT']}</div>";
-                            echo "<td class='$class tooltip'>$label$tip</td>";
-                        } else {
-                            echo "<td class='$class'>$label</td>";
-                        }
-                        ?>
-                    <?php endforeach; ?>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+<div class="page-header">
+  <h1>Attendance Report</h1>
 </div>
 
-<footer>&copy; <?= date('Y') ?> TimeClock System. All rights reserved.</footer>
+<form method="get" class="filter-bar">
+  <div class="form-group">
+    <label>From</label>
+    <input type="date" name="start" value="<?= $startDate ?>">
+  </div>
+  <div class="form-group">
+    <label>To</label>
+    <input type="date" name="end" value="<?= $endDate ?>">
+  </div>
+  <div class="form-group">
+    <label>Employee</label>
+    <select name="emp">
+      <option value="all">All Employees</option>
+      <?php foreach ($employees as $id => $name): ?>
+        <option value="<?= $id ?>" <?= $selectedEmp == $id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <button type="submit" name="export" value="pdf" class="btn btn-secondary">Export PDF</button>
+  </div>
+</form>
 
-</body>
-</html>
+<!-- Status summary cards -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+  <div class="card" style="text-align:center;padding:18px;border-top:4px solid #16a34a">
+    <div style="font-size:28px;font-weight:800;color:#16a34a"><?= $totalPresent ?></div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-top:4px">Present</div>
+  </div>
+  <div class="card" style="text-align:center;padding:18px;border-top:4px solid #d97706">
+    <div style="font-size:28px;font-weight:800;color:#d97706"><?= $totalIncomplete ?></div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-top:4px">Incomplete</div>
+  </div>
+  <div class="card" style="text-align:center;padding:18px;border-top:4px solid #e74c3c">
+    <div style="font-size:28px;font-weight:800;color:#e74c3c"><?= $totalAbsent ?></div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-top:4px">Absent</div>
+  </div>
+</div>
+
+<!-- Legend -->
+<div style="display:flex;gap:16px;align-items:center;margin-bottom:12px;font-size:13px;color:#6b7280">
+  <strong>Legend:</strong>
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#d1fae5;border-radius:3px;display:inline-block"></span>Present</span>
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#fef3c7;border-radius:3px;display:inline-block"></span>Incomplete</span>
+  <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#fee2e2;border-radius:3px;display:inline-block"></span>Absent</span>
+</div>
+
+<div class="card" style="padding:0;overflow:auto">
+  <table class="att-table">
+    <thead>
+      <tr>
+        <th style="position:sticky;left:0;z-index:2">Employee</th>
+        <?php foreach ($dates as $date): ?>
+          <th><?= date('D', strtotime($date)) ?><br><?= date('m/d', strtotime($date)) ?></th>
+        <?php endforeach; ?>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach (($selectedEmp === 'all' ? array_keys($employees) : [$selectedEmp]) as $eid): ?>
+      <tr>
+        <td style="font-weight:600;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:1"><?= htmlspecialchars($employees[$eid]) ?></td>
+        <?php foreach ($dates as $d): ?>
+          <?php
+            $e = $attendance[$eid][$d] ?? ['status'=>'Absent','hours'=>null,'TimeIN'=>null,'TimeOUT'=>null];
+            $class = strtolower($e['status']);
+            $label = $e['status'];
+            if ($e['hours']) $label .= '<br><small>' . $e['hours'] . 'h</small>';
+          ?>
+          <?php if ($e['TimeIN'] || $e['TimeOUT']): ?>
+            <td class="<?= $class ?> tooltip"><?= $label ?>
+              <div class="tooltiptext">In: <?= $e['TimeIN'] ?: '—' ?><br>Out: <?= $e['TimeOUT'] ?: '—' ?></div>
+            </td>
+          <?php else: ?>
+            <td class="<?= $class ?>"><?= $label ?></td>
+          <?php endif; ?>
+        <?php endforeach; ?>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+
+<?php include 'includes/footer.php'; ?>
