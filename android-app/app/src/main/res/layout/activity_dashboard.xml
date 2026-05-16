@@ -20,7 +20,6 @@
         app:menu="@menu/bottom_nav"
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/nav_item_color"
-        app:itemTextColor="@color/nav_item_color"
-        app:itemActiveIndicatorColor="@color/colorPrimaryLight"/>
+        app:itemTextColor="@color/nav_item_color"/>
 
 </LinearLayout>

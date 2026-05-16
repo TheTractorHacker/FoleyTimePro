@@ -101,7 +101,7 @@
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:marginStart="16dp" android:background="@color/colorDivider"/>
+                    android:layout_marginStart="16dp" android:background="@color/colorDivider"/>
 
                 <!-- Company row -->
                 <LinearLayout
