@@ -137,108 +137,334 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pageTitle   = 'Edit User — ' . htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? ''));
+$pageTitle   = 'Edit User';
 $headerTitle = 'Edit User';
 include 'includes/header.php';
+
+$initials = strtoupper(substr($user['FirstName'] ?? 'U', 0, 1) . substr($user['LastName'] ?? '', 0, 1));
+$statusColor = match($user['ClockStatus'] ?? 'Out') {
+    'In'    => '#16a34a',
+    'Lunch' => '#d97706',
+    default => '#6b7280',
+};
 ?>
 
-<div class="page-header" style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
-  <a href="manage_users.php" class="btn btn-secondary btn-sm">&#8592; Back</a>
-  <div>
-    <h1 style="margin:0">Edit User</h1>
-    <p style="margin:0;font-size:13px;color:var(--text-muted)">#<?= (int)$id ?> &mdash; <?= htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')) ?></p>
-  </div>
-</div>
+<style>
+.eu-wrap { max-width: 960px; }
+
+/* ── Page header ── */
+.eu-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #073851 0%, #0a4a6b 100%);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  color: #fff;
+}
+.eu-avatar {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  border: 3px solid rgba(255,255,255,.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 800; letter-spacing: .02em;
+  flex-shrink: 0;
+}
+.eu-hero-info h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.eu-hero-info p  { margin: 4px 0 0; font-size: 13px; opacity: .7; }
+.eu-hero-back {
+  margin-left: auto;
+  padding: 8px 16px;
+  background: rgba(255,255,255,.12);
+  border: 1.5px solid rgba(255,255,255,.25);
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px; font-weight: 600;
+  transition: background .15s;
+}
+.eu-hero-back:hover { background: rgba(255,255,255,.22); color: #fff; }
+.eu-status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.15);
+  font-size: 12px; font-weight: 600;
+  margin-top: 6px;
+}
+.eu-status-dot { width:7px; height:7px; border-radius:50%; }
+
+/* ── Grid ── */
+.eu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 720px) { .eu-grid { grid-template-columns: 1fr; } }
+
+/* ── Section cards ── */
+.eu-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e8eaed;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.eu-card-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1.5px solid #f0f2f5;
+  background: #fafbfc;
+}
+.eu-card-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.eu-card-head h3 { margin: 0; font-size: 14px; font-weight: 700; color: #111827; }
+.eu-card-head p  { margin: 1px 0 0; font-size: 11px; color: #6b7280; }
+.eu-card-body { padding: 20px; }
+
+/* ── Form fields ── */
+.eu-row { display: grid; gap: 14px; margin-bottom: 14px; }
+.eu-row:last-child { margin-bottom: 0; }
+.eu-row-2 { grid-template-columns: 1fr 1fr; }
+.eu-field { display: flex; flex-direction: column; gap: 5px; }
+.eu-field label { font-size: 12px; font-weight: 600; color: #374151; }
+.eu-field input, .eu-field select {
+  height: 40px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.eu-field input:focus, .eu-field select:focus {
+  outline: none;
+  border-color: #073851;
+  box-shadow: 0 0 0 3px rgba(7,56,81,.1);
+}
+.eu-field .hint { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+/* Password row */
+.eu-pw-row { display: flex; gap: 8px; }
+.eu-pw-row input { flex: 1; font-family: monospace; letter-spacing: .05em; }
+.eu-gen-btn {
+  height: 40px; padding: 0 14px;
+  background: #f3f4f6;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; color: #374151;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.eu-gen-btn:hover { background: #e5e7eb; }
+
+/* PIN field */
+.eu-pin-input {
+  height: 52px !important;
+  font-family: monospace !important;
+  letter-spacing: .4em !important;
+  font-size: 24px !important;
+  text-align: center;
+}
+
+/* ── Switches ── */
+.eu-switch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.eu-switch-row:last-child { border-bottom: none; padding-bottom: 0; }
+.eu-switch-label { font-size: 14px; color: #111827; }
+.eu-switch-label small { font-size: 11px; color: #9ca3af; display:block; margin-top:1px; }
+
+/* ── Sticky save bar ── */
+.eu-save-bar {
+  position: sticky; bottom: 0;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(8px);
+  border-top: 1.5px solid #e8eaed;
+  padding: 14px 0;
+  margin-top: 8px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+  z-index: 10;
+}
+.eu-cancel-btn {
+  padding: 10px 22px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 9px;
+  background: #fff;
+  color: #374151;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  transition: background .15s;
+}
+.eu-cancel-btn:hover { background: #f3f4f6; }
+.eu-save-btn {
+  padding: 10px 28px;
+  background: #073851;
+  border: none; border-radius: 9px;
+  color: #fff;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.eu-save-btn:hover { background: #0a4a6b; }
+</style>
+
+<div class="eu-wrap">
 
 <?php if ($error): ?>
-<div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<div class="alert alert-danger" style="margin-bottom:16px"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
 <?php if ($success): ?>
-<div class="alert alert-success">
+<div class="alert alert-success" style="margin-bottom:16px">
   <?= htmlspecialchars($success) ?>
   <?php if ($newPasswordSet): ?>
-  &nbsp;&mdash; New password set: <strong style="font-family:monospace;letter-spacing:.05em"><?= htmlspecialchars($newPasswordSet) ?></strong>
-  &nbsp;<button type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($newPasswordSet,ENT_QUOTES) ?>');this.textContent='Copied!'" style="border:none;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700">Copy</button>
+  &nbsp;&mdash; Password: <strong style="font-family:monospace"><?= htmlspecialchars($newPasswordSet) ?></strong>
+  &nbsp;<button type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($newPasswordSet,ENT_QUOTES) ?>');this.textContent='✓ Copied'" style="border:none;background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:700">Copy</button>
   <?php endif; ?>
 </div>
 <?php endif; ?>
 
+<!-- Hero header -->
+<div class="eu-hero">
+  <div class="eu-avatar"><?= htmlspecialchars($initials) ?></div>
+  <div class="eu-hero-info">
+    <h1><?= htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')) ?></h1>
+    <p><?= htmlspecialchars($user['Email'] ?? 'No email set') ?> &nbsp;·&nbsp; ID #<?= (int)$id ?></p>
+    <div class="eu-status-pill">
+      <span class="eu-status-dot" style="background:<?= $statusColor ?>"></span>
+      <?= htmlspecialchars($user['ClockStatus'] ?? 'Out') ?>
+    </div>
+  </div>
+  <a href="manage_users.php" class="eu-hero-back">&#8592; All Users</a>
+</div>
+
 <form method="POST">
 <?= csrf_field() ?>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
-    <!-- Left column -->
-    <div>
-      <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Personal Info</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="form-group">
+<div class="eu-grid">
+
+  <!-- ── Left column ── -->
+  <div>
+
+    <!-- Personal Info -->
+    <div class="eu-card">
+      <div class="eu-card-head">
+        <div class="eu-card-icon" style="background:#eff6ff">👤</div>
+        <div>
+          <h3>Personal Info</h3>
+          <p>Name, contact details, and badge</p>
+        </div>
+      </div>
+      <div class="eu-card-body">
+        <div class="eu-row eu-row-2">
+          <div class="eu-field">
             <label>First Name *</label>
             <input type="text" name="FirstName" value="<?= htmlspecialchars($user['FirstName'] ?? '') ?>" required>
           </div>
-          <div class="form-group">
+          <div class="eu-field">
             <label>Last Name *</label>
             <input type="text" name="LastName" value="<?= htmlspecialchars($user['LastName'] ?? '') ?>" required>
           </div>
         </div>
-        <div class="form-group">
-          <label>Email *</label>
-          <input type="email" name="Email" value="<?= htmlspecialchars($user['Email'] ?? '') ?>" required>
+        <div class="eu-row">
+          <div class="eu-field">
+            <label>Email * <span style="color:#9ca3af;font-weight:400">(used for app login)</span></label>
+            <input type="email" name="Email" value="<?= htmlspecialchars($user['Email'] ?? '') ?>" required>
+          </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="form-group">
+        <div class="eu-row eu-row-2">
+          <div class="eu-field">
             <label>Phone</label>
-            <input type="tel" name="PhoneNumber" value="<?= htmlspecialchars($user['PhoneNumber'] ?? '') ?>">
+            <input type="tel" name="PhoneNumber" value="<?= htmlspecialchars($user['PhoneNumber'] ?? '') ?>" placeholder="Optional">
           </div>
-          <div class="form-group">
+          <div class="eu-field">
             <label>Job Title</label>
-            <input type="text" name="JobTitle" value="<?= htmlspecialchars($user['JobTitle'] ?? '') ?>">
+            <input type="text" name="JobTitle" value="<?= htmlspecialchars($user['JobTitle'] ?? '') ?>" placeholder="Optional">
           </div>
         </div>
-        <div class="form-group">
-          <label>Tag / Badge ID</label>
-          <input type="text" name="TagID" value="<?= htmlspecialchars($user['TagID'] ?? '') ?>">
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Login Password</h3>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Used for the mobile app and web portal. Leave blank to keep existing.</p>
-        <div class="form-group">
-          <label>New Password</label>
-          <div style="display:flex;gap:8px">
-            <input type="text" name="Password" id="passwordField"
-                   placeholder="Leave blank to keep current"
-                   autocomplete="new-password"
-                   style="flex:1;font-family:monospace;letter-spacing:.05em">
-            <button type="button" onclick="generatePassword()"
-                    style="white-space:nowrap;padding:8px 12px;background:#f0f2f5;border:1.5px solid #e1e4e8;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;color:#374151">
-              &#9881; Generate
-            </button>
+        <div class="eu-row">
+          <div class="eu-field">
+            <label>Badge / Tag ID <span style="color:#9ca3af;font-weight:400">(NFC kiosk)</span></label>
+            <input type="text" name="TagID" value="<?= htmlspecialchars($user['TagID'] ?? '') ?>" placeholder="Optional">
           </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Web Portal PIN</h3>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">2–6 digit numeric PIN for the web portal login. Separate from the app password. Leave blank to keep existing.</p>
-        <div class="form-group">
-          <label>New PIN (2–6 digits)</label>
-          <input type="text" name="UserPIN" id="pinField"
-                 placeholder="Leave blank to keep current"
-                 pattern="\d{2,6}" inputmode="numeric" maxlength="6"
-                 style="font-family:monospace;letter-spacing:.2em;font-size:18px;width:160px">
         </div>
       </div>
     </div>
 
-    <!-- Right column -->
-    <div>
-      <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Work Settings</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="form-group">
+    <!-- Login Password -->
+    <div class="eu-card">
+      <div class="eu-card-head">
+        <div class="eu-card-icon" style="background:#fefce8">🔑</div>
+        <div>
+          <h3>Login Password</h3>
+          <p>Mobile app login — leave blank to keep current</p>
+        </div>
+      </div>
+      <div class="eu-card-body">
+        <div class="eu-field">
+          <label>New Password</label>
+          <div class="eu-pw-row">
+            <input type="text" name="Password" id="passwordField"
+                   placeholder="Leave blank to keep current"
+                   autocomplete="new-password">
+            <button type="button" class="eu-gen-btn" onclick="generatePassword()">⚙ Generate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Web Portal PIN -->
+    <div class="eu-card">
+      <div class="eu-card-head">
+        <div class="eu-card-icon" style="background:#f0fdf4">🔢</div>
+        <div>
+          <h3>Web Portal PIN</h3>
+          <p>2–6 digit PIN for web login — leave blank to keep current</p>
+        </div>
+      </div>
+      <div class="eu-card-body">
+        <div class="eu-field">
+          <label>New PIN</label>
+          <input type="text" name="UserPIN" id="pinField" class="eu-pin-input"
+                 placeholder="••••"
+                 pattern="\d{2,6}" inputmode="numeric" maxlength="6">
+          <span class="hint">2–6 digits only. Separate from the app password.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Right column ── -->
+  <div>
+
+    <!-- Work Settings -->
+    <div class="eu-card">
+      <div class="eu-card-head">
+        <div class="eu-card-icon" style="background:#f0f9ff">🏢</div>
+        <div>
+          <h3>Work Settings</h3>
+          <p>Office, status, and shift assignment</p>
+        </div>
+      </div>
+      <div class="eu-card-body">
+        <div class="eu-row eu-row-2">
+          <div class="eu-field">
             <label>Office *</label>
             <select name="Office" required>
               <?php foreach ($offices_data as $off): ?>
@@ -246,7 +472,7 @@ include 'includes/header.php';
               <?php endforeach; ?>
             </select>
           </div>
-          <div class="form-group">
+          <div class="eu-field">
             <label>Clock Status *</label>
             <select name="ClockStatus" required>
               <?php foreach (['In','Out','Lunch','Break'] as $s): ?>
@@ -255,59 +481,87 @@ include 'includes/header.php';
             </select>
           </div>
         </div>
-        <div class="form-group">
-          <label>Assigned Shift <small style="font-weight:400;color:var(--text-muted)">(required for auto clock-out)</small></label>
-          <select name="ShiftID">
-            <option value="0">— No shift assigned —</option>
-            <?php foreach ($allShifts as $sh): ?>
-              <option value="<?= $sh['ShiftID'] ?>" <?= $assignedShift===$sh['ShiftID']?'selected':'' ?>><?= htmlspecialchars($sh['ShiftName']) ?></option>
-            <?php endforeach; ?>
-          </select>
+        <div class="eu-row">
+          <div class="eu-field">
+            <label>Assigned Shift</label>
+            <select name="ShiftID">
+              <option value="0">— No shift assigned —</option>
+              <?php foreach ($allShifts as $sh): ?>
+                <option value="<?= $sh['ShiftID'] ?>" <?= $assignedShift===$sh['ShiftID']?'selected':'' ?>><?= htmlspecialchars($sh['ShiftName']) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <span class="hint">Required for auto clock-out.</span>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Account Controls</h3>
+    <!-- Account Controls -->
+    <div class="eu-card">
+      <div class="eu-card-head">
+        <div class="eu-card-icon" style="background:#fff7ed">🛡️</div>
+        <div>
+          <h3>Account Controls</h3>
+          <p>Security and access permissions</p>
+        </div>
+      </div>
+      <div class="eu-card-body" style="padding-top:8px;padding-bottom:8px">
 
-        <div class="switch-wrapper" style="margin-bottom:12px">
-          <span class="switch-label">Account Locked</span>
+        <div class="eu-switch-row">
+          <div class="eu-switch-label">
+            Account Locked
+            <small>Prevents this user from logging in</small>
+          </div>
           <label class="switch">
             <input type="checkbox" name="LockOut" <?= $user['LockOut'] ? 'checked' : '' ?>>
             <span class="slider"></span>
           </label>
         </div>
-        <div class="switch-wrapper" style="margin-bottom:12px">
-          <span class="switch-label">Enable 2FA</span>
+
+        <div class="eu-switch-row">
+          <div class="eu-switch-label">
+            Two-Factor Auth
+            <small>Require TOTP code on login</small>
+          </div>
           <label class="switch">
             <input type="checkbox" name="Enable2FA" <?= $user['TwoFAEnabled'] ? 'checked' : '' ?>>
             <span class="slider"></span>
           </label>
         </div>
-        <div class="switch-wrapper">
-          <span class="switch-label">Admin Access <small style="font-size:11px;color:var(--text-muted)">(<?= htmlspecialchars($adminUsername) ?>)</small></span>
+
+        <div class="eu-switch-row">
+          <div class="eu-switch-label">
+            Admin Access
+            <small>Username: <?= htmlspecialchars($adminUsername) ?></small>
+          </div>
           <label class="switch">
             <input type="checkbox" name="MakeAdmin" <?= $isAdmin ? 'checked' : '' ?>>
             <span class="slider"></span>
           </label>
         </div>
-      </div>
 
-      <div style="display:flex;gap:10px">
-        <a href="manage_users.php" class="btn btn-secondary" style="flex:1;text-align:center">Cancel</a>
-        <button type="submit" class="btn btn-primary" style="flex:2">Save Changes</button>
       </div>
     </div>
 
   </div>
+</div>
+
+<!-- Sticky save bar -->
+<div class="eu-save-bar">
+  <a href="manage_users.php" class="eu-cancel-btn">Cancel</a>
+  <button type="submit" class="eu-save-btn">Save Changes</button>
+</div>
+
 </form>
+</div>
 
 <script>
 function generatePassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
   let pw = '';
   for (let i = 0; i < 10; i++) pw += chars[Math.floor(Math.random() * chars.length)];
-  document.getElementById('passwordField').value = pw;
-  document.getElementById('passwordField').select();
+  const f = document.getElementById('passwordField');
+  f.value = pw; f.select();
 }
 </script>
 
