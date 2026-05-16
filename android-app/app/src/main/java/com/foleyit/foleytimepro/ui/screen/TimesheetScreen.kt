@@ -49,7 +49,7 @@ fun TimesheetScreen(prefs: PrefsManager) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Timesheet", fontWeight = FontWeight.Bold) },
+                title = { Text("Timesheet", fontWeight = FontWeight.Bold, color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Navy, titleContentColor = Color.White)
             )
         }

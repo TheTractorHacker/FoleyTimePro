@@ -81,7 +81,7 @@ fun ClockScreen(prefs: PrefsManager) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(prefs.getCompanyName(), fontWeight = FontWeight.Bold) },
+                title = { Text(prefs.getCompanyName(), fontWeight = FontWeight.Bold, color = Color.White) },
                 actions = { IconButton(onClick = { scope.launch { load() } }) { Icon(Icons.Filled.Refresh, "Refresh") } },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Navy,

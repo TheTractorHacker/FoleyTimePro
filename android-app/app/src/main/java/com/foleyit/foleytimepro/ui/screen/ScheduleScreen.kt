@@ -44,7 +44,7 @@ fun ScheduleScreen(prefs: PrefsManager) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Schedule", fontWeight = FontWeight.Bold) },
+                title = { Text("Schedule", fontWeight = FontWeight.Bold, color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Navy, titleContentColor = Color.White)
             )
         }

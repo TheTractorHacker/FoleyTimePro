@@ -56,7 +56,7 @@ fun TimeOffScreen(prefs: PrefsManager) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Time Off", fontWeight = FontWeight.Bold) },
+                title = { Text("Time Off", fontWeight = FontWeight.Bold, color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Navy, titleContentColor = Color.White)
             )
         },
