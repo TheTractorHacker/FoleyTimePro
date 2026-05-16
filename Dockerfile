@@ -4,12 +4,13 @@
 
 FROM php:8.5-fpm
 
-RUN apt-get update && apt-get install -y \
-    nginx supervisor libzip-dev libpng-dev \
-    libjpeg-dev unzip curl \
-    && docker-php-ext-configure gd --with-jpeg \
-    && docker-php-ext-install pdo_mysql mysqli zip gd opcache \
+COPY --from=mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx supervisor unzip curl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN install-php-extensions gd mysqli pdo_mysql zip opcache
 
 RUN printf 'opcache.enable=1\nopcache.validate_timestamps=0\nopcache.max_accelerated_files=10000\nopcache.memory_consumption=192\nopcache.interned_strings_buffer=16\nopcache.fast_shutdown=1\n' \
     > /usr/local/etc/php/conf.d/opcache.ini

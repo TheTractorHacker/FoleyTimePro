@@ -92,12 +92,11 @@ function navLink(string $href, string $label, array $matches, int $badge = 0): s
       </div>
 
       <div class="a-dropdown">
-        <button class="a-dropbtn<?= in_array($cur,['reports.php','branding.php','manage_admins.php','add_admin.php','edit_admin.php','settings.php','enable_2fa.php']) ? ' active' : '' ?>">Admin</button>
+        <button class="a-dropbtn<?= in_array($cur,['reports.php','manage_admins.php','add_admin.php','edit_admin.php','settings.php','enable_2fa.php']) ? ' active' : '' ?>">Admin</button>
         <div class="a-dropmenu">
           <?= navLink('reports.php',         'Reports',         ['reports.php']) ?>
           <?= navLink('custom_reports.php',  'Custom Reports',  ['custom_reports.php']) ?>
           <?= navLink('export_history.php',  'Export History',  ['export_history.php']) ?>
-          <?= navLink('branding.php',     'Branding', ['branding.php']) ?>
           <?= navLink('manage_admins.php','Admins',   ['manage_admins.php','add_admin.php','edit_admin.php']) ?>
           <?= navLink('settings.php',     'Settings', ['settings.php']) ?>
         </div>
