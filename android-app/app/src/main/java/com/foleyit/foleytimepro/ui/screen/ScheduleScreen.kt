@@ -119,6 +119,43 @@ fun ScheduleScreen(prefs: PrefsManager) {
                     }
                 }
             }
+
+            // Lunch break card — only shown when a shift is loaded
+            val s = shift
+            if (!loading && s != null && s.success) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp),
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Lunch Break", fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.padding(bottom = 12.dp))
+
+                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Recommended duration", fontSize = 14.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                            Text(
+                                if (s.lunchDuration > 0) formatLunch(s.lunchDuration) else "Not set",
+                                fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy
+                            )
+                        }
+
+                        HorizontalDivider(color = DividerColor)
+
+                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("Auto clock-out", fontSize = 14.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                            Surface(shape = RoundedCornerShape(8.dp), color = if (s.autoClockOut) GreenIn.copy(alpha = 0.12f) else DividerColor) {
+                                Text(
+                                    if (s.autoClockOut) "Enabled" else "Disabled",
+                                    fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                    color = if (s.autoClockOut) GreenIn else TextSecondary,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -127,4 +164,11 @@ private fun fmt12(t: String): String {
     if (t.isEmpty()) return ""
     return try { SimpleDateFormat("h:mm a", Locale.US).format(SimpleDateFormat("HH:mm:ss", Locale.US).parse(t)!!) }
     catch (_: Exception) { t }
+}
+
+private fun formatLunch(minutes: Int): String = when {
+    minutes <= 0        -> "None"
+    minutes % 60 == 0  -> "${minutes / 60} hr${if (minutes / 60 > 1) "s" else ""}"
+    minutes >= 60       -> "${minutes / 60} hr ${minutes % 60} min"
+    else                -> "$minutes min"
 }

@@ -95,7 +95,11 @@ fun TimesheetScreen(prefs: PrefsManager) {
                     if (loading) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(24.dp))
                     } else if (punches.isEmpty()) {
-                        Text("No punches for this period", color = TextHint, modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        val emptyMsg = if (weekOffset == 0)
+                            "No punches this week yet.\nClock in to get started."
+                        else
+                            "No punches recorded for this week."
+                        Text(emptyMsg, color = TextHint, modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     } else {
                         punches.forEachIndexed { i, entry ->
                             TimesheetRow(entry)
