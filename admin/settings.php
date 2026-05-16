@@ -57,7 +57,10 @@ if (isset($settings['mail_password']) && !empty($settings['mail_password'])) {
 
 $message = '';
 
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+require_once __DIR__ . '/includes/csrf.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     // Update settings
     $settingsToUpdate = [
         'mail_server', 'mail_port', 'mail_username',

@@ -33,7 +33,11 @@ $clockedInList = $conn->query("
 ")->fetch_all(MYSQLI_ASSOC);
 
 // Admin 2FA
-$twoFAEnabled = (int)$conn->query("SELECT TwoFAEnabled FROM admins WHERE username='".mysqli_real_escape_string($conn,$adminUsername)."' LIMIT 1")->fetch_assoc()['TwoFAEnabled'];
+$stmt2fa = $conn->prepare("SELECT TwoFAEnabled FROM admins WHERE username = ? LIMIT 1");
+$stmt2fa->bind_param("s", $adminUsername);
+$stmt2fa->execute();
+$twoFAEnabled = (int)($stmt2fa->get_result()->fetch_assoc()['TwoFAEnabled'] ?? 0);
+$stmt2fa->close();
 
 $pageTitle   = 'Dashboard';
 $headerTitle = 'Dashboard';

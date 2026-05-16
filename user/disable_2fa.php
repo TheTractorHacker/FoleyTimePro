@@ -9,9 +9,17 @@ if (!isset($_SESSION['EmployeeID'])) {
 
 $empID = $_SESSION['EmployeeID'];
 
+if (empty($_SESSION['user_csrf'])) {
+    $_SESSION['user_csrf'] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['password'])) {
     header("Location: settings.php?error=Password required to disable 2FA.");
     exit;
+}
+
+if (!isset($_POST['csrf']) || !hash_equals($_SESSION['user_csrf'], $_POST['csrf'])) {
+    http_response_code(403); die('Invalid CSRF token.');
 }
 
 $password = $_POST['password'];

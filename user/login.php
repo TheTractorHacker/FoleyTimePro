@@ -11,7 +11,6 @@ header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style
 
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
-error_reporting(E_ALL);
 
 session_set_cookie_params([
     'lifetime' => 0,

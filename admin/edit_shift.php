@@ -17,7 +17,10 @@ if (!$shift) { header('Location: manage_shifts.php'); exit; }
 $selectedDays = json_decode($shift['DaysOfWeek'], true) ?: [];
 $error = $success = '';
 
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+require_once __DIR__ . '/includes/csrf.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
 
     // ── Shift details update ──────────────────────────────────────
     if (isset($_POST['update_shift'])) {

@@ -7,10 +7,13 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
+require_once __DIR__ . '/includes/csrf.php';
+
 $admin = $_SESSION['admin'];
 $now = date('Y-m-d H:i:s');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     foreach ($_POST['action'] as $editID => $fieldActions) {
         foreach ($fieldActions as $field => $action) {
             $editID = intval($editID);

@@ -12,8 +12,15 @@ if (!$userId) {
     exit;
 }
 
+if (empty($_SESSION['user_csrf'])) {
+    $_SESSION['user_csrf'] = bin2hex(random_bytes(32));
+}
+
 // Handle new request submission BEFORE any output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf']) || !hash_equals($_SESSION['user_csrf'], $_POST['csrf'])) {
+        http_response_code(403); die('Invalid CSRF token.');
+    }
     if (isset($_POST['submit_request'])) {
         $startDate = $_POST['start_date'] ?? '';
         $endDate = $_POST['end_date'] ?? '';
@@ -151,6 +158,7 @@ $requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <div class="u-card">
         <h2>New Request</h2>
         <form method="POST">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['user_csrf']) ?>">
             <div class="u-form-row" style="flex-wrap:wrap">
                 <div class="u-form-group">
                     <label for="start_date">Start Date *</label>
@@ -243,6 +251,7 @@ $requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             <td>
                                 <?php if ($req['Status'] === 'Pending'): ?>
                                     <form method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['user_csrf']) ?>">
                                         <input type="hidden" name="request_id" value="<?= $req['ID'] ?>">
                                         <button type="submit" name="cancel_request" class="u-btn u-btn-danger u-btn-sm">
                                             Cancel

@@ -23,3 +23,9 @@ Thumbs.db
 # Misc leftovers
 task-*.txt
 timeclock/
+
+# Vendor / third-party (not tracked)
+vendor/firebase/
+
+# Android app well-known (generated)
+.well-known/

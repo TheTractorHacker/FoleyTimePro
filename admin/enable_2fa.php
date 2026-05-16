@@ -4,7 +4,6 @@ require_once '../auth/db.php';
 
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
-error_reporting(E_ALL);
 
 use OTPHP\TOTP;
 use Endroid\QrCode\Builder\Builder;

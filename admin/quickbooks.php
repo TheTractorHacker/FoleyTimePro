@@ -13,8 +13,6 @@ require_once '../functions/quickbooks_helper.php';
 $branding = getBranding($conn);
 $msg = ''; $msgType = 'success';
 
-if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
-
 $action = $_GET['action'] ?? '';
 
 // Handle OAuth callback
@@ -32,9 +30,12 @@ if ($action === 'callback') {
     }
 }
 
+require_once __DIR__ . '/includes/csrf.php';
+
 // Handle form actions
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
-    if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+    if (!hash_equals($_SESSION['admin_csrf'] ?? '', $_POST['csrf'] ?? '')) {
         $msg = 'Invalid request.'; $msgType = 'error';
     } else {
         $postAction = $_POST['action'] ?? '';
@@ -108,7 +109,6 @@ include 'includes/header.php'; ?>
   <?php if ($isLinked): ?>
     <form method="post" style="margin:0">
 <?= csrf_field() ?>
-      <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
       <input type="hidden" name="action" value="disconnect">
       <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Disconnect QuickBooks?')">Disconnect</button>
     </form>
@@ -125,7 +125,6 @@ include 'includes/header.php'; ?>
   <p style="color:#6b7280;font-size:13px;margin-bottom:16px">Push approved hours for a pay period to QuickBooks as Time Activity records.</p>
   <form method="post" class="filter-bar" style="margin:0">
 <?= csrf_field() ?>
-    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
     <input type="hidden" name="action" value="export_timesheets">
     <div class="form-group">
       <label>Start Date</label>
@@ -150,7 +149,6 @@ include 'includes/header.php'; ?>
     </div>
     <form method="post" style="margin:0">
 <?= csrf_field() ?>
-      <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
       <input type="hidden" name="action" value="sync_employees">
       <button type="submit" class="btn btn-sm btn-secondary">Auto-Sync from QB</button>
     </form>
@@ -166,8 +164,7 @@ include 'includes/header.php'; ?>
         <td>
           <form method="post" style="display:flex;gap:8px;align-items:center;margin:0">
 <?= csrf_field() ?>
-            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
-            <input type="hidden" name="action" value="map_employee">
+                  <input type="hidden" name="action" value="map_employee">
             <input type="hidden" name="employee_id" value="<?= $e['ID'] ?>">
             <input type="text" name="qb_employee_id" value="<?= htmlspecialchars($e['QBEmployeeID'] ?? '') ?>" placeholder="Enter QB Employee ID" style="max-width:200px">
             <button type="submit" class="btn btn-sm btn-secondary">Save</button>

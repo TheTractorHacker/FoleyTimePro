@@ -4,7 +4,14 @@ require_once 'header.php';
 
 $msg = ''; $msgType = 'success';
 
+if (empty($_SESSION['user_csrf'])) {
+    $_SESSION['user_csrf'] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf']) || !hash_equals($_SESSION['user_csrf'], $_POST['csrf'])) {
+        http_response_code(403); die('Invalid CSRF token.');
+    }
     $action = $_POST['_action'] ?? '';
 
     if ($action === 'profile') {
@@ -99,6 +106,7 @@ $initials = strtoupper(substr($user['FirstName'] ?? 'E', 0, 1) . substr($user['L
   <!-- ── Profile ──────────────────────────────────────── -->
   <form method="POST">
     <input type="hidden" name="_action" value="profile">
+    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['user_csrf']) ?>">
 
     <div class="u-card st-card">
       <div class="st-card-header">
@@ -206,6 +214,7 @@ $initials = strtoupper(substr($user['FirstName'] ?? 'E', 0, 1) . substr($user['L
     </div>
     <form method="POST" class="st-form-narrow">
       <input type="hidden" name="_action" value="password">
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['user_csrf']) ?>">
       <div class="u-form-group">
         <label>New Password</label>
         <input type="password" name="NewPassword" placeholder="Minimum 6 characters" autocomplete="new-password">
@@ -240,6 +249,7 @@ $initials = strtoupper(substr($user['FirstName'] ?? 'E', 0, 1) . substr($user['L
       <?php if (!empty($user['TwoFAEnabled'])): ?>
         <?php if (!empty($user['AdminOverride2FA'])): ?>
         <form method="POST" action="disable_2fa.php" class="st-form-narrow">
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['user_csrf']) ?>">
           <div class="u-form-group">
             <label>Enter your password to disable 2FA</label>
             <input type="password" name="password" placeholder="Current password" required>

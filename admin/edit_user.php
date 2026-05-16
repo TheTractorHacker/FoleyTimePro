@@ -49,7 +49,10 @@ $error = '';
 $success = '';
 $newPasswordSet = '';
 
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+require_once __DIR__ . '/includes/csrf.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $firstName   = trim($_POST['FirstName'] ?? '');
     $lastName    = trim($_POST['LastName']  ?? '');
     $email       = trim($_POST['Email']     ?? '');

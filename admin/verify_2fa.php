@@ -21,7 +21,6 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
 // ---------- Error Handling (prod defaults) ----------
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
-error_reporting(E_ALL);
 
 // ---------- Session Cookie Hardening (must be before session_start) ----------
 session_set_cookie_params([

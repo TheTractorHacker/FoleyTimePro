@@ -9,9 +9,12 @@ $branding = getBranding($conn);
 $msg = '';
 $msgType = 'success';
 
+require_once __DIR__ . '/includes/csrf.php';
+
 // Handle form submissions
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
-    $csrfOk = hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+    $csrfOk = hash_equals($_SESSION['admin_csrf'] ?? '', $_POST['csrf'] ?? '');
     if (!$csrfOk) { $msg = 'Invalid request.'; $msgType = 'error'; }
     else {
         $action = $_POST['action'] ?? '';
@@ -54,8 +57,6 @@ $msgType = 'success';
     }
 }
 
-if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
-
 // Fetch all fences
 $fences  = $conn->query("SELECT g.*, o.OfficeName FROM geofences g LEFT JOIN Offices o ON g.OfficeID=o.ID ORDER BY g.IsActive DESC, g.Name")->fetch_all(MYSQLI_ASSOC);
 $offices = $conn->query("SELECT ID, OfficeName FROM Offices ORDER BY OfficeName")->fetch_all(MYSQLI_ASSOC);
@@ -85,7 +86,6 @@ include 'includes/header.php'; ?>
     <div id="map"></div>
     <form method="post">
 <?= csrf_field() ?>
-        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
         <input type="hidden" name="action" value="save">
         <input type="hidden" name="id" value="<?= (int)($editFence['ID'] ?? 0) ?>">
         <input type="hidden" name="lat" id="fenceLat" value="<?= $editFence['Latitude'] ?? '' ?>">
@@ -163,15 +163,13 @@ include 'includes/header.php'; ?>
                 <a href="?edit=<?= $f['ID'] ?>" class="btn btn-sm btn-secondary">Edit</a>
                 <form method="post" style="display:inline">
 <?= csrf_field() ?>
-                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
-                    <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="action" value="toggle">
                     <input type="hidden" name="id" value="<?= $f['ID'] ?>">
                     <button type="submit" class="btn btn-sm btn-secondary"><?= $f['IsActive'] ? 'Disable' : 'Enable' ?></button>
                 </form>
                 <form method="post" style="display:inline" onsubmit="return confirm('Delete this geofence?')">
 <?= csrf_field() ?>
-                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
-                    <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="<?= $f['ID'] ?>">
                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                 </form>

@@ -32,6 +32,7 @@ function navLink(string $href, string $label, array $matches, int $badge = 0): s
 <title><?= htmlspecialchars($pageTitle) ?> — <?= htmlspecialchars($branding['CompanyName']) ?></title>
 <link rel="icon" type="image/webp" href="<?= htmlspecialchars($branding['FaviconPath']) ?>">
 <meta name="theme-color" content="<?= htmlspecialchars($branding['PrimaryColor'] ?? '#073851') ?>">
+<meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['admin_csrf'] ?? '') ?>">
 <link rel="stylesheet" href="../css/admin-layout.css">
 <?php foreach ((array)($additionalCSS ?? []) as $css): ?>
 <link rel="stylesheet" href="<?= htmlspecialchars($css) ?>">

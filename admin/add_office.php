@@ -8,7 +8,10 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
+require_once __DIR__ . '/includes/csrf.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['OfficeName'])) {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $officeName = trim($_POST['OfficeName']);
     if (!empty($officeName)) {
         $stmt = $conn->prepare("INSERT INTO Offices (OfficeName) VALUES (?)");

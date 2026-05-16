@@ -1,6 +1,10 @@
 <?php
 session_start();
 require '../auth/db.php';
+require_once '../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 date_default_timezone_set('America/Chicago');
 
 if (!isset($_SESSION['EmployeeID'])) {
@@ -83,11 +87,6 @@ foreach ($entries as $entry) {
 if ($inserted > 0) {
     // Email sending logic
     $emailStatus = 'not_attempted'; // Default status
-
-    require_once '../vendor/autoload.php';
-
-    use PHPMailer\PHPMailer\PHPMailer;
-    use PHPMailer\PHPMailer\Exception;
 
     // Fetch mail settings from database
     $mailSettings = [];

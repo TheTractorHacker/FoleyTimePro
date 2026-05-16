@@ -1,5 +1,4 @@
 <?php
-error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 session_start();
@@ -18,8 +17,11 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
+require_once __DIR__ . '/includes/csrf.php';
+
 // Handle approval/rejection
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     if (isset($_POST['approve'])) {
         $requestId = (int)$_POST['request_id'];
         $notes = $_POST['notes'] ?? '';

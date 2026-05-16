@@ -10,8 +10,11 @@ if (!isset($_SESSION['admin'])) {
 $error = "";
 $success = "";
 
+require_once __DIR__ . '/includes/csrf.php';
+
 // Handle form submission
-\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
