@@ -8,10 +8,10 @@ date_default_timezone_set('America/Chicago');
   <title>Terms of Use - FoleyTimePro</title>
   <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/redesign.css">
-  <link rel="icon" type="image/png" href="/images/FoleyTimePro.png">
-    <link rel="apple-touch-icon" href="/images/FoleyTimePro.png">
-  <link rel="icon" type="image/png" href="../images/FoleyTimePro-favicon.png">
-    <link rel="apple-touch-icon" href="../images/FoleyTimePro-favicon.png">
+  <link rel="icon" type="image/png" href="/images/FoleyTimePro-logo.png">
+    <link rel="apple-touch-icon" href="/images/FoleyTimePro-logo.png">
+  <link rel="icon" type="image/png" href="../images/FoleyTimePro-favicon.webp">
+    <link rel="apple-touch-icon" href="../images/FoleyTimePro-favicon.webp">
 
     <link rel="manifest" href="/manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,7 +23,7 @@ date_default_timezone_set('America/Chicago');
 <!-- 🌐 Desktop Nav -->
 <header class="topnav desktop-only">
   <div class="topnav-left">
-    <img src="/images/FoleyTimePro.png" class="nav-logo" alt="Logo">
+    <img src="/images/FoleyTimePro-logo.png" class="nav-logo" alt="Logo">
     <span class="nav-title">FoleyTimePro</span>
   </div>
   <div class="topnav-right">
@@ -42,7 +42,7 @@ date_default_timezone_set('America/Chicago');
 
 <!-- 📱 Mobile Banner -->
 <div class="mobile-banner mobile-only">
-  <img src="/images/FoleyTimePro.png" alt="Logo" class="nav-logo">
+  <img src="/images/FoleyTimePro-logo.png" alt="Logo" class="nav-logo">
   <span class="nav-title">FoleyTimePro</span>
 </div>
 

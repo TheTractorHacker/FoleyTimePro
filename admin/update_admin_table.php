@@ -1,5 +1,7 @@
 <?php
-require_once '/var/www/timeclock/auth/db.php';
+session_start();
+if (php_sapi_name() !== 'cli' && !isset($_SESSION['admin'])) { http_response_code(403); exit('Forbidden'); }
+require_once __DIR__ . '/../auth/db.php';
 
 // Check if the column already exists
 $result = $conn->query("SHOW COLUMNS FROM `admins` LIKE 'TwoFASecret'");

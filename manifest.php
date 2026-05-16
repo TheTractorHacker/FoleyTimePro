@@ -59,9 +59,9 @@ foreach ([192, 512] as $size) {
 // Fallback to default icon if no custom icons exist
 if (empty($icons)) {
     // Check for company logo or use default
-    $logoPath = $branding['LogoPath'] ?? '/images/FoleyTimePro.png';
+    $logoPath = $branding['LogoPath'] ?? '/images/FoleyTimePro-logo.png';
     if (!file_exists(__DIR__ . $logoPath)) {
-        $logoPath = '/images/FoleyTimePro.png';
+        $logoPath = '/images/FoleyTimePro-logo.png';
     }
 
     $icons[] = [

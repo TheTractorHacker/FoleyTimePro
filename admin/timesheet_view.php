@@ -1,9 +1,11 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
+ini_set('display_errors', 0);
 
 // Include necessary files (e.g., database connection)
-include_once '../auth/db.php'; 
+session_start();
+if (!isset($_SESSION['admin'])) { header('Location: login.php'); exit; }
+require_once '../auth/db.php'; 
 
 // Get parameters from URL
 $employeeID = isset($_GET['emp']) ? $_GET['emp'] : null;

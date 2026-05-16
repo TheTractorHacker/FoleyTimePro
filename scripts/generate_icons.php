@@ -4,11 +4,11 @@
  * Generates all required icon sizes from a source image
  *
  * Usage: php scripts/generate_icons.php [source_image]
- * Default source: /images/FoleyTimePro.png
+ * Default source: /images/FoleyTimePro-logo.png
  */
 
 // Configuration
-$sourceImage = $argv[1] ?? __DIR__ . '/../images/FoleyTimePro.png';
+$sourceImage = $argv[1] ?? __DIR__ . '/../images/FoleyTimePro-logo.png';
 $outputDir = __DIR__ . '/../images/icons/';
 
 // Required icon sizes for PWA

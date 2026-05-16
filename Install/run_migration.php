@@ -7,7 +7,7 @@
 require_once __DIR__ . '/../auth/db.php';
 
 echo "===========================================\n";
-echo "D-BEST TimeSmart Migration Runner\n";
+echo "FoleyTimePro Migration Runner\n";
 echo "===========================================\n\n";
 
 // Read the migration file

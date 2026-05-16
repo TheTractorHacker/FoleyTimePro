@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="verify-box" role="main" aria-labelledby="verify-title">
         <div class="logo-wrap">
             <!-- Ensure the path is correct; CSP allows self images -->
-            <img src="../images/FoleyTimePro.png" alt="Company Logo" class="logo">
+            <img src="../images/FoleyTimePro-logo.png" alt="Company Logo" class="logo">
         </div>
 
         <h2 id="verify-title">Two-Factor Verification</h2>

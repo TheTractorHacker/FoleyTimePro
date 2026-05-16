@@ -1,5 +1,5 @@
 /**
- * D-Best TimeClock Service Worker
+ * FoleyTimePro Service Worker
  * Provides offline functionality, caching, and background sync
  */
 

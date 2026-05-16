@@ -34,7 +34,7 @@ if (!$result || $result->num_rows === 0) {
     // Return default branding if not configured
     ApiResponse::success([
         'company_name' => 'TimeClock',
-        'logo_url' => '/images/FoleyTimePro.png',
+        'logo_url' => '/images/FoleyTimePro-logo.png',
         'favicon_url' => '/images/FoleyTimePro-favicon.webp',
         'primary_color' => '#073851',
         'secondary_color' => '#042a3d',
@@ -50,7 +50,7 @@ $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : '
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $baseUrl = "$protocol://$host";
 
-$logoPath = $branding['LogoPath'] ?? '/images/FoleyTimePro.png';
+$logoPath = $branding['LogoPath'] ?? '/images/FoleyTimePro-logo.png';
 $faviconPath = $branding['FaviconPath'] ?? '/images/FoleyTimePro-favicon.webp';
 
 // Make sure paths start with /

@@ -190,11 +190,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Verify 2FA</title>
-    <link rel="icon" type="image/png" href="/images/FoleyTimePro.png">
-    <link rel="apple-touch-icon" href="/images/FoleyTimePro.png">
+    <link rel="icon" type="image/png" href="/images/FoleyTimePro-logo.png">
+    <link rel="apple-touch-icon" href="/images/FoleyTimePro-logo.png">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/FoleyTimePro-favicon.png">
-    <link rel="apple-touch-icon" href="../images/FoleyTimePro-favicon.png">
+    <link rel="icon" type="image/png" href="../images/FoleyTimePro-favicon.webp">
+    <link rel="apple-touch-icon" href="../images/FoleyTimePro-favicon.webp">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/webp" href="../images/FoleyTimePro-favicon.webp">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">

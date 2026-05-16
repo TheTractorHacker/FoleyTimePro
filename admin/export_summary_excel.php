@@ -1,4 +1,6 @@
 <?php
+session_start();
+if (!isset($_SESSION['admin'])) { http_response_code(403); exit('Forbidden'); }
 require_once '../auth/db.php';
 require_once '../vendor/autoload.php';
 

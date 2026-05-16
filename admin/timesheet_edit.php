@@ -1,6 +1,8 @@
 <?php
 // Include necessary files (e.g., database connection)
-include_once '../auth/db.php';
+session_start();
+if (!isset($_SESSION['admin'])) { header('Location: login.php'); exit; }
+require_once '../auth/db.php';
 
 // Get parameters from URL
 $employeeID = isset($_GET['emp']) ? $_GET['emp'] : null;

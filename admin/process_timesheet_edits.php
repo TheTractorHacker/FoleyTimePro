@@ -1,4 +1,6 @@
 <?php
+session_start();
+if (!isset($_SESSION['admin'])) { http_response_code(403); echo json_encode(['success'=>false,'message'=>'Unauthorized']); exit; }
 include_once '../auth/db.php';
 
 header('Content-Type: application/json');
