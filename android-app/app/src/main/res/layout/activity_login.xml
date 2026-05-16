@@ -41,6 +41,8 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textSize="16sp"
+            android:textColor="@color/colorTextPrimary"
+            android:textColorHint="@color/colorTextSecondary"
             android:singleLine="true"
             android:imeOptions="actionNext"
             android:layout_marginBottom="12dp"/>
@@ -55,6 +57,8 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textSize="16sp"
+            android:textColor="@color/colorTextPrimary"
+            android:textColorHint="@color/colorTextSecondary"
             android:singleLine="true"
             android:imeOptions="actionDone"
             android:layout_marginBottom="12dp"/>
@@ -84,6 +88,8 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:textSize="20sp"
+                android:textColor="@color/colorTextPrimary"
+                android:textColorHint="@color/colorTextSecondary"
                 android:gravity="center"
                 android:letterSpacing="0.4"
                 android:maxLength="6"

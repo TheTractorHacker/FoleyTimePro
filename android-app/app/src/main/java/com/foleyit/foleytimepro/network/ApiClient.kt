@@ -69,18 +69,19 @@ class ApiClient(private val baseUrl: String) {
     private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
 
     fun fetchBranding(): BrandingResult = try {
-        val resp = http.newCall(Request.Builder().url("$baseUrl/api/v1/branding").build()).execute()
-        val json = JSONObject(resp.body?.string() ?: "{}")
+        val resp = http.newCall(Request.Builder().url("$baseUrl/api/v1/branding.php").build()).execute()
+        val body = resp.body?.string() ?: ""
+        val json = JSONObject(body)
         if (json.optBoolean("success")) {
             val data = json.optJSONObject("data")
             BrandingResult(true, data?.optString("company_name", "FoleyTimePro") ?: "FoleyTimePro")
         } else {
-            BrandingResult(false, error = "Server did not respond as a FoleyTimePro instance")
+            BrandingResult(false, error = "Not a FoleyTimePro server")
         }
     } catch (e: IOException) {
         BrandingResult(false, error = "Cannot reach server: ${e.message}")
     } catch (e: Exception) {
-        BrandingResult(false, error = "Invalid server response")
+        BrandingResult(false, error = "Server returned an unexpected response (not JSON)")
     }
 
     fun login(email: String, password: String, twoFaCode: String? = null): LoginResult = try {
@@ -90,7 +91,7 @@ class ApiClient(private val baseUrl: String) {
         }.toString().toRequestBody(JSON_TYPE)
 
         val resp = http.newCall(
-            Request.Builder().url("$baseUrl/api/v1/auth/login").post(body).build()
+            Request.Builder().url("$baseUrl/api/v1/auth.php?action=login").post(body).build()
         ).execute()
         val json = JSONObject(resp.body?.string() ?: "{}")
 
@@ -118,7 +119,7 @@ class ApiClient(private val baseUrl: String) {
     fun createWebViewSession(accessToken: String): SessionResult = try {
         val resp = http.newCall(
             Request.Builder()
-                .url("$baseUrl/api/v1/auth/webview-session")
+                .url("$baseUrl/api/v1/auth.php?action=webview-session")
                 .header("Authorization", "Bearer $accessToken")
                 .post("".toRequestBody(null))
                 .build()
@@ -131,7 +132,7 @@ class ApiClient(private val baseUrl: String) {
     fun getPunchStatus(token: String): PunchStatus = try {
         val resp = http.newCall(
             Request.Builder()
-                .url("$baseUrl/api/v1/punch/status")
+                .url("$baseUrl/api/v1/punch.php?action=status")
                 .header("Authorization", "Bearer $token")
                 .build()
         ).execute()
@@ -157,7 +158,7 @@ class ApiClient(private val baseUrl: String) {
         }.toString().toRequestBody(JSON_TYPE)
         val resp = http.newCall(
             Request.Builder()
-                .url("$baseUrl/api/v1/punch/$action")
+                .url("$baseUrl/api/v1/punch.php?action=$action")
                 .header("Authorization", "Bearer $token")
                 .post(body)
                 .build()
@@ -172,7 +173,7 @@ class ApiClient(private val baseUrl: String) {
     fun getPunchHistory(token: String): PunchHistory = try {
         val resp = http.newCall(
             Request.Builder()
-                .url("$baseUrl/api/v1/punch/history")
+                .url("$baseUrl/api/v1/punch.php?action=history")
                 .header("Authorization", "Bearer $token")
                 .build()
         ).execute()
@@ -200,7 +201,7 @@ class ApiClient(private val baseUrl: String) {
         val body = JSONObject().apply { put("refresh_token", refreshToken) }
             .toString().toRequestBody(JSON_TYPE)
         val resp = http.newCall(
-            Request.Builder().url("$baseUrl/api/v1/auth/refresh").post(body).build()
+            Request.Builder().url("$baseUrl/api/v1/auth.php?action=refresh").post(body).build()
         ).execute()
         val json = JSONObject(resp.body?.string() ?: "{}")
         if (json.optBoolean("success")) {
