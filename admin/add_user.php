@@ -13,15 +13,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $firstName = trim($_POST['FirstName'] ?? '');
     $lastName  = trim($_POST['LastName'] ?? '');
+    $email     = trim($_POST['Email'] ?? '');
     $tagID     = trim($_POST['TagID'] ?? '');
     $office    = trim($_POST['Office'] ?? '');
     $password  = $_POST['Password'] ?? '';
+    $pin       = trim($_POST['UserPIN'] ?? '');
 
-    // Basic validation
-    if (!$firstName || !$lastName || !$office || !$password) {
-        header('Location: ../error.php?code=400&message=' . urlencode('First name, last name, office, and password are required.'));
+    if (!$firstName || !$lastName || !$email || !$office || !$password) {
+        header('Location: ../error.php?code=400&message=' . urlencode('First name, last name, email, office, and password are required.'));
         exit;
     }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header('Location: ../error.php?code=400&message=' . urlencode('Invalid email address.'));
+        exit;
+    }
+
+    // Duplicate email check
+    $chk = $conn->prepare("SELECT ID FROM users WHERE Email = ?");
+    $chk->bind_param("s", $email);
+    $chk->execute();
+    $chk->store_result();
+    if ($chk->num_rows > 0) {
+        $chk->close();
+        header('Location: ../error.php?code=400&message=' . urlencode('An account with that email already exists.'));
+        exit;
+    }
+    $chk->close();
 
     // Check for duplicate TagID if provided
     if (!empty($tagID)) {
@@ -37,16 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 
-    // Hash the password securely
-   $hashed = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+    $hashed    = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+    $hashedPin = (!empty($pin) && ctype_digit($pin) && strlen($pin) >= 4 && strlen($pin) <= 8)
+                 ? hash('sha256', $pin) : null;
 
-
-    // Insert user with default 2FA disabled and admin override ON
     $stmt = $conn->prepare("
-        INSERT INTO users (FirstName, LastName, TagID, Office, ClockStatus, Pass, TwoFAEnabled, AdminOverride2FA)
-        VALUES (?, ?, ?, ?, 'Out', ?, 0, 1)
+        INSERT INTO users (FirstName, LastName, Email, TagID, Office, ClockStatus, Pass, UserPIN, TwoFAEnabled, AdminOverride2FA)
+        VALUES (?, ?, ?, ?, ?, 'Out', ?, ?, 0, 1)
     ");
-    $stmt->bind_param("sssss", $firstName, $lastName, $tagID, $office, $hashed);
+    $stmt->bind_param("sssssss", $firstName, $lastName, $email, $tagID, $office, $hashed, $hashedPin);
 
     if ($stmt->execute()) {
         header("Location: manage_users.php");

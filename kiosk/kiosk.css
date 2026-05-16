@@ -197,3 +197,56 @@ html, body {
   .k-clock-wrap { padding: 52px 20px 28px; }
   .k-employee { margin-bottom: 32px; }
 }
+
+/* ── PIN pad ─────────────────────────────────────────────── */
+.k-pin-wrap {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.k-pin-display {
+  font-size: 32px;
+  font-family: monospace;
+  letter-spacing: .3em;
+  color: #fff;
+  min-width: 120px;
+  text-align: center;
+  background: rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 8px 24px;
+}
+.k-pin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 8px;
+}
+.k-pin-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.k-pin-btn:hover { background: rgba(255,255,255,.25); }
+.k-pin-btn:active { background: rgba(255,255,255,.4); }
+.k-pin-empty { visibility: hidden; }
+.k-pin-submit {
+  margin-top: 4px;
+  width: 140px; height: 44px;
+  border-radius: 22px;
+  border: none;
+  background: #2ecc71;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.k-pin-submit:disabled { opacity: .35; cursor: default; }
+.k-pin-submit:not(:disabled):hover { opacity: .85; }

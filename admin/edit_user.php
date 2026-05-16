@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jobTitle    = trim($_POST['JobTitle']  ?? '');
     $phone       = trim($_POST['PhoneNumber'] ?? '');
     $password    = $_POST['Password'] ?? '';
+    $newPin      = trim($_POST['UserPIN'] ?? '');
     $lockOut     = isset($_POST['LockOut']) ? 1 : 0;
     $makeAdmin   = isset($_POST['MakeAdmin']);
     $enable2FA   = isset($_POST['Enable2FA']) ? 1 : 0;
@@ -80,6 +81,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("ssssssssiis", $firstName, $lastName, $email, $tagID, $clockStatus, $office, $jobTitle, $phone, $enable2FA, $lockOut, $id);
         }
         $stmt->execute();
+
+        // Update PIN separately if provided
+        if ($newPin !== '') {
+            if (!ctype_digit($newPin) || strlen($newPin) < 4 || strlen($newPin) > 8) {
+                $error = "Kiosk PIN must be 4–8 digits.";
+            } else {
+                $pinHash = hash('sha256', $newPin);
+                $pinStmt = $conn->prepare("UPDATE users SET UserPIN=? WHERE ID=?");
+                $pinStmt->bind_param("si", $pinHash, $id);
+                $pinStmt->execute();
+            }
+        }
 
         // Admin toggle
         if ($makeAdmin) {
@@ -190,13 +203,13 @@ include 'includes/header.php';
       </div>
 
       <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Reset Password</h3>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Leave blank to keep the current password. Password is also the employee PIN.</p>
-        <div class="form-group" style="position:relative">
-          <label>New Password / PIN</label>
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Login Password</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Used for the mobile app and web portal. Leave blank to keep existing.</p>
+        <div class="form-group">
+          <label>New Password</label>
           <div style="display:flex;gap:8px">
             <input type="text" name="Password" id="passwordField"
-                   placeholder="Type or generate a new password"
+                   placeholder="Leave blank to keep current"
                    autocomplete="new-password"
                    style="flex:1;font-family:monospace;letter-spacing:.05em">
             <button type="button" onclick="generatePassword()"
@@ -204,6 +217,18 @@ include 'includes/header.php';
               &#9881; Generate
             </button>
           </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Kiosk PIN</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">4–8 digit numeric PIN for punching in/out at the kiosk. Separate from the login password. Leave blank to keep existing.</p>
+        <div class="form-group">
+          <label>New PIN (4–8 digits)</label>
+          <input type="text" name="UserPIN" id="pinField"
+                 placeholder="Leave blank to keep current"
+                 pattern="\d{4,8}" inputmode="numeric" maxlength="8"
+                 style="font-family:monospace;letter-spacing:.2em;font-size:18px;width:160px">
         </div>
       </div>
     </div>

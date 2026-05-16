@@ -125,7 +125,7 @@ include 'includes/header.php';
         <div class="form-group"><label>First Name</label><input type="text" name="FirstName" placeholder="First Name" required></div>
         <div class="form-group"><label>Last Name</label><input type="text" name="LastName" placeholder="Last Name" required></div>
       </div>
-      <div class="form-group"><label>Tag ID</label><input type="text" name="TagID" placeholder="Optional"></div>
+      <div class="form-group"><label>Email *</label><input type="email" name="Email" placeholder="employee@company.com" required></div>
       <div class="form-group">
         <label>Office</label>
         <select name="Office" required>
@@ -135,7 +135,11 @@ include 'includes/header.php';
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="form-group"><label>Initial Password</label><input type="password" name="Password" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Login Password *</label><input type="password" name="Password" placeholder="App &amp; web login" required></div>
+        <div class="form-group"><label>Kiosk PIN (4–8 digits)</label><input type="text" name="UserPIN" placeholder="Optional" pattern="\d{4,8}" inputmode="numeric" maxlength="8"></div>
+      </div>
+      <div class="form-group"><label>Badge / Tag ID</label><input type="text" name="TagID" placeholder="Optional – for NFC badge"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('addUserModal').style.display='none'">Cancel</button>
         <button type="submit" class="btn btn-primary">Add User</button>

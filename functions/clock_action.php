@@ -224,6 +224,110 @@ function logPendingEdit($conn, $empID, $date, $field, $newTime, $note) {
     return true;
 }
 
+// --- Check PIN Status (kiosk_pin_status) ---
+if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_pin_status' && isset($_POST['PIN'])) {
+    $pinHash = hash('sha256', trim($_POST['PIN']));
+    $stmt = $conn->prepare("SELECT ID, FirstName, LastName FROM users WHERE UserPIN = ? AND LockOut = 0");
+    if (!$stmt) send_json_response(false, "DB prepare error", 500, $conn->error);
+    $stmt->bind_param("s", $pinHash);
+    $stmt->execute();
+    $stmt->store_result();
+    $stmt->bind_result($empID, $firstName, $lastName);
+    if (!$stmt->fetch()) {
+        send_json_response(false, "❌ PIN not recognized.");
+    }
+    $stmt->close();
+
+    $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
+    $punch->bind_param("i", $empID);
+    $punch->execute();
+    $punch->store_result();
+    $punch->bind_result($pTimeIn, $pLunchStart, $pLunchEnd, $pTimeOut);
+    $status = 'Out';
+    if ($punch->fetch() && empty($pTimeOut)) {
+        if (empty($pLunchStart))      $status = 'In';
+        elseif (empty($pLunchEnd))    $status = 'Lunch';
+        else                          $status = 'In';
+    }
+    $punch->close();
+    echo json_encode(['success' => true, 'firstName' => $firstName, 'lastName' => $lastName, 'empID' => $empID, 'status' => $status]);
+    exit;
+}
+
+// --- PIN-based Kiosk Punch ---
+if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_pin' && isset($_POST['PIN'])) {
+    $pinHash = hash('sha256', trim($_POST['PIN']));
+    $action  = trim($_POST['action'] ?? '');
+    $now     = date("H:i:s");
+    $date    = date("Y-m-d");
+    $ip      = get_client_ip();
+
+    $stmt = $conn->prepare("SELECT ID, FirstName FROM users WHERE UserPIN = ? AND LockOut = 0");
+    if (!$stmt) send_json_response(false, "DB prepare error", 500, $conn->error);
+    $stmt->bind_param("s", $pinHash);
+    $stmt->execute();
+    $stmt->store_result();
+    $stmt->bind_result($empID, $firstName);
+    if (!$stmt->fetch()) {
+        send_json_response(false, "❌ PIN not recognized.", 404);
+    }
+    $stmt->close();
+
+    // Reuse kiosk punch logic — get open punch
+    $punch = $conn->prepare("SELECT ID, TimeIN, LunchStart, LunchEnd FROM timepunches WHERE EmployeeID = ? AND TimeOUT IS NULL ORDER BY Date DESC, TimeIN DESC LIMIT 1");
+    $punch->bind_param("i", $empID);
+    $punch->execute();
+    $punch->store_result();
+    $punchID = $timeIn = $lunchStart = $lunchEnd = null;
+    $hasOpenPunch = ($punch->num_rows > 0);
+    if ($hasOpenPunch) {
+        $punch->bind_result($punchID, $timeIn, $lunchStart, $lunchEnd);
+        $punch->fetch();
+    }
+    $punch->close();
+
+    switch ($action) {
+        case 'clockin':
+            if ($hasOpenPunch) send_json_response(false, "⚠️ Already clocked in since " . date("g:i A", strtotime($timeIn)) . ".", 409);
+            $stmt = $conn->prepare("INSERT INTO timepunches (EmployeeID, Date, TimeIN, IPAddressIN) VALUES (?, ?, ?, INET_ATON(?))");
+            $stmt->bind_param("isss", $empID, $date, $now, $ip);
+            if (!$stmt->execute()) send_json_response(false, "DB error (clockin)", 500, $stmt->error);
+            setClockStatus($conn, $empID, 'In');
+            echo json_encode(['success' => true, 'firstName' => $firstName, 'message' => "✅ Clocked in at " . date("g:i A", strtotime($now))]);
+            exit;
+        case 'lunchstart':
+            if (!$hasOpenPunch) send_json_response(false, "⚠️ You must be clocked in first.", 400);
+            if (!empty($lunchStart)) send_json_response(false, "⚠️ Lunch already started.", 400);
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchStart=?, IPAddressLunchStart=INET_ATON(?) WHERE ID=?");
+            $stmt->bind_param("ssi", $now, $ip, $punchID);
+            if (!$stmt->execute()) send_json_response(false, "DB error (lunchstart)", 500, $stmt->error);
+            setClockStatus($conn, $empID, 'Lunch');
+            echo json_encode(['success' => true, 'firstName' => $firstName, 'message' => "🍽️ Lunch started at " . date("g:i A", strtotime($now))]);
+            exit;
+        case 'lunchend':
+            if (!$hasOpenPunch || empty($lunchStart)) send_json_response(false, "⚠️ No active lunch to end.", 400);
+            if (!empty($lunchEnd)) send_json_response(false, "⚠️ Lunch already ended.", 400);
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd=?, IPAddressLunchEnd=INET_ATON(?) WHERE ID=?");
+            $stmt->bind_param("ssi", $now, $ip, $punchID);
+            if (!$stmt->execute()) send_json_response(false, "DB error (lunchend)", 500, $stmt->error);
+            setClockStatus($conn, $empID, 'In');
+            echo json_encode(['success' => true, 'firstName' => $firstName, 'message' => "✅ Back from lunch at " . date("g:i A", strtotime($now))]);
+            exit;
+        case 'clockout':
+            if (!$hasOpenPunch) send_json_response(false, "⚠️ You are not clocked in.", 400);
+            if (!empty($lunchStart) && empty($lunchEnd)) $lunchEnd = $now;
+            $total = calculateTotalHours($timeIn, $lunchStart, $lunchEnd, $now);
+            $stmt = $conn->prepare("UPDATE timepunches SET TimeOUT=?, LunchEnd=?, TotalHours=?, IPAddressOut=INET_ATON(?) WHERE ID=?");
+            $stmt->bind_param("ssdsi", $now, $lunchEnd, $total, $ip, $punchID);
+            if (!$stmt->execute()) send_json_response(false, "DB error (clockout)", 500, $stmt->error);
+            setClockStatus($conn, $empID, 'Out');
+            echo json_encode(['success' => true, 'firstName' => $firstName, 'message' => "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " — " . number_format($total, 2) . " hrs"]);
+            exit;
+        default:
+            send_json_response(false, "Unknown action", 400);
+    }
+}
+
 // --- Check TagID Status (kiosk_status) ---
 if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_status' && !empty($_POST['TagID'])) {
     $tagID = trim($_POST['TagID']);
