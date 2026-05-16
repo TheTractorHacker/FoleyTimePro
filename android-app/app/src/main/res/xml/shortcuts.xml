@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Clock In shortcut -->
+
     <shortcut
         android:shortcutId="clock_in"
         android:enabled="true"
@@ -8,11 +8,11 @@
         android:shortcutShortLabel="@string/shortcut_clock_in_short"
         android:shortcutLongLabel="@string/shortcut_clock_in">
         <intent
-            android:action="android.intent.action.VIEW"
-            android:data="https://timeclock.example.com/index.php?action=clockin" />
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.foleyit.foleytimepro"
+            android:targetClass="com.foleyit.foleytimepro.MainActivity"/>
     </shortcut>
 
-    <!-- Timesheet shortcut -->
     <shortcut
         android:shortcutId="timesheet"
         android:enabled="true"
@@ -20,7 +20,9 @@
         android:shortcutShortLabel="@string/shortcut_timesheet_short"
         android:shortcutLongLabel="@string/shortcut_timesheet">
         <intent
-            android:action="android.intent.action.VIEW"
-            android:data="https://timeclock.example.com/user/timesheet.php" />
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.foleyit.foleytimepro"
+            android:targetClass="com.foleyit.foleytimepro.MainActivity"/>
     </shortcut>
+
 </shortcuts>
