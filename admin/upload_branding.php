@@ -259,6 +259,7 @@ function optimizeImage(string $path, string $srcMime, string $outExt, string $up
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" id="uploadForm">
+<?= csrf_field() ?>
             <div class="drop-zone" id="dropZone">
                 <p>📁 Drag & drop your file here or click to browse</p>
                 <input type="file" name="file" id="fileInput" accept="<?php

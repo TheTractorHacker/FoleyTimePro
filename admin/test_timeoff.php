@@ -8,6 +8,7 @@ echo "Starting test...<br>";
 try {
     echo "1. Starting session...<br>";
     session_start();
+if (!isset($_SESSION['admin'])) { http_response_code(403); exit('Forbidden'); }
     $_SESSION['admin'] = true;
     $_SESSION['admin_id'] = 1;
 

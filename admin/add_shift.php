@@ -106,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_shift'])) {
     <?php endif; ?>
 
     <form method="POST" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+<?= csrf_field() ?>
         <input type="hidden" name="create_shift" value="1">
 
         <!-- Shift Name -->

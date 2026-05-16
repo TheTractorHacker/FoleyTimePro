@@ -108,6 +108,7 @@ include 'includes/header.php';
                 <img src="data:image/png;base64,<?= $imgData ?>" alt="2FA QR Code">
 
                 <form method="POST">
+<?= csrf_field() ?>
                     <label>Enter 6-digit code from your app:</label><br>
                     <input type="text" name="code" maxlength="6" pattern="\d{6}" required><br>
                     <button type="submit">Verify & Enable 2FA</button>

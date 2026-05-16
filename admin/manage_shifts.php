@@ -149,11 +149,13 @@ function formatDays($daysJson) {
           <a href="edit_shift.php?id=<?= $shift['ShiftID'] ?>" class="btn btn-sm btn-secondary">Edit</a>
           <?php if ($shift['IsActive']): ?>
             <form method="POST" style="display:inline" onsubmit="return confirm('Deactivate this shift?')">
+<?= csrf_field() ?>
               <input type="hidden" name="shift_id" value="<?= $shift['ShiftID'] ?>">
               <button type="submit" name="delete_shift" class="btn btn-sm btn-danger">Deactivate</button>
             </form>
           <?php else: ?>
             <form method="POST" style="display:inline">
+<?= csrf_field() ?>
               <input type="hidden" name="shift_id" value="<?= $shift['ShiftID'] ?>">
               <button type="submit" name="activate_shift" class="btn btn-sm btn-success">Activate</button>
             </form>

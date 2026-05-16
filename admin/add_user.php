@@ -7,7 +7,7 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $firstName = trim($_POST['FirstName'] ?? '');
     $lastName  = trim($_POST['LastName'] ?? '');
     $tagID     = trim($_POST['TagID'] ?? '');

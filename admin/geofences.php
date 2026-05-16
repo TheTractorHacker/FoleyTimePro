@@ -10,7 +10,7 @@ $msg = '';
 $msgType = 'success';
 
 // Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $csrfOk = hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '');
     if (!$csrfOk) { $msg = 'Invalid request.'; $msgType = 'error'; }
     else {
@@ -84,6 +84,7 @@ include 'includes/header.php'; ?>
     <h2 style="margin-top:0"><?= $editFence ? 'Edit Geofence' : 'New Geofence' ?></h2>
     <div id="map"></div>
     <form method="post">
+<?= csrf_field() ?>
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
         <input type="hidden" name="action" value="save">
         <input type="hidden" name="id" value="<?= (int)($editFence['ID'] ?? 0) ?>">
@@ -161,12 +162,14 @@ include 'includes/header.php'; ?>
             <td>
                 <a href="?edit=<?= $f['ID'] ?>" class="btn btn-sm btn-secondary">Edit</a>
                 <form method="post" style="display:inline">
+<?= csrf_field() ?>
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
                     <input type="hidden" name="action" value="toggle">
                     <input type="hidden" name="id" value="<?= $f['ID'] ?>">
                     <button type="submit" class="btn btn-sm btn-secondary"><?= $f['IsActive'] ? 'Disable' : 'Enable' ?></button>
                 </form>
                 <form method="post" style="display:inline" onsubmit="return confirm('Delete this geofence?')">
+<?= csrf_field() ?>
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="<?= $f['ID'] ?>">

@@ -6,6 +6,7 @@ if (!function_exists('getBranding')) {
     require_once __DIR__ . '/../../functions/get_branding.php';
 }
 if (!isset($conn)) { require_once __DIR__ . '/../../auth/db.php'; }
+if (!function_exists('csrf_field')) { require_once __DIR__ . '/csrf.php'; }
 
 $branding    = getBranding($conn);
 $pageTitle   = $pageTitle ?? 'Admin';

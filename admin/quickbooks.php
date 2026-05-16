@@ -33,7 +33,7 @@ if ($action === 'callback') {
 }
 
 // Handle form actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
         $msg = 'Invalid request.'; $msgType = 'error';
     } else {
@@ -107,6 +107,7 @@ include 'includes/header.php'; ?>
   </div>
   <?php if ($isLinked): ?>
     <form method="post" style="margin:0">
+<?= csrf_field() ?>
       <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
       <input type="hidden" name="action" value="disconnect">
       <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Disconnect QuickBooks?')">Disconnect</button>
@@ -123,6 +124,7 @@ include 'includes/header.php'; ?>
   <h2>Export Timesheets to Payroll</h2>
   <p style="color:#6b7280;font-size:13px;margin-bottom:16px">Push approved hours for a pay period to QuickBooks as Time Activity records.</p>
   <form method="post" class="filter-bar" style="margin:0">
+<?= csrf_field() ?>
     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
     <input type="hidden" name="action" value="export_timesheets">
     <div class="form-group">
@@ -147,6 +149,7 @@ include 'includes/header.php'; ?>
       <p style="color:#6b7280;font-size:12px;margin:4px 0 0">Map employees to their QuickBooks counterparts. Auto-Sync matches by name.</p>
     </div>
     <form method="post" style="margin:0">
+<?= csrf_field() ?>
       <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
       <input type="hidden" name="action" value="sync_employees">
       <button type="submit" class="btn btn-sm btn-secondary">Auto-Sync from QB</button>
@@ -162,6 +165,7 @@ include 'includes/header.php'; ?>
         <td><strong><?= htmlspecialchars($e['FirstName'] . ' ' . $e['LastName']) ?></strong></td>
         <td>
           <form method="post" style="display:flex;gap:8px;align-items:center;margin:0">
+<?= csrf_field() ?>
             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
             <input type="hidden" name="action" value="map_employee">
             <input type="hidden" name="employee_id" value="<?= $e['ID'] ?>">

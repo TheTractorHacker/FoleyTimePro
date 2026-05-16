@@ -37,6 +37,7 @@ include 'includes/header.php';
         <td><strong><?= htmlspecialchars($office['OfficeName']) ?></strong></td>
         <td>
           <form action="remove_office.php" method="POST" style="display:inline" onsubmit="return confirm('Remove this office?')">
+<?= csrf_field() ?>
             <input type="hidden" name="ID" value="<?= (int)$office['ID'] ?>">
             <button type="submit" class="btn btn-sm btn-danger">Remove</button>
           </form>
@@ -56,6 +57,7 @@ include 'includes/header.php';
     <button class="close-btn" onclick="document.getElementById('addOfficeModal').style.display='none'">&times;</button>
     <h3>Add New Office</h3>
     <form action="add_office.php" method="POST" style="margin-top:16px">
+<?= csrf_field() ?>
       <div class="form-group">
         <label>Office Name</label>
         <input type="text" name="OfficeName" placeholder="e.g. Main Office" required>

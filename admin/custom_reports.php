@@ -23,6 +23,7 @@ include 'includes/header.php';
     <h2>Summary Report</h2>
     <p style="color:#6b7280;font-size:13px;margin-bottom:16px">Total hours, regular time, and overtime broken down by employee and date.</p>
     <form method="POST" id="summaryForm">
+<?= csrf_field() ?>
       <div class="form-group">
         <label>Date Range</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">

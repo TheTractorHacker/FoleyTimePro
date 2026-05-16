@@ -49,7 +49,7 @@ $error = '';
 $success = '';
 $newPasswordSet = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $firstName   = trim($_POST['FirstName'] ?? '');
     $lastName    = trim($_POST['LastName']  ?? '');
     $email       = trim($_POST['Email']     ?? '');
@@ -149,6 +149,7 @@ include 'includes/header.php';
 <?php endif; ?>
 
 <form method="POST">
+<?= csrf_field() ?>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
     <!-- Left column -->

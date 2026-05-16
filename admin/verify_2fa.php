@@ -207,6 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p>Enter the 6-digit code from your authenticator app or a backup code.</p>
 
         <form method="POST" novalidate>
+<?= csrf_field() ?>
             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
             <div class="field">

@@ -66,6 +66,7 @@ include 'includes/header.php';
         <p class="no-edits">✅ No pending time edits to review at the moment.</p>
     <?php else: ?>
         <form method="POST" action="process_edits.php">
+<?= csrf_field() ?>
             <table class="approval-table">
                 <thead>
                     <tr>

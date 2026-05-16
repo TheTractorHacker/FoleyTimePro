@@ -179,6 +179,7 @@ include 'includes/header.php';
     </span>
     <div style="display:flex;gap:8px">
       <form method="POST" action="export_summary_excel.php" style="margin:0">
+<?= csrf_field() ?>
         <input type="hidden" name="start" value="<?= $startDate ?>">
         <input type="hidden" name="end" value="<?= $endDate ?>">
         <input type="hidden" name="emp" value="<?= $employeeID ?>">
@@ -187,6 +188,7 @@ include 'includes/header.php';
         <button type="submit" class="btn btn-sm btn-secondary">Export Excel</button>
       </form>
       <form method="POST" action="export_summary_pdf.php" style="margin:0">
+<?= csrf_field() ?>
         <input type="hidden" name="start" value="<?= $startDate ?>">
         <input type="hidden" name="end" value="<?= $endDate ?>">
         <input type="hidden" name="emp" value="<?= $employeeID ?>">

@@ -57,7 +57,7 @@ if (isset($settings['mail_password']) && !empty($settings['mail_password'])) {
 
 $message = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     // Update settings
     $settingsToUpdate = [
         'mail_server', 'mail_port', 'mail_username',
@@ -133,6 +133,7 @@ include 'includes/header.php';
 <div class="card">
         <?= $message ?>
         <form method="POST" class="settings-form">
+<?= csrf_field() ?>
             <div class="settings-section"><div class="settings-section">
 <h2>Mail Server Settings</h2>
 

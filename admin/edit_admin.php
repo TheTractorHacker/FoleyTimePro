@@ -28,7 +28,7 @@ if (!$admin) {
 }
 
 // Handle update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $admin) {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
@@ -72,6 +72,7 @@ include 'includes/header.php';
 
         <?php if ($admin): ?>
             <form method="POST" class="filter-bar">
+<?= csrf_field() ?>
                 <div class="row">
                     <div class="form-group">
                         <label for="username">Username</label>

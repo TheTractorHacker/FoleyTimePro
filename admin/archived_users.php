@@ -41,10 +41,12 @@ include 'includes/header.php';
                 <td><?= htmlspecialchars($user['ArchivedAt']) ?></td>
                 <td>
                     <form action="unarchive_user.php" method="POST" style="display:inline;">
+<?= csrf_field() ?>
                         <input type="hidden" name="ID" value="<?= (int)$user['ID'] ?>">
                         <button type="submit" class="btn btn-primary btn-sm">Unarchive</button>
                     </form>
                     <form action="permanently_delete_user.php" method="POST" style="display:inline;">
+<?= csrf_field() ?>
                         <input type="hidden" name="ID" value="<?= (int)$user['ID'] ?>">
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">Delete Permanently</button>
                     </form>

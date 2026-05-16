@@ -118,7 +118,8 @@ include 'includes/header.php';
         <td><?= $fmtBadge ?></td>
         <td style="font-size:12px;color:#6b7280"><?= htmlspecialchars($ex['ExportedBy']) ?></td>
         <td>
-          <form method="POST" action="<?= $reExportUrl ?>" style="margin:0">
+          <form method="POST" action="<?= $reExportUrl ?>
+<?= csrf_field() ?>" style="margin:0">
             <input type="hidden" name="start"          value="<?= htmlspecialchars($ex['StartDate'] ?? '') ?>">
             <input type="hidden" name="end"            value="<?= htmlspecialchars($ex['EndDate'] ?? '') ?>">
             <input type="hidden" name="emp"            value="<?= (int)($ex['EmployeeID'] ?? 0) ?: '' ?>">

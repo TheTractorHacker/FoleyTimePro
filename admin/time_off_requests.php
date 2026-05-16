@@ -19,7 +19,7 @@ if (!isset($_SESSION['admin'])) {
 }
 
 // Handle approval/rejection
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
     if (isset($_POST['approve'])) {
         $requestId = (int)$_POST['request_id'];
         $notes = $_POST['notes'] ?? '';
@@ -280,6 +280,7 @@ $headerTitle = 'Time-Off Requests Management';
         <p id="modalEmployeeName"></p>
 
         <form method="POST">
+<?= csrf_field() ?>
             <input type="hidden" name="request_id" id="modalRequestId">
 
             <label for="notes">Notes:</label>

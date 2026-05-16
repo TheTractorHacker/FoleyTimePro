@@ -35,6 +35,7 @@ include 'includes/header.php';
 <div class="card" style="margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 20px">
   <span style="font-size:13px;font-weight:600;color:#374151">Require GPS for all punches</span>
   <form method="POST" style="display:flex;align-items:center;gap:10px">
+<?= csrf_field() ?>
     <input type="hidden" name="toggle_gps" value="1">
     <label class="switch">
       <input type="checkbox" name="EnforceGPS" value="1" <?= $gpsEnforced ? 'checked' : '' ?>>
@@ -82,6 +83,7 @@ include 'includes/header.php';
         </td>
         <td>
           <form method="POST" action="update_2fa_status.php" style="display:inline">
+<?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int)$u['ID'] ?>">
             <?php if (!empty($u['LockOut'])): ?>
               <input type="hidden" name="action" value="unlock">
@@ -118,6 +120,7 @@ include 'includes/header.php';
     <button class="close-btn" onclick="document.getElementById('addUserModal').style.display='none'">&times;</button>
     <h3>Add New User</h3>
     <form action="add_user.php" method="POST" style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+<?= csrf_field() ?>
       <div class="form-row">
         <div class="form-group"><label>First Name</label><input type="text" name="FirstName" placeholder="First Name" required></div>
         <div class="form-group"><label>Last Name</label><input type="text" name="LastName" placeholder="Last Name" required></div>
@@ -160,6 +163,7 @@ include 'includes/header.php';
     <h3>2FA Management</h3>
     <p style="color:#6b7280;margin:8px 0 20px;font-size:13px">Manage two-factor authentication for this user.</p>
     <form id="form2FA" method="POST" action="update_2fa_status.php">
+<?= csrf_field() ?>
       <input type="hidden" name="id" id="2faUserId">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <button type="button" class="btn btn-primary" onclick="confirm2FA('enable')">Enable 2FA</button>
@@ -179,6 +183,7 @@ include 'includes/header.php';
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeArchiveModal()">Cancel</button>
       <form id="archiveForm" action="archive_user.php" method="POST" style="display:inline">
+<?= csrf_field() ?>
         <input type="hidden" name="ID" id="archiveUserId">
         <button type="submit" class="btn btn-primary">Archive</button>
       </form>
@@ -194,6 +199,7 @@ include 'includes/header.php';
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
       <form id="deleteForm" action="delete_user.php" method="POST" style="display:inline">
+<?= csrf_field() ?>
         <input type="hidden" name="ID" id="deleteUserId">
         <button type="submit" class="btn btn-danger">Delete Permanently</button>
       </form>

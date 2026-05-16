@@ -3,7 +3,7 @@
  * Provides offline functionality, caching, and background sync
  */
 
-const CACHE_VERSION = 'v1.0.2';
+const CACHE_VERSION = 'v1.1.0';
 const STATIC_CACHE = `timeclock-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `timeclock-dynamic-${CACHE_VERSION}`;
 const OFFLINE_QUEUE_KEY = 'offline-punch-queue';

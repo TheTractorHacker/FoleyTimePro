@@ -17,7 +17,7 @@ if (!$shift) { header('Location: manage_shifts.php'); exit; }
 $selectedDays = json_decode($shift['DaysOfWeek'], true) ?: [];
 $error = $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+\n    if (!csrf_valid()) { http_response_code(403); die('Invalid CSRF token.'); }
 
     // ── Shift details update ──────────────────────────────────────
     if (isset($_POST['update_shift'])) {
@@ -149,6 +149,7 @@ include 'includes/header.php';
   <!-- ── Left column: shift details ───────────────────────────── -->
   <div>
     <form method="POST" id="shiftForm">
+<?= csrf_field() ?>
       <input type="hidden" name="update_shift" value="1">
 
       <!-- Basic details -->
@@ -273,6 +274,7 @@ include 'includes/header.php';
   <!-- ── Right column: user assignment ────────────────────────── -->
   <div>
     <form method="POST" id="assignForm">
+<?= csrf_field() ?>
       <input type="hidden" name="assign_users" value="1">
 
       <div class="card" style="padding:0;overflow:hidden">

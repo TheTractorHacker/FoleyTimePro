@@ -116,6 +116,7 @@ $additionalCSS = [];
 <?php endif; ?>
 
 <form method="POST" id="brandingForm">
+<?= csrf_field() ?>
   <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?>">
   <input type="hidden" name="update_branding" value="1">
 
