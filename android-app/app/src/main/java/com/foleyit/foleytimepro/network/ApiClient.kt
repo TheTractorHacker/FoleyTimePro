@@ -71,7 +71,7 @@ data class ShiftInfo(
     val endTime: String = "",
     val daysOfWeek: List<String> = emptyList(),
     val lunchDuration: Int = 0,
-    val autoClockOut: Boolean = false,
+    val lunchStartTime: String = "",
     val error: String = ""
 )
 
@@ -288,7 +288,7 @@ class ApiClient(private val baseUrl: String) {
                     endTime = s.optString("end_time", ""),
                     daysOfWeek = days,
                     lunchDuration = s.optInt("lunch_duration", 0),
-                    autoClockOut = s.optBoolean("auto_clock_out", false)
+                    lunchStartTime = s.optString("lunch_start_time", "")
                 )
             }
         } else ShiftInfo(false, error = json.optString("message", "No shift assigned"))

@@ -64,7 +64,16 @@ fun DashboardShell(prefs: PrefsManager, onLogout: () -> Unit) {
                     val selected = currentRoute == item.route
                     NavigationBarItem(
                         selected = selected,
-                        onClick  = { if (!selected) innerNav.navigate(item.route) { launchSingleTop = true } },
+                        onClick  = {
+                            if (!selected) innerNav.navigate(item.route) {
+                                popUpTo(innerNav.graph.startDestinationId) {
+                                    inclusive = false
+                                    saveState = false
+                                }
+                                launchSingleTop = true
+                                restoreState = false
+                            }
+                        },
                         icon     = { Icon(item.icon, contentDescription = item.label) },
                         label    = { Text(item.label) },
                         colors   = NavigationBarItemDefaults.colors(

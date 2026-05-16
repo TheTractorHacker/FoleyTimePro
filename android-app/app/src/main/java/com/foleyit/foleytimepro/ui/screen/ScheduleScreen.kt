@@ -143,15 +143,11 @@ fun ScheduleScreen(prefs: PrefsManager) {
                         HorizontalDivider(color = DividerColor)
 
                         Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Auto clock-out", fontSize = 14.sp, color = TextSecondary, modifier = Modifier.weight(1f))
-                            Surface(shape = RoundedCornerShape(8.dp), color = if (s.autoClockOut) GreenIn.copy(alpha = 0.12f) else DividerColor) {
-                                Text(
-                                    if (s.autoClockOut) "Enabled" else "Disabled",
-                                    fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                                    color = if (s.autoClockOut) GreenIn else TextSecondary,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                )
-                            }
+                            Text("Time to take lunch", fontSize = 14.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                            Text(
+                                if (s.lunchStartTime.isNotEmpty()) fmt12(s.lunchStartTime) else "Not set",
+                                fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Navy
+                            )
                         }
                     }
                 }

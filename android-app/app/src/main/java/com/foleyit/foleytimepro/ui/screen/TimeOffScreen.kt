@@ -1,11 +1,13 @@
 package com.foleyit.foleytimepro.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +23,8 @@ import com.foleyit.foleytimepro.utils.PrefsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +98,7 @@ fun TimeOffScreen(prefs: PrefsManager) {
 private fun TimeOffRow(req: TimeOffRequest) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text("${req.startDate}  –  ${req.endDate}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("${isoToMDY(req.startDate)}  –  ${isoToMDY(req.endDate)}", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(req.type, fontSize = 12.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
             if (req.reason.isNotEmpty()) Text(req.reason, fontSize = 11.sp, color = TextHint, modifier = Modifier.padding(top = 2.dp))
         }
@@ -109,25 +113,96 @@ private fun TimeOffRow(req: TimeOffRequest) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TimeOffRequestDialog(onDismiss: () -> Unit, onSubmit: (String, String, String) -> Unit) {
-    var start  by remember { mutableStateOf("") }
-    var end    by remember { mutableStateOf("") }
-    var reason by remember { mutableStateOf("") }
+    var reason          by remember { mutableStateOf("") }
+    var showStartPicker by remember { mutableStateOf(false) }
+    var showEndPicker   by remember { mutableStateOf(false) }
+    val startState = rememberDatePickerState()
+    val endState   = rememberDatePickerState()
+
+    val startDisplay = startState.selectedDateMillis?.let { millisToMDY(it) } ?: ""
+    val endDisplay   = endState.selectedDateMillis?.let   { millisToMDY(it) } ?: ""
+    val startApi     = startState.selectedDateMillis?.let { millisToYMD(it) } ?: ""
+    val endApi       = endState.selectedDateMillis?.let   { millisToYMD(it) } ?: ""
+
+    if (showStartPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showStartPicker = false },
+            confirmButton    = { TextButton(onClick = { showStartPicker = false }) { Text("OK") } },
+            dismissButton    = { TextButton(onClick = { showStartPicker = false }) { Text("Cancel") } },
+        ) { DatePicker(state = startState) }
+    }
+    if (showEndPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showEndPicker = false },
+            confirmButton    = { TextButton(onClick = { showEndPicker = false }) { Text("OK") } },
+            dismissButton    = { TextButton(onClick = { showEndPicker = false }) { Text("Cancel") } },
+        ) { DatePicker(state = endState) }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Request Time Off", fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(value = start, onValueChange = { start = it }, label = { Text("Start Date (YYYY-MM-DD)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = end, onValueChange = { end = it }, label = { Text("End Date (YYYY-MM-DD)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = reason, onValueChange = { reason = it }, label = { Text("Reason") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                Box(Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = startDisplay,
+                        onValueChange = {},
+                        label = { Text("Start Date") },
+                        placeholder = { Text("MM-DD-YYYY") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = { Icon(Icons.Filled.CalendarToday, null) },
+                    )
+                    Box(Modifier.matchParentSize().clickable { showStartPicker = true })
+                }
+                Box(Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = endDisplay,
+                        onValueChange = {},
+                        label = { Text("End Date") },
+                        placeholder = { Text("MM-DD-YYYY") },
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = { Icon(Icons.Filled.CalendarToday, null) },
+                    )
+                    Box(Modifier.matchParentSize().clickable { showEndPicker = true })
+                }
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = { reason = it },
+                    label = { Text("Reason") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                )
             }
         },
         confirmButton = {
-            Button(onClick = { if (start.isNotBlank() && end.isNotBlank()) onSubmit(start, end, reason) }) { Text("Submit") }
+            Button(
+                onClick  = { onSubmit(startApi, endApi, reason) },
+                enabled  = startApi.isNotBlank() && endApi.isNotBlank(),
+            ) { Text("Submit", color = Color.White) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
+
+private fun millisToMDY(millis: Long): String {
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+    cal.timeInMillis = millis
+    return "%02d-%02d-%04d".format(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.YEAR))
+}
+
+private fun millisToYMD(millis: Long): String {
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+    cal.timeInMillis = millis
+    return "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+}
+
+private fun isoToMDY(date: String): String = try {
+    val p = date.split("-")
+    if (p.size == 3) "${p[1]}-${p[2]}-${p[0]}" else date
+} catch (_: Exception) { date }
