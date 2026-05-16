@@ -27,7 +27,6 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleScreen(prefs: PrefsManager) {
-    val scope = rememberCoroutineScope()
     val api   = remember { ApiClient(prefs.getInstanceUrl()) }
     var shift by remember { mutableStateOf<ShiftInfo?>(null) }
     var loading by remember { mutableStateOf(true) }

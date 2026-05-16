@@ -3,6 +3,7 @@ package com.foleyit.foleytimepro.ui.navigation
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,7 +21,7 @@ private val navItems = listOf(
     BottomNavItem("clock",     "Clock",     Icons.Filled.AccessTime),
     BottomNavItem("timesheet", "Timesheet", Icons.Filled.DateRange),
     BottomNavItem("timeoff",   "Time Off",  Icons.Filled.EventAvailable),
-    BottomNavItem("schedule",  "Schedule",  Icons.Filled.ViewList),
+    BottomNavItem("schedule",  "Schedule",  Icons.AutoMirrored.Filled.ViewList),
     BottomNavItem("profile",   "Profile",   Icons.Filled.Person),
 )
 
