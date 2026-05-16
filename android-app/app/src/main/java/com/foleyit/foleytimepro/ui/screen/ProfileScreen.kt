@@ -66,8 +66,12 @@ fun ProfileScreen(prefs: PrefsManager, onLogout: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Navy, titleContentColor = Color.White)
+                title = { Text("Profile", fontWeight = FontWeight.Bold, color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Navy,
+                    titleContentColor = Color.White,
+                    actionIconContentColor = Color.White,
+                )
             )
         }
     ) { padding ->
@@ -122,7 +126,7 @@ fun ProfileScreen(prefs: PrefsManager, onLogout: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                     ) {
                         if (pwLoading) CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                        else Text("Update Password", fontWeight = FontWeight.Bold)
+                        else Text("Update Password", fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
@@ -156,11 +160,11 @@ fun ProfileScreen(prefs: PrefsManager, onLogout: () -> Unit) {
             Button(
                 onClick  = { showLogoutDialog = true },
                 modifier = Modifier.fillMaxWidth().padding(16.dp).height(52.dp),
-                colors   = ButtonDefaults.buttonColors(containerColor = ClockOutRed),
+                colors   = ButtonDefaults.buttonColors(containerColor = ClockOutRed, contentColor = Color.White),
                 shape    = RoundedCornerShape(14.dp),
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, null, modifier = Modifier.padding(end = 8.dp))
-                Text("Sign Out", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("Sign Out", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
             }
 
             Spacer(Modifier.height(16.dp))
