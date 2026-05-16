@@ -1,5 +1,6 @@
 <?php
 require_once '../auth/db.php';
+require_once __DIR__ . '/../functions/pin_helper.php';
 session_start();
 
 if (!isset($_SESSION['admin'])) {
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $hashed    = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $hashedPin = (!empty($pin) && ctype_digit($pin) && strlen($pin) >= 2 && strlen($pin) <= 6)
-                 ? hash('sha256', $pin) : null;
+                 ? pin_hash($pin) : null;
 
     $stmt = $conn->prepare("
         INSERT INTO users (FirstName, LastName, Email, TagID, Office, ClockStatus, Pass, UserPIN, TwoFAEnabled, AdminOverride2FA)

@@ -1,9 +1,22 @@
 package com.foleyit.foleytimepro.utils
 
 import android.content.Context
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 class PrefsManager(context: Context) {
-    private val prefs = context.getSharedPreferences("foley_timepro", Context.MODE_PRIVATE)
+
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val prefs = EncryptedSharedPreferences.create(
+        context,
+        "foley_timepro_secure",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     companion object {
         private const val KEY_INSTANCE_URL   = "instance_url"
@@ -16,7 +29,7 @@ class PrefsManager(context: Context) {
         private const val KEY_COMPANY_NAME   = "company_name"
     }
 
-    fun getInstanceUrl(): String   = prefs.getString(KEY_INSTANCE_URL, "") ?: ""
+    fun getInstanceUrl(): String    = prefs.getString(KEY_INSTANCE_URL, "") ?: ""
     fun setInstanceUrl(url: String) = prefs.edit().putString(KEY_INSTANCE_URL, url.trimEnd('/')).apply()
 
     fun getAccessToken(): String  = prefs.getString(KEY_ACCESS_TOKEN, "") ?: ""

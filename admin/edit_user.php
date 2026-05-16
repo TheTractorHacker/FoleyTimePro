@@ -1,5 +1,6 @@
 <?php
 require_once '../auth/db.php';
+require_once __DIR__ . '/../functions/pin_helper.php';
 session_start();
 
 if (!isset($_SESSION['admin'])) {
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!ctype_digit($newPin) || strlen($newPin) < 2 || strlen($newPin) > 6) {
                 $error = "Web Portal PIN must be 2–6 digits.";
             } else {
-                $pinHash = hash('sha256', $newPin);
+                $pinHash = pin_hash($newPin);
                 $pinStmt = $conn->prepare("UPDATE users SET UserPIN=? WHERE ID=?");
                 $pinStmt->bind_param("si", $pinHash, $id);
                 $pinStmt->execute();

@@ -7,6 +7,7 @@
 // clock_action.php
 // --- SETUP AND DEPENDENCIES ---
 require_once __DIR__ . '/../auth/db.php';
+require_once __DIR__ . '/pin_helper.php';
 require_once __DIR__ . '/../vendor/autoload.php'; // For PHPMailer
 require_once __DIR__ . '/settings_helper.php'; // Use the new helper for settings
 date_default_timezone_set('America/Chicago');
@@ -226,17 +227,13 @@ function logPendingEdit($conn, $empID, $date, $field, $newTime, $note) {
 
 // --- Check PIN Status (kiosk_pin_status) ---
 if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_pin_status' && isset($_POST['PIN'])) {
-    $pinHash = hash('sha256', trim($_POST['PIN']));
-    $stmt = $conn->prepare("SELECT ID, FirstName, LastName FROM users WHERE UserPIN = ? AND LockOut = 0");
-    if (!$stmt) send_json_response(false, "DB prepare error", 500, $conn->error);
-    $stmt->bind_param("s", $pinHash);
-    $stmt->execute();
-    $stmt->store_result();
-    $stmt->bind_result($empID, $firstName, $lastName);
-    if (!$stmt->fetch()) {
+    $found = pin_find_user($conn, trim($_POST['PIN']));
+    if (!$found) {
         send_json_response(false, "❌ PIN not recognized.");
     }
-    $stmt->close();
+    $empID     = $found['ID'];
+    $firstName = $found['FirstName'];
+    $lastName  = $found['LastName'];
 
     $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
     $punch->bind_param("i", $empID);
@@ -256,22 +253,16 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_pin_status' && isset($_P
 
 // --- PIN-based Kiosk Punch ---
 if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_pin' && isset($_POST['PIN'])) {
-    $pinHash = hash('sha256', trim($_POST['PIN']));
-    $action  = trim($_POST['action'] ?? '');
-    $now     = date("H:i:s");
-    $date    = date("Y-m-d");
-    $ip      = get_client_ip();
-
-    $stmt = $conn->prepare("SELECT ID, FirstName FROM users WHERE UserPIN = ? AND LockOut = 0");
-    if (!$stmt) send_json_response(false, "DB prepare error", 500, $conn->error);
-    $stmt->bind_param("s", $pinHash);
-    $stmt->execute();
-    $stmt->store_result();
-    $stmt->bind_result($empID, $firstName);
-    if (!$stmt->fetch()) {
+    $found = pin_find_user($conn, trim($_POST['PIN']));
+    if (!$found) {
         send_json_response(false, "❌ PIN not recognized.", 404);
     }
-    $stmt->close();
+    $empID     = $found['ID'];
+    $firstName = $found['FirstName'];
+    $action    = trim($_POST['action'] ?? '');
+    $now       = date("H:i:s");
+    $date      = date("Y-m-d");
+    $ip        = get_client_ip();
 
     // Reuse kiosk punch logic — get open punch
     $punch = $conn->prepare("SELECT ID, TimeIN, LunchStart, LunchEnd FROM timepunches WHERE EmployeeID = ? AND TimeOUT IS NULL ORDER BY Date DESC, TimeIN DESC LIMIT 1");

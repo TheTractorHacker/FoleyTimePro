@@ -22,6 +22,7 @@ session_set_cookie_params([
 session_start();
 
 require '../auth/db.php';
+require '../functions/pin_helper.php';
 
 /* ---------- Config ---------- */
 const MAX_LOGIN_ATTEMPTS_USER = 5;     // lock after this many failures
@@ -138,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (empty($user['UserPIN'])) {
                         $error = "No PIN set for this account. Contact your administrator.";
                     } else {
-                        $valid = hash_equals($user['UserPIN'], hash('sha256', $password));
+                        $valid = pin_verify_and_upgrade($conn, $uid, $password, $user['UserPIN']);
                     }
 
                     if ($valid) {

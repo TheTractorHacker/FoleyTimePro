@@ -1,6 +1,7 @@
 <?php 
 date_default_timezone_set('America/Chicago');
 require_once __DIR__ . '/../auth/db.php';
+require_once __DIR__ . '/pin_helper.php';
 
 header('Content-Type: application/json');
 
@@ -19,7 +20,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($user = $result->fetch_assoc()) {
-    if (!empty($user['UserPIN']) && hash_equals($user['UserPIN'], hash('sha256', $pin))) {
+    if (!empty($user['UserPIN']) && pin_verify_and_upgrade($conn, (int)$user['ID'], $pin, $user['UserPIN'])) {
 
         // Use a single optimized query for latest punch
         $punchStmt = $conn->prepare("

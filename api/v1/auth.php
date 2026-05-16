@@ -55,6 +55,45 @@ switch ($action) {
 }
 
 /**
+ * Brute-force guard: 5 failures per email OR IP in 15 minutes → 429
+ */
+function checkLoginAttempts(string $identifier): void
+{
+    global $conn;
+    $since = date('Y-m-d H:i:s', strtotime('-15 minutes'));
+    $stmt  = $conn->prepare(
+        "SELECT COUNT(*) FROM api_login_attempts WHERE identifier = ? AND attempted_at > ?"
+    );
+    $stmt->bind_param("ss", $identifier, $since);
+    $stmt->execute();
+    $count = (int) $stmt->get_result()->fetch_row()[0];
+    $stmt->close();
+    if ($count >= 5) {
+        ApiResponse::error('Too many failed attempts. Try again in 15 minutes.', 429);
+    }
+}
+
+function recordFailedAttempt(string $identifier): void
+{
+    global $conn;
+    $stmt = $conn->prepare("INSERT INTO api_login_attempts (identifier) VALUES (?)");
+    $stmt->bind_param("s", $identifier);
+    $stmt->execute();
+    $stmt->close();
+    // Purge attempts older than 1 hour to keep table small
+    $conn->query("DELETE FROM api_login_attempts WHERE attempted_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+}
+
+function clearLoginAttempts(string $identifier): void
+{
+    global $conn;
+    $stmt = $conn->prepare("DELETE FROM api_login_attempts WHERE identifier = ?");
+    $stmt->bind_param("s", $identifier);
+    $stmt->execute();
+    $stmt->close();
+}
+
+/**
  * Handle user login
  */
 function handleLogin($input)
@@ -66,8 +105,15 @@ function handleLogin($input)
         ApiResponse::validationError(['email' => 'Email and password are required']);
     }
 
-    $email = $input['email'];
+    $email = trim($input['email']);
     $password = $input['password'];
+    $ip       = $_SERVER['HTTP_X_FORWARDED_FOR']
+                    ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0])
+                    : ($_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+
+    // Rate-limit by both email and IP
+    checkLoginAttempts($email);
+    checkLoginAttempts($ip);
 
     // Find user — include 2FA columns from the users table
     $stmt = $conn->prepare("SELECT ID, Email, Pass, FirstName, LastName, LockOut, TwoFAEnabled, TwoFASecret FROM users WHERE Email = ?");
@@ -76,6 +122,8 @@ function handleLogin($input)
     $user = $stmt->get_result()->fetch_assoc();
 
     if (!$user) {
+        recordFailedAttempt($email);
+        recordFailedAttempt($ip);
         ApiResponse::error('Invalid credentials', 401);
     }
 
@@ -84,8 +132,13 @@ function handleLogin($input)
     }
 
     if (!password_verify($password, $user['Pass'])) {
+        recordFailedAttempt($email);
+        recordFailedAttempt($ip);
         ApiResponse::error('Invalid credentials', 401);
     }
+
+    clearLoginAttempts($email);
+    clearLoginAttempts($ip);
 
     // 2FA check using users.TwoFAEnabled / users.TwoFASecret
     $twoFAEnabled = !empty($user['TwoFAEnabled']);
