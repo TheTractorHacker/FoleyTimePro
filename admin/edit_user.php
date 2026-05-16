@@ -224,10 +224,10 @@ include 'includes/header.php';
         <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Web Portal PIN</h3>
         <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">2–6 digit numeric PIN for the web portal login. Separate from the app password. Leave blank to keep existing.</p>
         <div class="form-group">
-          <label>New PIN (4–8 digits)</label>
+          <label>New PIN (2–6 digits)</label>
           <input type="text" name="UserPIN" id="pinField"
                  placeholder="Leave blank to keep current"
-                 pattern="\d{4,8}" inputmode="numeric" maxlength="8"
+                 pattern="\d{2,6}" inputmode="numeric" maxlength="6"
                  style="font-family:monospace;letter-spacing:.2em;font-size:18px;width:160px">
         </div>
       </div>
