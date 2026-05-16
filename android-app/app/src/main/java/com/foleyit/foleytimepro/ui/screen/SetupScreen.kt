@@ -7,9 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,7 +23,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
     val scope   = rememberCoroutineScope()
-    var url     by remember { mutableStateOf("https://") }
+    val prefix  = "https://"
+    var url     by remember { mutableStateOf(TextFieldValue(prefix, selection = TextRange(prefix.length))) }
     var loading by remember { mutableStateOf(false) }
     var error   by remember { mutableStateOf("") }
     var company by remember { mutableStateOf("") }
@@ -43,7 +46,8 @@ fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
         OutlinedTextField(
             value = url,
             onValueChange = { newVal ->
-                url = if (newVal.startsWith("https://")) newVal else "https://"
+                url = if (newVal.text.startsWith(prefix)) newVal
+                      else TextFieldValue(prefix, selection = TextRange(prefix.length))
                 verified = false; error = ""
             },
             label = { Text("Server URL") },
@@ -52,7 +56,7 @@ fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
             keyboardActions = KeyboardActions(onGo = {
-                if (!loading) scope.launch { connect(url, prefs) { c, e -> company = c; error = e; verified = c.isNotEmpty() } }
+                if (!loading) scope.launch { connect(url.text, prefs) { c, e -> company = c; error = e; verified = c.isNotEmpty() } }
             }),
             isError = error.isNotEmpty(),
             supportingText = if (error.isNotEmpty()) {{ Text(error, color = MaterialTheme.colorScheme.error) }} else null,
@@ -79,11 +83,11 @@ fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
                 onClick = {
                     scope.launch {
                         loading = true; error = ""
-                        connect(url, prefs) { c, e -> company = c; error = e; verified = c.isNotEmpty() }
+                        connect(url.text, prefs) { c, e -> company = c; error = e; verified = c.isNotEmpty() }
                         loading = false
                     }
                 },
-                enabled  = url.length > 8 && !loading,
+                enabled  = url.text.length > prefix.length && !loading,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
                 if (loading) CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
