@@ -24,7 +24,10 @@ Thumbs.db
 task-*.txt
 timeclock/
 
-# Vendor / third-party (not tracked)
+# Vendor / third-party (composer install runs at build time)
+vendor/
+
+# Exception: firebase JWT is vendored manually, not via composer
 vendor/firebase/
 
 # Android app well-known (generated)
