@@ -134,11 +134,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($user['LockOut'])) {
                     $error = "Your account is locked. Please contact an administrator.";
                 } else {
-                    // PIN if set, otherwise fall back to password
-                    if (!empty($user['UserPIN'])) {
-                        $valid = hash_equals($user['UserPIN'], hash('sha256', $password));
+                    // PIN only — no password fallback
+                    if (empty($user['UserPIN'])) {
+                        $error = "No PIN set for this account. Contact your administrator.";
                     } else {
-                        $valid = is_string($user['Pass']) && $user['Pass'] !== '' && password_verify($password, $user['Pass']);
+                        $valid = hash_equals($user['UserPIN'], hash('sha256', $password));
                     }
 
                     if ($valid) {
@@ -266,12 +266,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div class="u-form-group">
-        <label for="passInput">PIN or Password</label>
+        <label for="passInput">PIN</label>
         <input
           type="password"
           name="password"
           id="passInput"
-          placeholder="Enter your PIN or password"
+          placeholder="Enter your PIN"
           required
           autocomplete="current-password"
           inputmode="numeric">
