@@ -2,7 +2,7 @@
 # Build:  docker build -t foleyit/foleytimepro:latest .
 # Push:   docker push foleyit/foleytimepro:latest
 
-FROM php:8.3-fpm
+FROM php:8.5-fpm
 
 RUN apt-get update && apt-get install -y \
     nginx supervisor libzip-dev libpng-dev \
