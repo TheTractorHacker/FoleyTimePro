@@ -271,18 +271,21 @@ class ApiClient(private val baseUrl: String) {
         if (json.optBoolean("success")) {
             val shifts = json.optJSONObject("data")?.optJSONArray("shifts")
             val s = shifts?.takeIf { it.length() > 0 }?.getJSONObject(0)
-            if (s == null) return ShiftInfo(false, error = "No shift assigned")
-            val daysArr = s.optJSONArray("days") ?: org.json.JSONArray()
-            val days = (0 until daysArr.length()).map { daysArr.getString(it) }
-            ShiftInfo(
-                success = true,
-                shiftName = s.optString("name", ""),
-                startTime = s.optString("start_time", ""),
-                endTime = s.optString("end_time", ""),
-                daysOfWeek = days,
-                lunchDuration = s.optInt("lunch_duration", 0),
-                autoClockOut = s.optBoolean("auto_clock_out", false)
-            )
+            if (s == null) {
+                ShiftInfo(false, error = "No shift assigned")
+            } else {
+                val daysArr = s.optJSONArray("days") ?: org.json.JSONArray()
+                val days = (0 until daysArr.length()).map { daysArr.getString(it) }
+                ShiftInfo(
+                    success = true,
+                    shiftName = s.optString("name", ""),
+                    startTime = s.optString("start_time", ""),
+                    endTime = s.optString("end_time", ""),
+                    daysOfWeek = days,
+                    lunchDuration = s.optInt("lunch_duration", 0),
+                    autoClockOut = s.optBoolean("auto_clock_out", false)
+                )
+            }
         } else ShiftInfo(false, error = json.optString("message", "No shift assigned"))
     } catch (e: Exception) { ShiftInfo(false, error = e.message ?: "Network error") }
 
