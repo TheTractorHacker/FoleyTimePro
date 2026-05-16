@@ -39,7 +39,7 @@ if (!$result || $result->num_rows === 0) {
         'primary_color' => '#073851',
         'secondary_color' => '#042a3d',
         'accent_color' => '#4CAF50',
-        'timezone' => 'America/New_York'
+        'timezone' => 'America/Chicago'
     ]);
 }
 
@@ -68,5 +68,5 @@ ApiResponse::success([
     'primary_color' => $branding['PrimaryColor'] ?? '#073851',
     'secondary_color' => $branding['SecondaryColor'] ?? '#042a3d',
     'accent_color' => $branding['AccentColor'] ?? '#4CAF50',
-    'timezone' => $branding['Timezone'] ?? 'America/New_York'
+    'timezone' => $branding['Timezone'] ?? 'America/Chicago'
 ]);
