@@ -1,0 +1,113 @@
+# FoleyTimePro — full production stack
+# Includes: app + MariaDB + Nginx reverse proxy + Let's Encrypt SSL + Watchtower auto-updates
+#
+# Setup:
+#   1. cp .env.example .env  →  fill in DOMAIN, CERTBOT_EMAIL, passwords
+#   2. docker compose -f docker-compose.prod.yml up -d
+#   3. First-time SSL:
+#        docker compose -f docker-compose.prod.yml run --rm certbot certonly \
+#          --webroot --webroot-path=/var/www/certbot \
+#          -d ${DOMAIN} --email ${CERTBOT_EMAIL} --agree-tos --no-eff-email
+
+services:
+
+  db:
+    image: mariadb:11
+    container_name: foleytimepro_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-timeclock}
+      MYSQL_USER: ${DB_USER:-timeclock}
+      MYSQL_PASSWORD: ${DB_PASS}
+      TZ: ${DB_TIMEZONE:-America/Chicago}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app:
+    image: foleyit/foleytimepro:latest
+    container_name: foleytimepro_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-timeclock}
+      DB_USER: ${DB_USER:-timeclock}
+      DB_PASS: ${DB_PASS}
+      DB_TIMEZONE: ${DB_TIMEZONE:-America/Chicago}
+    volumes:
+      - app_logs:/var/www/html/logs
+      - app_uploads:/var/www/html/uploads
+    networks:
+      - internal
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    container_name: foleytimepro_nginx
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    networks:
+      - internal
+    environment:
+      - DOMAIN=${DOMAIN}
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: foleytimepro_certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+    networks:
+      - internal
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: foleytimepro_watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: "86400"
+      WATCHTOWER_LABEL_ENABLE: "true"
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  db_data:
+  app_logs:
+  app_uploads:
+  certbot_conf:
+  certbot_www:

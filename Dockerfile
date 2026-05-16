@@ -29,15 +29,15 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 COPY --chown=www-data:www-data . .
 
 # Configure nginx
-COPY Install/nginx.conf /etc/nginx/sites-available/default
+COPY docker/config/nginx.conf /etc/nginx/sites-available/default
 RUN rm -f /etc/nginx/sites-enabled/default \
     && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Configure PHP-FPM
-COPY Install/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/config/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Configure supervisor
-COPY Install/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Runtime dirs + permissions
 RUN mkdir -p logs uploads cache \
