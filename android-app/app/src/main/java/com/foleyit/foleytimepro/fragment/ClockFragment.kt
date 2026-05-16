@@ -251,13 +251,13 @@ class ClockFragment : Fragment() {
             if (entry.hours != null) { hrsTv.text = "${entry.hours}h"; hrsTv.visibility = View.VISIBLE }
             else hrsTv.visibility = View.GONE
 
+            historyContainer.addView(row)
             if (i < punches.size - 1) {
-                row.addView(View(requireContext()).apply {
+                historyContainer.addView(View(requireContext()).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                     setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorDivider))
                 })
             }
-            historyContainer.addView(row)
             row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
                 startOffset = (i * 30).toLong()
             })

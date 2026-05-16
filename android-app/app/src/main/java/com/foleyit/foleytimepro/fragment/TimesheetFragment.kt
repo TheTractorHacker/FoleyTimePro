@@ -151,13 +151,13 @@ class TimesheetFragment : Fragment() {
                 hrsTv.visibility = View.VISIBLE
             }
 
+            punchListContainer.addView(row)
             if (i < punches.size - 1) {
-                (row as LinearLayout).addView(View(requireContext()).apply {
+                punchListContainer.addView(View(requireContext()).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                     setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorDivider))
                 })
             }
-            punchListContainer.addView(row)
             row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
                 startOffset = (i * 30).toLong()
             })

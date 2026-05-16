@@ -80,13 +80,13 @@ class TimeOffFragment : Fragment() {
             }
             statusBg?.setColor(statusColor)
 
+            requestsContainer.addView(row)
             if (i < requests.size - 1) {
-                (row as LinearLayout).addView(View(requireContext()).apply {
+                requestsContainer.addView(View(requireContext()).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                     setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorDivider))
                 })
             }
-            requestsContainer.addView(row)
             row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
                 startOffset = (i * 25).toLong()
             })
