@@ -69,72 +69,36 @@ function handleLogin($input)
     $email = $input['email'];
     $password = $input['password'];
 
-    // Find user
-    $stmt = $conn->prepare("SELECT ID, Email, Pass, FirstName, LastName, LockOut FROM users WHERE Email = ?");
+    // Find user — include 2FA columns from the users table
+    $stmt = $conn->prepare("SELECT ID, Email, Pass, FirstName, LastName, LockOut, TwoFAEnabled, TwoFASecret FROM users WHERE Email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
+    $user = $stmt->get_result()->fetch_assoc();
 
     if (!$user) {
         ApiResponse::error('Invalid credentials', 401);
     }
 
-    // Check if user is locked out
     if ($user['LockOut']) {
         ApiResponse::error('Account is locked. Please contact your administrator.', 403);
     }
 
-    // Verify password
     if (!password_verify($password, $user['Pass'])) {
         ApiResponse::error('Invalid credentials', 401);
     }
 
-    // Check 2FA if enabled
-    $twoFAEnabled = false;
-    $stmt2FA = $conn->prepare("SELECT TwoFactorEnabled FROM two_factor_auth WHERE UserID = ?");
-    $stmt2FA->bind_param("i", $user['ID']);
-    $stmt2FA->execute();
-    $result2FA = $stmt2FA->get_result();
-    $twoFAData = $result2FA->fetch_assoc();
+    // 2FA check using users.TwoFAEnabled / users.TwoFASecret
+    $twoFAEnabled = !empty($user['TwoFAEnabled']);
 
-    if ($twoFAData && $twoFAData['TwoFactorEnabled']) {
-        $twoFAEnabled = true;
-
-        // If 2FA code not provided, require it
+    if ($twoFAEnabled) {
         if (!isset($input['twofa_code'])) {
             ApiResponse::error('2FA code required', 403, ['requires_2fa' => true]);
         }
 
-        // Verify 2FA code
         require_once __DIR__ . '/../../vendor/autoload.php';
-
-        $stmt2FASecret = $conn->prepare("SELECT TwoFactorSecret FROM two_factor_auth WHERE UserID = ?");
-        $stmt2FASecret->bind_param("i", $user['ID']);
-        $stmt2FASecret->execute();
-        $result2FASecret = $stmt2FASecret->get_result();
-        $secret = $result2FASecret->fetch_assoc()['TwoFactorSecret'];
-
-        $totp = OTPHP\TOTP::createFromSecret($secret);
-        $code = $input['twofa_code'];
-
-        if (!$totp->verify($code, null, 2)) {
-            // Try backup codes
-            $stmtBackup = $conn->prepare("SELECT ID FROM backup_codes WHERE UserID = ? AND Code = ? AND IsUsed = 0");
-            $hashedCode = hash('sha256', $code);
-            $stmtBackup->bind_param("is", $user['ID'], $hashedCode);
-            $stmtBackup->execute();
-            $backupResult = $stmtBackup->get_result();
-
-            if ($backupResult->num_rows === 0) {
-                ApiResponse::error('Invalid 2FA code', 401);
-            }
-
-            // Mark backup code as used
-            $backupCodeId = $backupResult->fetch_assoc()['ID'];
-            $stmtMarkUsed = $conn->prepare("UPDATE backup_codes SET IsUsed = 1, UsedAt = NOW() WHERE ID = ?");
-            $stmtMarkUsed->bind_param("i", $backupCodeId);
-            $stmtMarkUsed->execute();
+        $totp = OTPHP\TOTP::createFromSecret($user['TwoFASecret']);
+        if (!$totp->verify($input['twofa_code'], null, 2)) {
+            ApiResponse::error('Invalid 2FA code', 401);
         }
     }
 
