@@ -238,55 +238,26 @@ class ClockFragment : Fragment() {
         tvHistoryEmpty.visibility = View.GONE
 
         punches.take(7).forEachIndexed { i, entry ->
-            val row = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, 10, 0, 10)
-            }
-            val top = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
-            }
-            val dateTv = TextView(requireContext()).apply {
-                text = entry.date
-                textSize = 13f
-                typeface = android.graphics.Typeface.DEFAULT_BOLD
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.colorOnSurface))
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            }
-            val inOutTv = TextView(requireContext()).apply {
-                text = "${entry.inTime ?: "—"} → ${entry.outTime ?: "open"}"
-                textSize = 12f
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.colorTextSecondary))
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT)
-            }
-            val hrsTv = TextView(requireContext()).apply {
-                text = if (entry.hours != null) "  ${entry.hours}h" else ""
-                textSize = 13f
-                typeface = android.graphics.Typeface.DEFAULT_BOLD
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-            }
-            top.addView(dateTv); top.addView(inOutTv); top.addView(hrsTv)
-            row.addView(top)
-
+            val row = layoutInflater.inflate(R.layout.item_punch_row, historyContainer, false)
+            row.findViewById<TextView>(R.id.tvDate).text = entry.date
+            row.findViewById<TextView>(R.id.tvInOut).text =
+                "${entry.inTime ?: "—"}  →  ${entry.outTime ?: "still open"}"
+            val lunchTv = row.findViewById<TextView>(R.id.tvLunch)
             if (entry.lunchStart != null) {
-                val lunchTv = TextView(requireContext()).apply {
-                    text = "Lunch: ${entry.lunchStart} – ${entry.lunchEnd ?: "?"}"
-                    textSize = 11f
-                    setTextColor(ContextCompat.getColor(requireContext(), R.color.colorTextSecondary))
-                    setPadding(0, 2, 0, 0)
-                }
-                row.addView(lunchTv)
+                lunchTv.text = "Lunch: ${entry.lunchStart} – ${entry.lunchEnd ?: "in progress"}"
+                lunchTv.visibility = View.VISIBLE
             }
+            val hrsTv = row.findViewById<TextView>(R.id.tvHours)
+            if (entry.hours != null) { hrsTv.text = "${entry.hours}h"; hrsTv.visibility = View.VISIBLE }
+            else hrsTv.visibility = View.GONE
 
             if (i < punches.size - 1) {
                 row.addView(View(requireContext()).apply {
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1).apply { topMargin = 8 }
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                     setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorDivider))
                 })
             }
             historyContainer.addView(row)
-            // Fast stagger: 30ms per row max
             row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
                 startOffset = (i * 30).toLong()
             })

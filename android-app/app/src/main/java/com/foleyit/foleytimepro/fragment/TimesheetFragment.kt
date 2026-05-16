@@ -2,6 +2,7 @@ package com.foleyit.foleytimepro.fragment
 
 import android.os.Bundle
 import android.view.*
+import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.core.content.ContextCompat
@@ -132,83 +133,34 @@ class TimesheetFragment : Fragment() {
         tvEmpty.visibility = View.GONE
 
         punches.forEachIndexed { i, entry ->
-            val wrapper = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, 14, 0, 14)
-            }
-
-            // Date + hours row
-            val topRow = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
-            }
-            topRow.addView(TextView(requireContext()).apply {
-                text = entry.date
-                textSize = 14f
-                typeface = android.graphics.Typeface.DEFAULT_BOLD
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.colorOnSurface))
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            })
-            topRow.addView(TextView(requireContext()).apply {
-                text = if (entry.hours != null) "${entry.hours} hrs" else "open"
-                textSize = 13f
-                typeface = android.graphics.Typeface.DEFAULT_BOLD
-                setTextColor(ContextCompat.getColor(requireContext(),
-                    if (entry.outTime != null) R.color.colorPrimary else R.color.colorStatusIn))
-            })
-
-            // In/Out row
-            val ioRow = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, 4, 0, 0)
-            }
-            ioRow.addView(mkLabel("In: ${entry.inTime ?: "—"}"))
-            ioRow.addView(mkSpacer())
-            ioRow.addView(mkLabel("Out: ${entry.outTime ?: "—"}"))
-
-            wrapper.addView(topRow)
-            wrapper.addView(ioRow)
-
-            // Lunch row
+            val row = layoutInflater.inflate(R.layout.item_punch_row, punchListContainer, false)
+            row.findViewById<TextView>(R.id.tvDate).text = entry.date
+            row.findViewById<TextView>(R.id.tvInOut).text =
+                "In: ${entry.inTime ?: "—"}   Out: ${entry.outTime ?: "—"}"
+            val lunchTv = row.findViewById<TextView>(R.id.tvLunch)
             if (entry.lunchStart != null) {
-                wrapper.addView(TextView(requireContext()).apply {
-                    text = "Lunch: ${entry.lunchStart} – ${entry.lunchEnd ?: "in progress"}"
-                    textSize = 12f
-                    setTextColor(ContextCompat.getColor(requireContext(), R.color.colorTextSecondary))
-                    setPadding(0, 2, 0, 0)
-                })
+                lunchTv.text = "Lunch: ${entry.lunchStart} – ${entry.lunchEnd ?: "in progress"}"
+                lunchTv.visibility = View.VISIBLE
             }
-
-            // Note row
-            if (!entry.note.isNullOrBlank()) {
-                wrapper.addView(TextView(requireContext()).apply {
-                    text = "Note: ${entry.note}"
-                    textSize = 11f
-                    setTextColor(ContextCompat.getColor(requireContext(), R.color.colorTextSecondary))
-                    setPadding(0, 2, 0, 0)
-                })
+            val hrsTv = row.findViewById<TextView>(R.id.tvHours)
+            if (entry.hours != null) {
+                hrsTv.text = "${entry.hours} hrs"
+                hrsTv.visibility = View.VISIBLE
+            } else {
+                hrsTv.text = "open"
+                hrsTv.visibility = View.VISIBLE
             }
 
             if (i < punches.size - 1) {
-                wrapper.addView(View(requireContext()).apply {
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1).apply { topMargin = 8 }
+                (row as LinearLayout).addView(View(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                     setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorDivider))
                 })
             }
-
-            punchListContainer.addView(wrapper)
-            wrapper.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
+            punchListContainer.addView(row)
+            row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
                 startOffset = (i * 30).toLong()
             })
         }
-    }
-
-    private fun mkLabel(text: String) = TextView(requireContext()).apply {
-        this.text = text; textSize = 12f
-        setTextColor(ContextCompat.getColor(requireContext(), R.color.colorTextSecondary))
-    }
-
-    private fun mkSpacer() = View(requireContext()).apply {
-        layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
     }
 }

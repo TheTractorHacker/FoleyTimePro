@@ -3,6 +3,7 @@ package com.foleyit.foleytimepro.fragment
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
+import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.core.content.ContextCompat
@@ -63,27 +64,30 @@ class TimeOffFragment : Fragment() {
         tvEmpty.visibility = View.GONE
 
         requests.forEachIndexed { i, req ->
-            val card = layoutInflater.inflate(android.R.layout.two_line_list_item, requestsContainer, false)
-            val t1 = card.findViewById<TextView>(android.R.id.text1)
-            val t2 = card.findViewById<TextView>(android.R.id.text2)
+            val row = layoutInflater.inflate(R.layout.item_timeoff_row, requestsContainer, false)
+            row.findViewById<TextView>(R.id.tvDates).text = "${req.startDate}  –  ${req.endDate}"
+            row.findViewById<TextView>(R.id.tvType).text = req.type
+            val reasonTv = row.findViewById<TextView>(R.id.tvReason)
+            if (req.reason.isNotEmpty()) { reasonTv.text = req.reason; reasonTv.visibility = View.VISIBLE }
 
+            val statusTv = row.findViewById<TextView>(R.id.tvStatus)
+            statusTv.text = req.status
+            val statusBg = statusTv.background as? android.graphics.drawable.GradientDrawable
             val statusColor = when (req.status) {
-                "Approved" -> R.color.colorStatusIn
-                "Denied"   -> R.color.colorError
-                else       -> R.color.colorLunchStart
+                "Approved" -> 0xFF16A34A.toInt()
+                "Denied"   -> 0xFFDC2626.toInt()
+                else       -> 0xFFF97316.toInt()
             }
+            statusBg?.setColor(statusColor)
 
-            t1.text = "${req.type}: ${req.startDate} – ${req.endDate}"
-            t1.textSize = 14f
-            t1.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorOnSurface))
-            t1.typeface = android.graphics.Typeface.DEFAULT_BOLD
-
-            t2.text = "● ${req.status}   ${if (req.reason.isNotEmpty()) "· ${req.reason}" else ""}"
-            t2.textSize = 12f
-            t2.setTextColor(ContextCompat.getColor(requireContext(), statusColor))
-
-            requestsContainer.addView(card)
-            card.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
+            if (i < requests.size - 1) {
+                (row as LinearLayout).addView(View(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+                    setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.colorDivider))
+                })
+            }
+            requestsContainer.addView(row)
+            row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
                 startOffset = (i * 25).toLong()
             })
         }
