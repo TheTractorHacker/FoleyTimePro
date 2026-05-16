@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($first !== '' && $last !== '') {
                 $stmt = $conn->prepare("
-                    SELECT ID, FirstName, LastName, UserPIN, TwoFAEnabled, LockOut
+                    SELECT ID, FirstName, LastName, Pass, UserPIN, TwoFAEnabled, LockOut
                     FROM users
                     WHERE FirstName = ? AND LastName = ?
                     LIMIT 1
@@ -134,8 +134,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($user['LockOut'])) {
                     $error = "Your account is locked. Please contact an administrator.";
                 } else {
-                    // Check PIN (SHA-256 hash comparison)
-                    $valid = !empty($user['UserPIN']) && hash_equals($user['UserPIN'], hash('sha256', $password));
+                    // PIN if set, otherwise fall back to password
+                    if (!empty($user['UserPIN'])) {
+                        $valid = hash_equals($user['UserPIN'], hash('sha256', $password));
+                    } else {
+                        $valid = is_string($user['Pass']) && $user['Pass'] !== '' && password_verify($password, $user['Pass']);
+                    }
 
                     if ($valid) {
                         // Success: clear attempts for both maps
@@ -262,12 +266,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div class="u-form-group">
-        <label for="passInput">PIN</label>
+        <label for="passInput">PIN or Password</label>
         <input
           type="password"
           name="password"
           id="passInput"
-          placeholder="Enter your PIN"
+          placeholder="Enter your PIN or password"
           required
           autocomplete="current-password"
           inputmode="numeric">

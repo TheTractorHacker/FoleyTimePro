@@ -114,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Shift assignment
         if ($newShiftId > 0) {
-            $conn->prepare("DELETE FROM user_shifts WHERE UserID=?")->execute([$id]) || true;
             $usDel = $conn->prepare("DELETE FROM user_shifts WHERE UserID=?");
             $usDel->bind_param("i", $id);
             $usDel->execute();
@@ -487,7 +486,7 @@ $statusColor = match($user['ClockStatus'] ?? 'Out') {
             <select name="ShiftID">
               <option value="0">— No shift assigned —</option>
               <?php foreach ($allShifts as $sh): ?>
-                <option value="<?= $sh['ShiftID'] ?>" <?= $assignedShift===$sh['ShiftID']?'selected':'' ?>><?= htmlspecialchars($sh['ShiftName']) ?></option>
+                <option value="<?= $sh['ShiftID'] ?>" <?= (int)$sh['ShiftID']===$assignedShift?'selected':'' ?>><?= htmlspecialchars($sh['ShiftName']) ?></option>
               <?php endforeach; ?>
             </select>
             <span class="hint">Required for auto clock-out.</span>
