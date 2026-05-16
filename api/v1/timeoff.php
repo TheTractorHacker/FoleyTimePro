@@ -203,18 +203,14 @@ function handleSubmitRequest($userId)
         ApiResponse::validationError(['dates' => 'End date must be after start date']);
     }
 
-    // Check for overlapping requests
+    // Check for overlapping requests — ranges [A,B] and [C,D] overlap when A<=D AND B>=C
     $stmt = $conn->prepare("
         SELECT ID FROM time_off_requests
         WHERE EmployeeID = ?
         AND Status IN ('Pending', 'Approved')
-        AND (
-            (StartDate <= ? AND EndDate >= ?)
-            OR (StartDate <= ? AND EndDate >= ?)
-            OR (StartDate >= ? AND EndDate <= ?)
-        )
+        AND StartDate <= ? AND EndDate >= ?
     ");
-    $stmt->bind_param("issssss", $userId, $endDate, $startDate, $startDate, $startDate, $endDate, $endDate, $startDate, $endDate);
+    $stmt->bind_param("iss", $userId, $endDate, $startDate);
     $stmt->execute();
 
     if ($stmt->get_result()->num_rows > 0) {
