@@ -19,11 +19,13 @@ RUN printf 'upload_max_filesize=20M\npost_max_size=20M\nmemory_limit=256M\nmax_e
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_HOME=/tmp/composer
+
 WORKDIR /var/www/html
 
 # Cache composer deps as their own layer
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction --ignore-platform-reqs
 
 # Copy app source
 COPY --chown=www-data:www-data . .
