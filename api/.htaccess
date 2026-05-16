@@ -16,6 +16,14 @@ RewriteRule ^v1/auth/refresh$ v1/auth.php?action=refresh [L,QSA]
 RewriteRule ^v1/auth/logout$ v1/auth.php?action=logout [L,QSA]
 RewriteRule ^v1/auth/logout-all$ v1/auth.php?action=logout-all [L,QSA]
 
+# Native app punch endpoints (writes to timepunches table)
+RewriteRule ^v1/punch/status$     v1/punch.php?action=status     [L,QSA]
+RewriteRule ^v1/punch/clockin$    v1/punch.php?action=clockin    [L,QSA]
+RewriteRule ^v1/punch/lunchstart$ v1/punch.php?action=lunchstart [L,QSA]
+RewriteRule ^v1/punch/lunchend$   v1/punch.php?action=lunchend   [L,QSA]
+RewriteRule ^v1/punch/clockout$   v1/punch.php?action=clockout   [L,QSA]
+RewriteRule ^v1/punch/history$    v1/punch.php?action=history    [L,QSA]
+
 # Clock endpoints
 RewriteRule ^v1/clock/in$ v1/clock.php?action=in [L,QSA]
 RewriteRule ^v1/clock/out$ v1/clock.php?action=out [L,QSA]

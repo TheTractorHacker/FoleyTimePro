@@ -8,4 +8,17 @@
     <color name="colorDivider">#E0E0E0</color>
     <color name="colorTextPrimary">#212121</color>
     <color name="colorTextSecondary">#757575</color>
+    <!-- Required by splash screen + system UI -->
+    <color name="colorStatusBar">#073851</color>
+    <color name="colorNavigationBar">#073851</color>
+    <color name="colorSplashBackground">#073851</color>
+    <!-- Punch button colors -->
+    <color name="colorClockIn">#2E7D32</color>
+    <color name="colorLunchStart">#E65100</color>
+    <color name="colorLunchEnd">#1565C0</color>
+    <color name="colorClockOut">#B71C1C</color>
+    <color name="colorBtnDisabled">#BDBDBD</color>
+    <color name="colorStatusIn">#2E7D32</color>
+    <color name="colorStatusLunch">#E65100</color>
+    <color name="colorStatusOut">#757575</color>
 </resources>

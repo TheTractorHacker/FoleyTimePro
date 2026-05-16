@@ -21,47 +21,71 @@ A modern, self-hosted time clock application built for small businesses. Employe
 | **2FA** | TOTP authenticator app support for admins and employees |
 | **Push notifications** | Web push for punch events |
 | **Multi-office** | Separate locations under one installation |
+| **Multi-company** | Run isolated instances per company on the same host |
 | **Branding** | Custom logo, company name, and theme color |
 
 ---
 
-## Quick Install
-
-Requires Docker and a MySQL/MariaDB database already running.
+## Quick Start (Single Company)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/Install/install.sh | bash
+git clone https://github.com/TheTractorHacker/FoleyTimePro.git
+cd FoleyTimePro/docker
+
+./deploy.sh --company acme --port 8080
 ```
 
-The script will ask for:
-- **Company name** — used as the container and database name
-- **Database host, user, password**
-- Whether to import the schema into a new database
-- Whether to set up an automatic hourly backup cron
+That's it. The script starts a MariaDB container and the app container, generates strong random passwords, and prints the access URL.
 
 ---
 
-## Manual Install (Docker Compose)
+## Multi-Company Hosting
+
+Run completely isolated instances for multiple companies on the same host — each gets its own database, containers, and network.
 
 ```bash
-# Download files
-curl -L https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/docker/docker-compose.yml -o docker-compose.yml
-curl -L https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/docker/.env.example -o .env
+./deploy.sh --company acme  --port 8081
+./deploy.sh --company beta  --port 8082
+./deploy.sh --company gamma --port 8083
+```
 
-# Fill in your database credentials
-nano .env
+Each company gets:
 
-# Start
-docker compose up -d
+| Resource | Pattern |
+|---|---|
+| App container | `acme_app` |
+| DB container | `acme_db` |
+| Database | `timeclock_acme` |
+| Data volume | `acme_db_data` |
+| Network | `acme_internal` |
+
+Credentials are auto-generated on first deploy and saved to `docker/companies/<name>.env`. That file is gitignored — never committed.
+
+**Stop a company** (keeps data):
+```bash
+./deploy.sh --company acme --port 8081 --down
 ```
 
 ---
 
-## Production Deploy (SSL + Database + Auto-updates)
+## Manual Deploy (Docker Compose)
+
+If you prefer to manage env vars yourself:
 
 ```bash
-curl -L https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/docker/docker-compose.prod.yml -o docker-compose.prod.yml
-curl -L https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/docker/.env.example -o .env
+cd docker
+cp .env.example .env
+nano .env   # set COMPANY, APP_PORT, DB passwords
+docker compose -p acme --env-file .env up -d
+```
+
+---
+
+## Production Deploy (SSL)
+
+```bash
+cd docker
+cp .env.example .env
 nano .env   # set DOMAIN, CERTBOT_EMAIL, DB passwords
 docker compose -f docker-compose.prod.yml up -d
 ```
@@ -72,94 +96,81 @@ Includes MariaDB, Nginx with Let's Encrypt SSL, and Watchtower for automatic Doc
 
 ## Environment Variables
 
-| Variable | Description | Required |
+| Variable | Description | Default |
 |---|---|---|
-| `DB_HOST` | Database server hostname or IP | Yes |
-| `DB_NAME` | Database name | Yes |
-| `DB_USER` | Database username | Yes |
-| `DB_PASS` | Database password | Yes |
-| `DB_TIMEZONE` | Timezone for PHP and MySQL (default: `America/Chicago`) | No |
-| `DOMAIN` | Your domain name (production stack only) | Prod |
-| `CERTBOT_EMAIL` | Email for Let's Encrypt (production stack only) | Prod |
-
----
-
-## Database Setup
-
-```sql
-CREATE DATABASE timeclock CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'timeclock'@'%' IDENTIFIED BY 'your_secure_password';
-GRANT ALL PRIVILEGES ON timeclock.* TO 'timeclock'@'%';
-FLUSH PRIVILEGES;
-```
-
-Import schema:
-```bash
-mysql -h your_db_host -u timeclock -p timeclock < Install/timeclock-schema.sql
-```
+| `COMPANY` | Company identifier — names containers and DB | `timeclock` |
+| `APP_PORT` | Host port the web server listens on | `8080` |
+| `DB_NAME` | Database name | `timeclock` |
+| `DB_USER` | Database username | `timeclock` |
+| `DB_PASS` | Database password | **Required** |
+| `DB_ROOT_PASSWORD` | MariaDB root password | **Required** |
+| `DB_TIMEZONE` | Timezone for PHP and MySQL | `America/Chicago` |
+| `DOMAIN` | Domain name (production SSL stack only) | — |
+| `CERTBOT_EMAIL` | Let's Encrypt email (production SSL stack only) | — |
 
 ---
 
 ## First Login
 
-| | URL | Default credentials |
+| | URL | Credentials |
 |---|---|---|
-| **Admin** | `http://your-server/admin/login.php` | Set on first run |
-| **Employee** | `http://your-server/user/login.php` | Created by admin |
-| **Kiosk** | `http://your-server/kiosk/` | PIN-based, no account needed |
+| **Admin** | `http://your-server:<port>/admin/login.php` | Set on first run |
+| **Employee** | `http://your-server:<port>/user/login.php` | Created by admin |
+| **Kiosk** | `http://your-server:<port>/kiosk/` | PIN-based |
 
 ---
 
 ## Updating
 
-Watchtower handles updates automatically in the production stack. For manual updates:
-
 ```bash
-docker pull bfoley23/foleytimepro:latest
-docker compose up -d
+# Pull latest image and restart
+cd docker
+./deploy.sh --company acme --port 8081
 ```
+
+`deploy.sh` always pulls the latest image (`--pull always`) before starting. Watchtower handles automatic updates in the production SSL stack.
 
 ---
 
 ## Stack
 
 - **PHP 8.5** with Nginx and PHP-FPM
-- **Supervisor** managing both processes in one container
+- **MariaDB 11** — one container per company
+- **Supervisor** managing nginx + php-fpm in one container
 - **Composer** dependencies: PHPMailer, OTPHP, PhpSpreadsheet, TCPDF, phpdotenv
-- **CI/CD**: GitHub Actions builds and pushes multi-arch images (amd64 + arm64) on every commit to `main`
+- **CI/CD**: GitHub Actions builds and pushes multi-arch images (amd64 + arm64) on every push to `main`
 
 ---
 
 ## Development
 
-Clone and build locally:
-
 ```bash
 git clone https://github.com/TheTractorHacker/FoleyTimePro.git
 cd FoleyTimePro
-cp .env.example .env  # fill in local DB creds
+cp auth/.env.example auth/.env   # fill in local DB creds
 ```
 
-Build and push Docker image:
+Build and push Docker image manually:
 ```bash
-./build.sh           # latest
-./build.sh 1.3.0     # versioned
+./build.sh           # tag: latest
+./build.sh 1.3.0     # tag: 1.3.0 + latest
 ```
 
-The GitHub Actions workflow in `.github/workflows/docker-publish.yml` runs automatically on push to `main` and on version tags.
+The GitHub Actions workflow (`.github/workflows/docker-publish.yml`) runs automatically on every push to `main`.
 
 ---
 
 ## Troubleshooting
 
-**Container won't start:**
+**Check logs:**
 ```bash
-docker logs foleytimepro
+docker logs acme_app
+docker logs acme_db
 ```
 
-**Database connection failed:**
+**Test DB connection from inside the app container:**
 ```bash
-docker exec foleytimepro php -r "
+docker exec acme_app php -r "
 \$c = new mysqli(getenv('DB_HOST'), getenv('DB_USER'), getenv('DB_PASS'), getenv('DB_NAME'));
 echo \$c->connect_error ? 'FAIL: '.\$c->connect_error : 'Connected OK';
 "
@@ -169,9 +180,10 @@ echo \$c->connect_error ? 'FAIL: '.\$c->connect_error : 'Connected OK';
 
 | Problem | Fix |
 |---|---|
-| Port 80 already in use | Change `"8080:80"` in compose file |
-| DB connection refused | Check `DB_HOST` — use host IP, not `localhost` inside Docker |
-| Permission errors on uploads | `docker exec foleytimepro chown -R www-data:www-data /var/www/html` |
+| Port already in use | Choose a different `--port` |
+| DB not ready yet | Wait ~30s on first start; MariaDB initializes the schema |
+| Permission errors on uploads | `docker exec acme_app chown -R www-data:www-data /var/www/html/uploads` |
+| DB connection refused | `DB_HOST` is always `db` inside compose — don't change it |
 
 ---
 

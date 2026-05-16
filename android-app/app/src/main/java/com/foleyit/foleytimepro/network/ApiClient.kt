@@ -9,6 +9,41 @@ import java.util.concurrent.TimeUnit
 
 data class BrandingResult(val success: Boolean, val companyName: String = "", val error: String = "")
 
+data class PunchStatus(
+    val success: Boolean,
+    val name: String = "",
+    val status: String = "Out",   // "In", "Out", "Lunch"
+    val clockInTime: String? = null,
+    val lunchStartTime: String? = null,
+    val elapsedSeconds: Long = 0,
+    val error: String = ""
+)
+
+data class PunchResult(
+    val success: Boolean,
+    val message: String = "",
+    val time: String = "",
+    val hoursWorked: String = "",
+    val error: String = ""
+)
+
+data class PunchEntry(
+    val date: String,
+    val inTime: String?,
+    val lunchStart: String?,
+    val lunchEnd: String?,
+    val outTime: String?,
+    val hours: String?,
+    val note: String
+)
+
+data class PunchHistory(
+    val success: Boolean,
+    val punches: List<PunchEntry> = emptyList(),
+    val totalHours: String = "0.00",
+    val error: String = ""
+)
+
 data class LoginResult(
     val success: Boolean,
     val accessToken: String = "",
@@ -92,6 +127,74 @@ class ApiClient(private val baseUrl: String) {
     } catch (e: Exception) {
         SessionResult(false, error = e.message ?: "Session creation failed")
     }
+
+    fun getPunchStatus(token: String): PunchStatus = try {
+        val resp = http.newCall(
+            Request.Builder()
+                .url("$baseUrl/api/v1/punch/status")
+                .header("Authorization", "Bearer $token")
+                .build()
+        ).execute()
+        val json = JSONObject(resp.body?.string() ?: "{}")
+        if (json.optBoolean("success")) {
+            val d = json.getJSONObject("data")
+            PunchStatus(
+                success        = true,
+                name           = d.optString("name"),
+                status         = d.optString("status", "Out"),
+                clockInTime    = d.optString("clock_in_time").takeIf { it.isNotEmpty() },
+                lunchStartTime = d.optString("lunch_start_time").takeIf { it.isNotEmpty() },
+                elapsedSeconds = d.optLong("elapsed_seconds")
+            )
+        } else PunchStatus(false, error = json.optString("message", "Failed to get status"))
+    } catch (e: Exception) { PunchStatus(false, error = e.message ?: "Network error") }
+
+    fun punch(token: String, action: String, note: String = "", lat: Double? = null, lon: Double? = null): PunchResult = try {
+        val body = JSONObject().apply {
+            put("note", note)
+            lat?.let { put("latitude", it) }
+            lon?.let { put("longitude", it) }
+        }.toString().toRequestBody(JSON_TYPE)
+        val resp = http.newCall(
+            Request.Builder()
+                .url("$baseUrl/api/v1/punch/$action")
+                .header("Authorization", "Bearer $token")
+                .post(body)
+                .build()
+        ).execute()
+        val json = JSONObject(resp.body?.string() ?: "{}")
+        if (json.optBoolean("success")) {
+            val d = json.optJSONObject("data")
+            PunchResult(true, json.optString("message"), d?.optString("time") ?: "", d?.optString("hours_worked") ?: "")
+        } else PunchResult(false, error = json.optString("message", "Punch failed"))
+    } catch (e: Exception) { PunchResult(false, error = e.message ?: "Network error") }
+
+    fun getPunchHistory(token: String): PunchHistory = try {
+        val resp = http.newCall(
+            Request.Builder()
+                .url("$baseUrl/api/v1/punch/history")
+                .header("Authorization", "Bearer $token")
+                .build()
+        ).execute()
+        val json = JSONObject(resp.body?.string() ?: "{}")
+        if (json.optBoolean("success")) {
+            val d = json.getJSONObject("data")
+            val arr = d.optJSONArray("punches") ?: org.json.JSONArray()
+            val list = (0 until arr.length()).map { i ->
+                val p = arr.getJSONObject(i)
+                PunchEntry(
+                    date       = p.optString("date"),
+                    inTime     = p.optString("in").takeIf { it.isNotEmpty() },
+                    lunchStart = p.optString("lunch_start").takeIf { it.isNotEmpty() },
+                    lunchEnd   = p.optString("lunch_end").takeIf { it.isNotEmpty() },
+                    outTime    = p.optString("out").takeIf { it.isNotEmpty() },
+                    hours      = p.optString("hours").takeIf { it.isNotEmpty() },
+                    note       = p.optString("note")
+                )
+            }
+            PunchHistory(true, list, d.optString("total_hours", "0.00"))
+        } else PunchHistory(false, error = json.optString("message", "Failed to load history"))
+    } catch (e: Exception) { PunchHistory(false, error = e.message ?: "Network error") }
 
     fun refreshToken(refreshToken: String): LoginResult = try {
         val body = JSONObject().apply { put("refresh_token", refreshToken) }

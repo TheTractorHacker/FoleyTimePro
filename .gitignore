@@ -2,6 +2,8 @@
 .env
 auth/.env
 *.env.local
+docker/companies/*
+!docker/companies/.gitkeep
 
 # Cache & uploads (runtime-generated, not source)
 cache/
