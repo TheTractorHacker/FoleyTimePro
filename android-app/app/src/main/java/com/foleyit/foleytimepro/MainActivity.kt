@@ -1,22 +1,27 @@
 package com.foleyit.foleytimepro
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.foleyit.foleytimepro.ui.navigation.AppNavigation
+import com.foleyit.foleytimepro.ui.theme.FoleyTimeProTheme
 import com.foleyit.foleytimepro.utils.PrefsManager
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         val prefs = PrefsManager(this)
-        val next = when {
-            prefs.getInstanceUrl().isEmpty() -> SetupActivity::class.java
-            prefs.getAccessToken().isEmpty() -> LoginActivity::class.java
-            else                             -> DashboardActivity::class.java
+        val start = when {
+            prefs.getInstanceUrl().isEmpty() -> "setup"
+            prefs.getAccessToken().isEmpty() -> "login"
+            else                             -> "dashboard"
         }
-        startActivity(Intent(this, next))
-        finish()
+        setContent {
+            FoleyTimeProTheme {
+                AppNavigation(startDestination = start, prefs = prefs)
+            }
+        }
     }
 }

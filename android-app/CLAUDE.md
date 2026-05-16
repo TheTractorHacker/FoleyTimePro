@@ -1,131 +1,137 @@
-# FoleyTimePro Android — Development Rules
+# FoleyTimePro Android — Development Rules (Jetpack Compose)
 
-## Project Facts
-- Package: `com.foleyit.foleytimepro`
-- Min SDK: 24 (Android 7.0) | Target SDK: 34 | AGP: 8.7.3
-- Language: Kotlin only
-- Architecture: `DashboardActivity` hosts 5 fragments via `BottomNavigationView`
-- Fragments: `ClockFragment`, `TimesheetFragment`, `TimeOffFragment`, `ScheduleFragment`, `ProfileFragment`
-- API base: `ApiClient` in `network/` — all calls go through it
-- Prefs: `PrefsManager` in `utils/` — JWT token, user info, instance URL
+## Architecture
+- **Single Activity**: `MainActivity` → `setContent { FoleyTimeProTheme { AppNavigation(...) } }`
+- **Navigation**: `NavHost` in `AppNavigation.kt` — routes: `setup`, `login`, `dashboard`
+- **Dashboard**: `DashboardShell` hosts inner `NavHost` with `NavigationBar` for 5 tabs
+- **Screens**: `ui/screen/` — all `@Composable`, no Fragments, no XML layouts
+- **Theme**: `ui/theme/Color.kt` + `Theme.kt` — Material 3 `lightColorScheme`
+- **API**: `network/ApiClient.kt` — Kotlin, OkHttp, all calls dispatched via `Dispatchers.IO`
+- **Prefs**: `utils/PrefsManager.kt` — SharedPreferences wrapper
 
-## Threading — ALWAYS use Thread{}, NEVER coroutines (not yet added)
-```kotlin
-// Correct
-Thread {
-    val result = api.getPunchStatus(token)
-    activity?.runOnUiThread { applyStatus(result) }
-}.start()
-```
-Do NOT use `GlobalScope.launch`, `viewModelScope`, or any coroutine without first adding the `kotlinx-coroutines-android` dependency.
-
-## List Rows — ALWAYS use XML layouts, NEVER build in Kotlin
-```kotlin
-// CORRECT — inflate item_punch_row.xml
-val row = layoutInflater.inflate(R.layout.item_punch_row, container, false)
-row.findViewById<TextView>(R.id.tvDate).text = entry.date
-container.addView(row)
-
-// WRONG — ugly, unstyled, impossible to maintain
-val row = LinearLayout(requireContext()).apply { ... }
-container.addView(row)
-
-// WRONG — 1990s Android layout
-val row = layoutInflater.inflate(android.R.layout.two_line_list_item, ...)
+## Dependencies (build.gradle)
+```groovy
+// Compose BOM pins all versions
+def composeBom = platform('androidx.compose:compose-bom:2024.02.00')
+implementation composeBom
+implementation 'androidx.compose.material3:material3'
+implementation 'androidx.compose.material:material-icons-extended'
+implementation 'androidx.activity:activity-compose:1.8.2'
+implementation 'androidx.navigation:navigation-compose:2.7.7'
+implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+// composeOptions { kotlinCompilerExtensionVersion '1.5.7' }
 ```
 
-## Adding dividers — add to PARENT container, not inflated row
+## State & Async — ALWAYS use Coroutines, NEVER Thread{}
 ```kotlin
 // CORRECT
-container.addView(row)
-if (i < list.size - 1) {
-    container.addView(View(requireContext()).apply {
-        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, 1)
-        setBackgroundColor(...)
-    })
+val scope = rememberCoroutineScope()
+var data by remember { mutableStateOf<MyData?>(null) }
+
+LaunchedEffect(Unit) {
+    data = withContext(Dispatchers.IO) { api.fetchSomething(token) }
 }
 
-// WRONG — View doesn't have addView()
-row.addView(divider)
+// Button action
+scope.launch {
+    val result = withContext(Dispatchers.IO) { api.doAction(token) }
+    // update state here
+}
+
+// WRONG — crashes on rotation, leaks threads
+Thread { val r = api.fetch(); runOnUiThread { ... } }.start()
 ```
 
-## Status card backgrounds — use separate drawables, NOT runtime mutation
+## UI — Pure Compose, zero XML layouts
 ```kotlin
-// CORRECT — swap drawable per status
-statusCard.setBackgroundResource(when (status) {
-    "In"    -> R.drawable.status_card_in
-    "Lunch" -> R.drawable.status_card_lunch
-    else    -> R.drawable.status_card_bg
-})
+// CORRECT — everything in @Composable functions
+@Composable
+fun PunchRowItem(entry: PunchEntry) {
+    Row(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+        Column(Modifier.weight(1f)) {
+            Text(entry.date, fontWeight = FontWeight.Bold)
+            Text("${entry.inTime} → ${entry.outTime}", color = TextSecondary)
+        }
+        Text("${entry.hours}h", color = Navy, fontWeight = FontWeight.Bold)
+    }
+}
 
-// WRONG — GradientDrawable.colors setter often fails at runtime
+// WRONG — no more XML layouts, LayoutInflater, or ViewBinding
+val row = layoutInflater.inflate(R.layout.item_punch_row, container, false)
+row.findViewById<TextView>(R.id.tvDate).text = entry.date
+```
+
+## Gradients in Compose — use Brush, not drawables
+```kotlin
+// CORRECT
+Box(modifier = Modifier.background(
+    Brush.linearGradient(listOf(GreenDark, GreenIn))
+)) { ... }
+
+// WRONG — runtime drawable mutation, can fail silently
 val grad = card.background as GradientDrawable
 grad.colors = intArrayOf(...)
 ```
 
-## Kotlin — no early return in expression-body functions
+## Navigation
 ```kotlin
-// WRONG — return not allowed in expression body
-fun getShift(token: String): ShiftInfo = try {
-    val s = data?.get(0) ?: return ShiftInfo(false)  // COMPILE ERROR
-    ...
+// Navigate and clear back stack
+navController.navigate("dashboard") {
+    popUpTo("login") { inclusive = true }
 }
 
-// CORRECT — use if/else
-fun getShift(token: String): ShiftInfo = try {
-    val s = data?.get(0)
-    if (s == null) ShiftInfo(false) else ShiftInfo(true, s.name)
+// Single-top (avoid duplicates in tab nav)
+innerNav.navigate("clock") { launchSingleTop = true }
+```
+
+## Timer in Compose
+```kotlin
+var elapsed by remember { mutableLongStateOf(initialSeconds) }
+LaunchedEffect(status) {
+    if (status == "In") {
+        while (true) { delay(1000); elapsed++ }
+    }
 }
+Text(formatElapsed(elapsed), fontFamily = FontFamily.Monospace)
 ```
 
-## Android XML — attributes that DO NOT EXIST
-```xml
-<!-- WRONG — CSS, not Android -->
-android:textColor="rgba(255,255,255,0.75)"
-android:autocomplete="off"
-android:gap="12dp"
-
-<!-- WRONG — missing layout_ prefix -->
-android:marginStart="16dp"
-
-<!-- WRONG — line element doesn't exist in VectorDrawable -->
-<line android:x1="0" android:y1="0" android:x2="10" android:y2="10"/>
-
-<!-- CORRECT -->
-android:textColor="#BFFFFFFF"
-android:importantForAutofill="no"
-android:layout_marginStart="16dp"
-<path android:pathData="M0,0 L10,10" .../>
+## Dialogs — use AlertDialog composable
+```kotlin
+AlertDialog(
+    onDismissRequest = { showDialog = false },
+    title   = { Text("Title") },
+    text    = { /* content */ },
+    confirmButton = { Button(onClick = { ... }) { Text("OK") } },
+    dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } }
+)
 ```
 
-## PHP — MySQLi vs PDO method names
-```php
-// CORRECT — MySQLi
-$stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-// WRONG — PDO syntax, fails silently in MySQLi
-$stmt->get_result()->fetchAll(MYSQLI_ASSOC);
-```
-
-## API URL format — direct .php?action= (no pretty URLs, nginx ignores .htaccess)
+## Colors — use Color.kt constants, not hex strings in composables
 ```kotlin
 // CORRECT
-"$baseUrl/api/v1/auth.php?action=login"
-"$baseUrl/api/v1/punch.php?action=status"
+Text("Hello", color = Navy)
+Box(Modifier.background(GreenIn))
 
-// WRONG — nginx ignores .htaccess, these 404
-"$baseUrl/api/v1/auth/login"
-"$baseUrl/api/v1/punch/status"
+// WRONG — magic strings buried in UI code
+Text("Hello", color = Color(0xFF073851))
 ```
 
-## Colors — use hex ARGB not CSS
-```xml
-#BFFFFFFF  → 75% white  (B0=176/255)
-#80FFFFFF  → 50% white
-#33FFFFFF  → 20% white
-```
+## Key Compose rules
+- `remember { mutableStateOf() }` — local UI state
+- `LaunchedEffect(key)` — side effects tied to composition lifecycle
+- `rememberCoroutineScope()` — for button-triggered coroutines
+- `withContext(Dispatchers.IO)` — ALL network/disk calls
+- `Modifier` chain order matters: `padding` before `background` clips the bg
+- Use `Spacer(Modifier.height(N.dp))` for vertical spacing, not padding hacks
+- `HorizontalDivider(color = DividerColor)` for list dividers
+- `FontWeight.Bold / SemiBold / Medium / Normal` — not numeric weights
 
-## Animation — keep durations short
-- Fragment transitions: 180ms
-- Row stagger: max 30ms per item (7 rows = 210ms total, not 500ms)
-- Press effects: scale down 80ms, bounce back 120ms
+## What NOT to do
+- No `Fragment`, `FragmentManager`, `FragmentTransaction`
+- No `ViewBinding` or `DataBinding`
+- No `findViewById`
+- No `LayoutInflater.inflate(R.layout.*)`
+- No `android.R.layout.*`
+- No `Thread { }` for async
+- No `runOnUiThread { }` — use `withContext(Dispatchers.Main)` if needed
+- No XML anim files — use `AnimatedVisibility`, `animateContentSize()`, `AnimatedContent`

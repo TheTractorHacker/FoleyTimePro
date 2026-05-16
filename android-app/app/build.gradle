@@ -5,8 +5,8 @@ plugins {
 
 def appPackageName  = project.findProperty('APP_PACKAGE_NAME') ?: 'com.foleyit.foleytimepro'
 def appName         = project.findProperty('APP_NAME')         ?: 'FoleyTimePro'
-def versionCodeVal  = (project.findProperty('VERSION_CODE')    ?: '2').toInteger()
-def versionNameVal  = project.findProperty('VERSION_NAME')     ?: '2.0.0'
+def versionCodeVal  = (project.findProperty('VERSION_CODE')    ?: '3').toInteger()
+def versionNameVal  = project.findProperty('VERSION_NAME')     ?: '3.0.0'
 
 android {
     namespace appPackageName
@@ -41,19 +41,40 @@ android {
 
     kotlinOptions { jvmTarget = '17' }
 
-    buildFeatures { buildConfig true }
+    buildFeatures {
+        buildConfig true
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.7'
+    }
 }
 
 dependencies {
+    // Core
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.webkit:webkit:1.9.0'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.fragment:fragment-ktx:1.6.2'
-    implementation 'androidx.viewpager2:viewpager2:1.0.0'
-    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
+
+    // Compose BOM — pins all compose versions together
+    def composeBom = platform('androidx.compose:compose-bom:2024.02.00')
+    implementation composeBom
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-extended'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    // Activity + Navigation
+    implementation 'androidx.activity:activity-compose:1.8.2'
+    implementation 'androidx.navigation:navigation-compose:2.7.7'
+
+    // Lifecycle
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 }

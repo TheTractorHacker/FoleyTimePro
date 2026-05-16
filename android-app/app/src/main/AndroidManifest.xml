@@ -17,37 +17,17 @@
         android:theme="@style/Theme.FoleyTimePro"
         android:usesCleartextTraffic="true">
 
+        <!-- Single Activity — all navigation handled by Compose NavHost -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.FoleyTimePro.Splash">
+            android:theme="@style/Theme.FoleyTimePro.Splash"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".SetupActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-
-        <activity
-            android:name=".HomeActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:windowSoftInputMode="adjustResize"/>
-
-        <activity
-            android:name=".DashboardActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:windowSoftInputMode="adjustResize"/>
 
     </application>
 </manifest>
