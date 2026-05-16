@@ -228,61 +228,54 @@ function logPendingEdit($conn, $empID, $date, $field, $newTime, $note) {
 if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_status' && !empty($_POST['TagID'])) {
     $tagID = trim($_POST['TagID']);
 
-    // Lookup user
-    $stmt = $conn->prepare("SELECT ID, FirstName FROM users WHERE TagID = ?");
+    $stmt = $conn->prepare("SELECT ID, FirstName, LastName FROM users WHERE TagID = ?");
     if (!$stmt) send_json_response(false, "DB prepare error", 500, $conn->error);
     $stmt->bind_param("s", $tagID);
     $stmt->execute();
     $stmt->store_result();
-    $stmt->bind_result($empID, $firstName);
+    $stmt->bind_result($empID, $firstName, $lastName);
     if (!$stmt->fetch()) {
-        send_json_response(false, "❌ Tag not recognized.");
+        send_json_response(false, "❌ Badge not recognized.");
     }
     $stmt->close();
 
-    // Determine current punch status
+    // Read most recent punch with bind_result so variables are actually populated
     $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
     $punch->bind_param("i", $empID);
     $punch->execute();
     $punch->store_result();
-    $status = 'Out';
-    $action = 'clockin';
-    $actionText = 'Clock In';
+    $punch->bind_result($pTimeIn, $pLunchStart, $pLunchEnd, $pTimeOut);
 
-    if ($punch->fetch() && empty($timeOut)) {
-        if (empty($lunchStart)) {
+    $status = 'Out';
+    if ($punch->fetch() && empty($pTimeOut)) {
+        if (empty($pLunchStart)) {
             $status = 'In';
-            $action = 'lunchstart';
-            $actionText = 'Start Lunch';
-        } elseif (empty($lunchEnd)) {
+        } elseif (empty($pLunchEnd)) {
             $status = 'Lunch';
-            $action = 'lunchend';
-            $actionText = 'End Lunch';
         } else {
-            $status = 'In';
-            $action = 'clockout';
-            $actionText = 'Clock Out';
+            $status = 'In'; // back from lunch, punch still open
         }
     }
-
     $punch->close();
 
     echo json_encode([
-        'success' => true,
+        'success'   => true,
         'firstName' => $firstName,
-        'status' => $status,
-        'action' => $action,
-        'actionText' => $actionText
+        'lastName'  => $lastName,
+        'status'    => $status,
     ]);
     exit;
 }
 
 // --- Kiosk Mode Support ---
 if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk' && !empty($_POST['TagID'])) {
-    $tagID = trim($_POST['TagID']);
-    $now   = date("H:i:s");
-    $date  = date("Y-m-d");
-    $ip    = get_client_ip();
+    $tagID  = trim($_POST['TagID']);
+    $action = trim($_POST['action'] ?? ''); // respect the button the employee actually pressed
+    $now    = date("H:i:s");
+    $date   = date("Y-m-d");
+    $ip     = get_client_ip();
+
+    if (!$action) send_json_response(false, "No action specified.", 400);
 
     // Lookup user by tag
     $stmt = $conn->prepare("SELECT ID, FirstName FROM users WHERE TagID = ?");
@@ -292,97 +285,79 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk' && !empty($_POST['TagID
     $stmt->store_result();
     $stmt->bind_result($empID, $firstName);
     if (!$stmt->fetch()) {
-        send_json_response(false, "❌ Tag not recognized.", 404);
+        send_json_response(false, "❌ Badge not recognized.", 404);
     }
     $stmt->close();
 
-    // Get current open punch
+    // Get current open punch (needed for update operations)
     $punch = $conn->prepare("SELECT ID, TimeIN, LunchStart, LunchEnd FROM timepunches WHERE EmployeeID = ? AND TimeOUT IS NULL ORDER BY Date DESC, TimeIN DESC LIMIT 1");
     $punch->bind_param("i", $empID);
     $punch->execute();
     $punch->store_result();
 
-    $status = 'new'; // default
-
-    if ($punch->num_rows > 0) {
+    $punchID = $timeIn = $lunchStart = $lunchEnd = null;
+    $hasOpenPunch = ($punch->num_rows > 0);
+    if ($hasOpenPunch) {
         $punch->bind_result($punchID, $timeIn, $lunchStart, $lunchEnd);
         $punch->fetch();
-
-        if (empty($lunchStart)) {
-            $status = 'lunchstart';
-        } elseif (empty($lunchEnd)) {
-            $status = 'lunchend';
-        } else {
-            $status = 'clockout';
-        }
-    } else {
-        $status = 'clockin';
     }
     $punch->close();
 
-    // Execute the appropriate action
-    switch ($status) {
+    // Route to the action the employee actually chose
+    switch ($action) {
         case 'clockin':
+            if ($hasOpenPunch) {
+                send_json_response(false, "⚠️ Already clocked in since " . date("g:i A", strtotime($timeIn)) . ". Please clock out first.", 409);
+            }
             $stmt = $conn->prepare("INSERT INTO timepunches (EmployeeID, Date, TimeIN, IPAddressIN) VALUES (?, ?, ?, INET_ATON(?))");
             $stmt->bind_param("isss", $empID, $date, $now, $ip);
             if (!$stmt->execute()) send_json_response(false, "DB error (clockin)", 500, $stmt->error);
             $stmt->close();
             setClockStatus($conn, $empID, 'In');
-            echo json_encode([
-                'success' => true,
-                'firstName' => $firstName,
-                'message' => "✅ Clocked in at " . date("g:i A", strtotime($now))
-            ]);
+            echo json_encode(['success' => true, 'firstName' => $firstName,
+                'message' => "✅ Clocked in at " . date("g:i A", strtotime($now))]);
             exit;
 
         case 'lunchstart':
+            if (!$hasOpenPunch) send_json_response(false, "⚠️ You must be clocked in first.", 400);
+            if (!empty($lunchStart)) send_json_response(false, "⚠️ Lunch already started.", 400);
             $stmt = $conn->prepare("UPDATE timepunches SET LunchStart = ?, IPAddressLunchStart = INET_ATON(?) WHERE ID = ?");
             $stmt->bind_param("ssi", $now, $ip, $punchID);
             if (!$stmt->execute()) send_json_response(false, "DB error (lunchstart)", 500, $stmt->error);
             $stmt->close();
             setClockStatus($conn, $empID, 'Lunch');
-            echo json_encode([
-                'success' => true,
-                'firstName' => $firstName,
-                'message' => "🍽️ Lunch started at " . date("g:i A", strtotime($now))
-            ]);
+            echo json_encode(['success' => true, 'firstName' => $firstName,
+                'message' => "🍽️ Lunch started at " . date("g:i A", strtotime($now))]);
             exit;
 
         case 'lunchend':
+            if (!$hasOpenPunch || empty($lunchStart)) send_json_response(false, "⚠️ No active lunch to end.", 400);
+            if (!empty($lunchEnd)) send_json_response(false, "⚠️ Lunch already ended.", 400);
             $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd = ?, IPAddressLunchEnd = INET_ATON(?) WHERE ID = ?");
             $stmt->bind_param("ssi", $now, $ip, $punchID);
             if (!$stmt->execute()) send_json_response(false, "DB error (lunchend)", 500, $stmt->error);
             $stmt->close();
             setClockStatus($conn, $empID, 'In');
-            echo json_encode([
-                'success' => true,
-                'firstName' => $firstName,
-                'message' => "✅ Lunch ended at " . date("g:i A", strtotime($now))
-            ]);
+            echo json_encode(['success' => true, 'firstName' => $firstName,
+                'message' => "✅ Back from lunch at " . date("g:i A", strtotime($now))]);
             exit;
 
         case 'clockout':
-            // Auto close any open lunch if they forgot to end it
-            if (!empty($lunchStart) && empty($lunchEnd)) {
-                $lunchEnd = $now;
-            }
-
+            if (!$hasOpenPunch) send_json_response(false, "⚠️ You are not currently clocked in.", 400);
+            // Auto-close any forgotten open lunch
+            if (!empty($lunchStart) && empty($lunchEnd)) $lunchEnd = $now;
             $total = calculateTotalHours($timeIn, $lunchStart, $lunchEnd, $now);
-
             $stmt = $conn->prepare("UPDATE timepunches SET TimeOUT = ?, LunchEnd = ?, TotalHours = ?, IPAddressOut = INET_ATON(?) WHERE ID = ?");
             $stmt->bind_param("ssdsi", $now, $lunchEnd, $total, $ip, $punchID);
             if (!$stmt->execute()) send_json_response(false, "DB error (clockout)", 500, $stmt->error);
             $stmt->close();
             setClockStatus($conn, $empID, 'Out');
-            echo json_encode([
-                'success' => true,
-                'firstName' => $firstName,
-                'message' => "🕔 Clocked out at " . date("g:i A", strtotime($now)) . ". Worked: " . number_format($total, 2) . " hrs"
-            ]);
+            echo json_encode(['success' => true, 'firstName' => $firstName,
+                'message' => "🕔 Clocked out at " . date("g:i A", strtotime($now)) . " — " . number_format($total, 2) . " hrs worked"]);
             exit;
 
         default:
-            send_json_response(false, "Unknown punch state", 500);
+            send_json_response(false, "Unknown action: $action", 400);
     }
 }
 

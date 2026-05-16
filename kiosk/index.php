@@ -143,7 +143,7 @@ tagInput.addEventListener('input', () => {
         showFeedback(false, data.message || 'Badge not recognized');
         return;
       }
-      document.getElementById('welcomeName').textContent = data.firstName + (data.lastName ? ' ' + data.lastName : '');
+      document.getElementById('welcomeName').textContent = data.firstName + (data.lastName ? ' ' + data.lastName : data.lastName || '');
       setStatusBadge(data.status);
       scanPanel.classList.add('hidden');
       clockPanel.classList.remove('hidden');
