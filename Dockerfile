@@ -7,8 +7,7 @@ FROM php:8.5-fpm
 RUN apt-get update && apt-get install -y \
     nginx supervisor libzip-dev libpng-dev \
     libjpeg-dev unzip curl \
-    && { apt-get install -y libfreetype-dev || apt-get install -y libfreetype6-dev; } \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install pdo_mysql mysqli zip gd opcache \
     && rm -rf /var/lib/apt/lists/*
 
