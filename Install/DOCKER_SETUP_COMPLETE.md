@@ -125,7 +125,7 @@ cp .env.example .env
 
 ### Option 3: Manual Docker Run
 ```bash
-docker pull foleyit/foleytimepro:latest
+docker pull bfoley23/foleytimepro:latest
 docker run -d \
   --name timesmart \
   -p 8080:80 \
@@ -133,7 +133,7 @@ docker run -d \
   -e DB_NAME=timeclock \
   -e DB_USER=timeclock \
   -e DB_PASS=your_password \
-  foleyit/foleytimepro:latest
+  bfoley23/foleytimepro:latest
 ```
 
 ## Environment Variables
@@ -239,7 +239,7 @@ docker run --rm \
 
 ### Pull Latest Image
 ```bash
-docker pull foleyit/foleytimepro:latest
+docker pull bfoley23/foleytimepro:latest
 ```
 
 ### Recreate Container

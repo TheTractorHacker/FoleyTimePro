@@ -8,7 +8,7 @@ on:
   workflow_dispatch:        # allows manual trigger from GitHub UI
 
 env:
-  IMAGE: foleyit/foleytimepro
+  IMAGE: bfoley23/foleytimepro
 
 jobs:
   build-and-push:

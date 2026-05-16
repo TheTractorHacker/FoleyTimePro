@@ -2,7 +2,7 @@
 
 A modern, self-hosted time clock application built for small businesses. Employees clock in and out from any browser or the dedicated kiosk — admins get a full dashboard with reports, scheduling, and payroll exports.
 
-**Current version: v1.2.2** · [Releases](https://github.com/TheTractorHacker/FoleyTimePro/releases) · [Docker Hub](https://hub.docker.com/r/foleyit/foleytimepro)
+**Current version: v1.2.2** · [Releases](https://github.com/TheTractorHacker/FoleyTimePro/releases) · [Docker Hub](https://hub.docker.com/r/bfoley23/foleytimepro)
 
 ---
 
@@ -115,7 +115,7 @@ mysql -h your_db_host -u timeclock -p timeclock < Install/timeclock-schema.sql
 Watchtower handles updates automatically in the production stack. For manual updates:
 
 ```bash
-docker pull foleyit/foleytimepro:latest
+docker pull bfoley23/foleytimepro:latest
 docker compose up -d
 ```
 
@@ -178,7 +178,7 @@ echo \$c->connect_error ? 'FAIL: '.\$c->connect_error : 'Connected OK';
 ## Links
 
 - [GitHub](https://github.com/TheTractorHacker/FoleyTimePro)
-- [Docker Hub](https://hub.docker.com/r/foleyit/foleytimepro)
+- [Docker Hub](https://hub.docker.com/r/bfoley23/foleytimepro)
 - [Issues](https://github.com/TheTractorHacker/FoleyTimePro/issues)
 - [Releases](https://github.com/TheTractorHacker/FoleyTimePro/releases)
 - [Deployment Guide](Install/DOCKER_DEPLOYMENT.md)

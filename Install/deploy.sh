@@ -128,7 +128,7 @@ case $choice in
 
         echo ""
         echo "Pulling latest image..."
-        docker pull foleyit/foleytimepro:latest
+        docker pull bfoley23/foleytimepro:latest
 
         echo "Starting container..."
         docker run -d \
@@ -140,7 +140,7 @@ case $choice in
             -e DB_PASS=$db_pass \
             -e DB_TIMEZONE=America/Chicago \
             --restart unless-stopped \
-            foleyit/foleytimepro:latest
+            bfoley23/foleytimepro:latest
 
         echo ""
         echo "✓ Deployment complete!"

@@ -5,7 +5,7 @@
 
 services:
   app:
-    image: foleyit/foleytimepro:latest
+    image: bfoley23/foleytimepro:latest
     container_name: foleytimepro
     restart: unless-stopped
     environment:

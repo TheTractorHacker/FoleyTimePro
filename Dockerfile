@@ -1,6 +1,6 @@
 # FoleyTimePro — Production Docker Image
-# Build:  docker build -t foleyit/foleytimepro:latest .
-# Push:   docker push foleyit/foleytimepro:latest
+# Build:  docker build -t bfoley23/foleytimepro:latest .
+# Push:   docker push bfoley23/foleytimepro:latest
 
 FROM php:8.5-fpm
 

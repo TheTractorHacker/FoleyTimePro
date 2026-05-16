@@ -5,7 +5,7 @@
 
 set -e
 
-IMAGE="foleyit/foleytimepro"
+IMAGE="bfoley23/foleytimepro"
 VERSION="${1:-latest}"
 PLATFORMS="linux/amd64,linux/arm64"
 

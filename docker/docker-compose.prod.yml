@@ -33,7 +33,7 @@ services:
       start_period: 30s
 
   app:
-    image: foleyit/foleytimepro:latest
+    image: bfoley23/foleytimepro:latest
     container_name: foleytimepro_app
     restart: unless-stopped
     depends_on:
