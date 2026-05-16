@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - TimeClock</title>
+    <link rel="icon" type="image/webp" href="/images/D-Best-favicon.webp">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #073851 0%, #0a4d6b 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 24px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .status-dot.online {
+            background: #28a745;
+            animation: none;
+        }
+
+        .retry-btn {
+            background: #fff;
+            color: #073851;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .retry-btn:active {
+            transform: translateY(0);
+        }
+
+        .queued-punches {
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .queued-punches h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .queue-list {
+            list-style: none;
+            font-size: 14px;
+        }
+
+        .queue-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .queue-list li:last-child {
+            border-bottom: none;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+
+            .offline-icon {
+                font-size: 60px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <img src="/images/icons/icon-128x128.png" alt="TimeClock" class="logo" onerror="this.style.display='none'">
+        <div class="offline-icon">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M1 1l22 22M9 9a3 3 0 104 4M6.34 6.34A8 8 0 0117.66 17.66M3.5 3.5a12 12 0 0117 17" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <h1>You're Offline</h1>
+
+        <div class="status-indicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">No internet connection</span>
+        </div>
+
+        <p>Don't worry! Any punches you make while offline will be saved and automatically synced when you're back online.</p>
+
+        <button class="retry-btn" onclick="tryReconnect()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Try Again
+        </button>
+
+        <div class="queued-punches" id="queuedPunches" style="display: none;">
+            <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Pending Punches
+            </h3>
+            <ul class="queue-list" id="queueList"></ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        TimeClock PWA
+    </div>
+
+    <script>
+        // Check online status
+        function updateOnlineStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            if (navigator.onLine) {
+                statusDot.classList.add('online');
+                statusText.textContent = 'Connection restored!';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                statusDot.classList.remove('online');
+                statusText.textContent = 'No internet connection';
+            }
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // Initial check
+        updateOnlineStatus();
+
+        // Try to reconnect
+        function tryReconnect() {
+            const btn = document.querySelector('.retry-btn');
+            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Checking...';
+
+            // Try to fetch a small resource
+            fetch('/manifest.php', { cache: 'no-store' })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        throw new Error('Still offline');
+                    }
+                })
+                .catch(() => {
+                    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"/></svg> Try Again';
+                });
+        }
+
+        // Check for queued punches
+        async function checkQueuedPunches() {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                const channel = new MessageChannel();
+                channel.port1.onmessage = (event) => {
+                    if (event.data.action === 'queuedPunches' && event.data.punches.length > 0) {
+                        displayQueuedPunches(event.data.punches);
+                    }
+                };
+
+                navigator.serviceWorker.controller.postMessage(
+                    { action: 'getQueuedPunches' },
+                    [channel.port2]
+                );
+            }
+        }
+
+        function displayQueuedPunches(punches) {
+            const container = document.getElementById('queuedPunches');
+            const list = document.getElementById('queueList');
+
+            list.innerHTML = punches.map(punch => {
+                const time = new Date(punch.queuedAt).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                return `<li><span>${punch.action}</span><span>${time}</span></li>`;
+            }).join('');
+
+            container.style.display = 'block';
+        }
+
+        // Check for queued punches on load
+        checkQueuedPunches();
+
+        // Add spinning animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .spin {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

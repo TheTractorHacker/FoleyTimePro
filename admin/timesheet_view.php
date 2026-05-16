@@ -30,11 +30,7 @@ if ($to_raw) {
 
 // If parameters are still missing after parsing, handle the error
 if (!$employeeID || !$from || !$to) {
-    echo "<div style='padding: 20px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px;'>";
-    echo "<strong>Error:</strong> Missing or invalid required parameters (emp, from, to).<br>";
-    echo "Please ensure you are accessing this page with the correct employee ID and date range in MM/DD/YYYY format.<br>";
-    echo "Example: <code>view_punches.php?from=09/01/2025&to=09/07/2025&emp=1</code>";
-    echo "</div>";
+    echo '<div class="alert alert-error">Missing required parameters (emp, from, to). Please use the filter above.</div>';
     exit();
 }
 
@@ -78,13 +74,19 @@ function calculatePunchTotalHours($timeIn, $lunchStart, $lunchEnd, $timeOut) {
 
     
 
-    <div class="timesheet-summary">
-        <p><strong>Total Week Hours:</strong> <span id="weekly-total"><?= number_format($totalWeeklyHours, 2) ?></span></p>
-        <p><strong>Overtime Hours:</strong> <span id="weekly-overtime"><?= number_format($overtimeHours, 2) ?></span></p>
-    </div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+  <div class="card" style="padding:16px 20px;border-left:4px solid #073851">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#6b7280">Total Hours</div>
+    <div style="font-size:26px;font-weight:800;color:#073851;margin-top:4px"><span id="weekly-total"><?= number_format($totalWeeklyHours, 2) ?></span></div>
+  </div>
+  <div class="card" style="padding:16px 20px;border-left:4px solid <?= $overtimeHours > 0 ? '#e74c3c' : '#d1d5db' ?>">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#6b7280">Overtime</div>
+    <div style="font-size:26px;font-weight:800;color:<?= $overtimeHours > 0 ? '#e74c3c' : '#9ca3af' ?>;margin-top:4px"><span id="weekly-overtime"><?= number_format($overtimeHours, 2) ?></span></div>
+  </div>
+</div>
 
-<div id="timesheet-content-container">
-<table class="timesheet-table">
+<div class="card" style="padding:0;overflow:auto" id="timesheet-content-container">
+<table class="data-table">
     <thead>
         <tr>
             <th>Date</th>

@@ -1,46 +1,38 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const menuBtn = document.getElementById('menuBtn');
-  const menuOverlay = document.getElementById('mobileMenuOverlay');
-  const closeMenu = document.getElementById('closeMenu');
-  const modal = document.getElementById('modal');
-  const closeModal = document.getElementById('modalClose');
-  const adjustPopup = document.getElementById('adjustPopup');
-  const confirmPopup = document.getElementById('confirmPopup');
-  const customPopup = document.getElementById('customPopup');
-  const popupClose = document.getElementById('popupClose');
-
-  // 🟦 Mobile menu toggle
-  if (menuBtn && menuOverlay) {
-    menuBtn.addEventListener('click', () => {
-      menuOverlay.style.display = 'flex';
-    });
-  }
-
-  if (closeMenu && menuOverlay) {
-    closeMenu.addEventListener('click', () => {
-      menuOverlay.style.display = 'none';
-    });
-  }
-
-  // 🟥 Close buttons
-  if (closeModal && modal) {
-    closeModal.addEventListener('click', () => {
-      modal.classList.add('hidden');
-    });
-  }
-
-  if (popupClose && customPopup) {
-    popupClose.addEventListener('click', () => {
-      customPopup.classList.add('hidden');
-    });
-  }
-
-  // ❌ Click outside to close overlays/popups
-  window.addEventListener('click', (e) => {
-    if (e.target === modal && modal) modal.classList.add('hidden');
-    if (e.target === adjustPopup && adjustPopup) adjustPopup.classList.add('hidden');
-    if (e.target === confirmPopup && confirmPopup) confirmPopup.classList.add('hidden');
-    if (e.target === customPopup && customPopup) customPopup.classList.add('hidden');
-    if (e.target === menuOverlay && menuOverlay) menuOverlay.style.display = 'none';
+document.addEventListener('DOMContentLoaded', function() {
+  // Close modal on backdrop click
+  ['modal', 'adjustPopup', 'confirmPopup', 'customPopup'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', function(e) {
+        if (e.target === el) el.classList.add('hidden');
+      });
+    }
   });
+
+  // Close modal button
+  var closeBtn = document.getElementById('modalClose');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      document.getElementById('modal').classList.add('hidden');
+    });
+  }
+
+  // Feedback popup close
+  var popupClose = document.getElementById('popupClose');
+  if (popupClose) {
+    popupClose.addEventListener('click', function() {
+      document.getElementById('customPopup').classList.add('hidden');
+    });
+  }
+
+  // Focus PIN field when modal becomes visible (MutationObserver)
+  var modal = document.getElementById('modal');
+  if (modal) {
+    new MutationObserver(function() {
+      if (!modal.classList.contains('hidden')) {
+        var pin = document.getElementById('modalPIN');
+        if (pin) setTimeout(function() { pin.focus(); }, 80);
+      }
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+  }
 });

@@ -20,8 +20,8 @@ cd "Timeclock-$company_name"
 
 # Download necessary files from GitHub
 echo "📥 Downloading files from GitHub..."
-curl -L https://raw.githubusercontent.com/D-Best-App/Timesmart/main/Install/docker-compose.yml -o docker-compose.yml
-curl -L https://raw.githubusercontent.com/D-Best-App/Timesmart/main/Install/timeclock-schema.sql -o timeclock-schema.sql
+curl -L https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/Install/docker-compose.yml -o docker-compose.yml
+curl -L https://raw.githubusercontent.com/TheTractorHacker/FoleyTimePro/main/Install/timeclock-schema.sql -o timeclock-schema.sql
 
 # Ask for database credentials
 read -p "Enter database host: " db_host

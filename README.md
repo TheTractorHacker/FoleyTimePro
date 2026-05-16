@@ -43,7 +43,7 @@ Ensure the following are installed:
 Run the official installation script to deploy a new instance:
 
 ```bash
-curl -o install.sh https://raw.githubusercontent.com/D-Best-App/Timesmart/main/Install/install.sh
+curl -o install.sh https://raw.githubusercontent.com/FoleyTimePro-App/Timesmart/main/Install/install.sh
 chmod +x install.sh
 sudo ./install.sh
 ```
@@ -53,7 +53,7 @@ sudo ./install.sh
 - Prompts for **Company Name**, which sets the container/database name.
 - Asks for **Database Host, User, and Password**.
 - Downloads `docker-compose.yml` and SQL schema from GitHub.
-- Creates the Docker container from the image: `dbest25/timesmart:latest`
+- Creates the Docker container from the image: `foleyit/foleytimepro:latest`
 - Initializes a new MySQL database (if requested).
 
 ---

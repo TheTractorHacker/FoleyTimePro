@@ -1,53 +1,10 @@
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-        .modal-content { background: white; padding: 2rem; border-radius: 10px; width: 400px; max-width: 90%; margin: 10% auto; position: relative; }
-        .modal-content h3 { margin-top: 0; }
-        .modal-actions { margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
-        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; }
-        .btn.small { padding: 6px 12px; font-size: 14px; }
-        .tooltip { position: relative; cursor: help; border-bottom: 1px dotted #000; }
-        .tooltip .tooltiptext {
-            visibility: hidden; width: 220px; background-color: #555; color: #fff; text-align: center;
-            border-radius: 6px; padding: 5px; position: absolute; z-index: 1; top: 125%; left: 50%;
-            margin-left: -110px; opacity: 0; transition: opacity 0.3s;
-        }
-        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
-.actions-menu {
-    position: relative;
-    display: inline-block;
-}
-
-.actions-menu-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: #fff;
-    min-width: 160px;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-    z-index: 1;
-    border-radius: 6px;
-    padding: 5px 0;
-}
-
-.actions-menu-content button {
-    background: none;
-    border: none;
-    width: 100%;
-    text-align: left;
-    padding: 8px 12px;
-    font-size: 14px;
-    cursor: pointer;
-    color: #333;
-}
-
-.actions-menu-content button:hover {
-    background-color: #f1f1f1;
-}
-
-.actions-menu.active .actions-menu-content {
-    display: block;
-}
-
-.actions-menu-content.up {
-    bottom: 100%;
-    top: auto;
-}
+/* Manage Users — page-specific only */
+.actions-menu { position:relative; display:inline-block; }
+.actions-menu-content { display:none; position:absolute; right:0; background:#fff; min-width:160px; box-shadow:0 8px 20px rgba(0,0,0,.12); z-index:50; border-radius:8px; border:1px solid #e1e4e8; padding:4px 0; }
+.actions-menu-content button { background:none; border:none; width:100%; text-align:left; padding:9px 14px; font-size:13px; cursor:pointer; color:#1a1f2e; font-family:inherit; }
+.actions-menu-content button:hover { background:#f5f8ff; }
+.actions-menu.active .actions-menu-content { display:block; }
+.actions-menu-content.up { bottom:100%; top:auto; }
+.tooltip { position:relative; cursor:help; border-bottom:1px dotted #999; }
+.tooltip .tooltiptext { visibility:hidden; width:220px; background:#1e293b; color:#fff; text-align:center; border-radius:6px; padding:6px 10px; position:absolute; z-index:10; top:130%; left:50%; transform:translateX(-50%); opacity:0; transition:opacity .2s; font-size:12px; pointer-events:none; }
+.tooltip:hover .tooltiptext { visibility:visible; opacity:1; }

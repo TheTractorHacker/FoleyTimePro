@@ -47,44 +47,21 @@ while ($row = $result->fetch_assoc()) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Employee Punch Adjustments</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-  <title>Employee Punch Adjustments</title>
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/edits_timesheet.css">
-</head>
-<body>
-<header>
-    <img src="/images/D-Best.png" alt="Logo" class="logo">
-    <h1>Employee Punch Adjustments</h1>
-</header>
 
-<nav>
-    <a href="dashboard.php">Dashboard</a>
-    <a href="view_punches.php">Timesheets</a>
-    <a href="summary.php">Summary</a>
-    <a href="reports.php">Reports</a>
-    <a href="manage_users.php">Users</a>
-    <a href="manage_offices.php">Offices</a>
-    <a href="attendance.php">Attendance</a>
-    <a href="manage_admins.php">Admins</a>
-    <a href="../logout.php">Logout</a>
-</nav>
+<?php
+$pageTitle   = 'Pending Edits';
+$headerTitle = 'Pending Edits';
+$additionalCSS = [
+    '../css/edits_timesheet.css',
+];
+include 'includes/header.php';
+?>
 
-<div class="dashboard-container">
+<div class="page-header">
+  <h1>Pending Edit Requests</h1>
+  <a href="view_punches.php" class="btn btn-secondary btn-sm">Back to Timesheets</a>
+</div>
+<div class="card">
     <?php if (count($edits) === 0): ?>
         <p class="no-edits">✅ No pending time edits to review at the moment.</p>
     <?php else: ?>
@@ -109,7 +86,7 @@ while ($row = $result->fetch_assoc()) {
                             <td><?= htmlspecialchars($edit['Date']) ?></td>
                             <td><strong><?= htmlspecialchars($edit['Field']) ?></strong></td>
                             <td><?= htmlspecialchars($edit['Original']) ?></td>
-                            <td style="color:#0078D7;"><strong><?= htmlspecialchars($edit['Requested']) ?></strong></td>
+                            <td><strong style="color:var(--nav-bg)"><?= htmlspecialchars($edit['Requested']) ?></strong></td>
                             <td><?= htmlspecialchars($edit['Note']) ?: '-' ?></td>
                             <td class="note-box"><?= htmlspecialchars($edit['Reason']) ?></td>
                             <td class="action-buttons">
@@ -123,5 +100,5 @@ while ($row = $result->fetch_assoc()) {
         </form>
     <?php endif; ?>
 </div>
-</body>
-</html>
+
+<?php include 'includes/footer.php'; ?>

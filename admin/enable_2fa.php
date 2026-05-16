@@ -43,30 +43,31 @@ if (!$admin || empty($admin['TwoFAEnabled'])) { // Check if admin exists and 2FA
     if (empty($_SESSION['2fa_secret'])) {
         $totp = TOTP::create();
         $totp->setLabel($adminUsername);
-                        $totp->setIssuer('D-Best TimeClock');
+                        $totp->setIssuer('FoleyTimePro');
     }
 
-    // Build QR Code
-    $logoPath = realpath(__DIR__ . '/../images/D-Best.png');
-    error_log("Logo Path: " . ($logoPath ? $logoPath : "false"));
+    // Build QR Code — logoPath typed string (non-nullable), use conditional builder
+    $logoPath = realpath(__DIR__ . '/../images/FoleyTimePro-logo.png');
+    $hasLogo  = $logoPath && is_readable($logoPath);
 
-    $builder = new Builder(
-        writer: new PngWriter(),
-        writerOptions: [],
-        validateResult: false,
-        data: $totp->getProvisioningUri(),
-        encoding: new Encoding('UTF-8'),
-        errorCorrectionLevel: ErrorCorrectionLevel::High,
-        size: 300,
-        margin: 10,
-        roundBlockSizeMode: RoundBlockSizeMode::Margin,
-        logoPath: $logoPath,
-        logoResizeToWidth: 60,
-        logoPunchoutBackground: true,
-        labelText: 'Scan with Authenticator',
-        labelFont: new OpenSans(16),
-        labelAlignment: LabelAlignment::Center
-    );
+    $builder = $hasLogo
+        ? new Builder(
+            writer: new PngWriter(), writerOptions: [], validateResult: false,
+            data: $totp->getProvisioningUri(), encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 300, margin: 10, roundBlockSizeMode: RoundBlockSizeMode::Margin,
+            logoPath: $logoPath, logoResizeToWidth: 60, logoPunchoutBackground: true,
+            labelText: 'Scan with Authenticator', labelFont: new OpenSans(16),
+            labelAlignment: LabelAlignment::Center
+        )
+        : new Builder(
+            writer: new PngWriter(), writerOptions: [], validateResult: false,
+            data: $totp->getProvisioningUri(), encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 300, margin: 10, roundBlockSizeMode: RoundBlockSizeMode::Margin,
+            labelText: 'Scan with Authenticator', labelFont: new OpenSans(16),
+            labelAlignment: LabelAlignment::Center
+        );
 
     $result = $builder->build();
     $imgData = base64_encode($result->getString());
@@ -91,8 +92,14 @@ if (!$admin || empty($admin['TwoFAEnabled'])) { // Check if admin exists and 2FA
     $msg = "<span style='color: green;'>✅ 2FA is already enabled on your account.</span>";
 }
 ?>
-<link rel="stylesheet" href="../css/user_2fa.css">
-        <div class="container-2fa">
+
+<?php
+$pageTitle   = 'Enable 2FA';
+$headerTitle = 'Two-Factor Authentication';
+$additionalCSS = ['../css/user_2fa.css'];
+include 'includes/header.php';
+?>
+<div class="container-2fa">
             <h2>Enable Two-Factor Authentication</h2>
             <?php if (isset($admin['TwoFAEnabled']) && $admin['TwoFAEnabled']): ?>
                 <p style="color: green;">✅ 2FA is already enabled on your account.</p>
@@ -109,3 +116,5 @@ if (!$admin || empty($admin['TwoFAEnabled'])) { // Check if admin exists and 2FA
             <?php endif; ?>
         </div>
 <script src="../js/script.js"></script>
+
+<?php include 'includes/footer.php'; ?>

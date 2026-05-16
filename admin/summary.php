@@ -121,160 +121,136 @@ if (empty($employeeID)) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Summary Reports</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
-    <link rel="stylesheet" href="../css/summary.css">
-</head>
-<body>
+<?php
+$pageTitle   = 'Summary Report';
+$headerTitle = 'Summary';
+$additionalCSS = [
+    '../css/summary.css',
+    'https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css',
+];
+include 'includes/header.php';
+?>
 
-<header>
-    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
-    <h1>Summary Reports</h1>
-    <nav>
-        <a href="dashboard.php">Dashboard</a>
-        <a href="view_punches.php">Timesheets</a>
-        <a href="summary.php">Summary</a>
-        <a href="reports.php">Reports</a>
-        <a href="manage_users.php">Users</a>
-        <a href="manage_offices.php">Offices</a>
-        <a href="attendance.php">Attendance</a>
-        <a href="manage_admins.php">Admins</a>
-        <a href="settings.php">Settings</a>
-        <a href="../logout.php">Logout</a>
-    </nav>
-</header>
-
-<div class="dashboard-container">
-    <div class="container">
-        <form method="GET" class="summary-filter">
-            <div class="row">
-                <div class="field" style="flex: 2;">
-                    <label>Date Range:
-                        <input type="text" name="dates" id="dateRange" class="date-input"
-                               value="<?= date('m/d/Y', strtotime($startDate)) ?> - <?= date('m/d/Y', strtotime($endDate)) ?>" />
-                    </label>
-                </div>
-
-                <div class="field" style="flex: 1;">
-                    <label>Employee:
-                        <select name="emp">
-                            <option value="">All</option>
-                            <?php while ($emp = $employeeList->fetch_assoc()): ?>
-                                <option value="<?= $emp['ID'] ?>" <?= ($emp['ID'] == $employeeID ? 'selected' : '') ?>>
-                                    <?= htmlspecialchars($emp['FirstName'] . ' ' . $emp['LastName']) ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </label>
-                </div>
-
-                <div class="field" style="flex: 1;">
-                    <label>Round to Nearest (min):
-                        <select name="rounding">
-                            <?php foreach ([0, 5, 10, 15, 20, 25, 30] as $min): ?>
-                                <option value="<?= $min ?>" <?= ($rounding == $min ? 'selected' : '') ?>>
-                                    <?= $min ?> minutes
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                </div>
-
-                <div class="field" style="flex: 1; align-self: end;">
-                    <label>
-                        <input type="checkbox" name="separate_pages" value="1" <?= $separatePages ? 'checked' : '' ?>>
-                        Separate pages per user
-                    </label>
-                </div>
-
-                <div class="buttons" style="align-self: end;">
-                    <button type="submit">Filter</button>
-                    <a href="summary.php" class="btn-reset">Reset</a>
-                </div>
-            </div>
-        </form>
-
-        <hr>
-
-        <h2>Summary (<?= date('m/d/Y', strtotime($startDate)) ?> to <?= date('m/d/Y', strtotime($endDate)) ?>)</h2>
-        <table>
-            <tr>
-                <th>Employee</th>
-                <th>Date</th>
-                <th>Total Hours (Decimal)</th>
-            </tr>
-            <?php if (count($rows)): ?>
-                <?php foreach ($rows as $row): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['FirstName'] . ' ' . $row['LastName']) ?></td>
-                        <td><?= htmlspecialchars(date('m/d/Y', strtotime($row['Date']))) ?></td>
-                        <td><?= number_format($row['DecimalHours'], 2) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr><td colspan="3">No time punches found for the selected filters.</td></tr>
-            <?php endif; ?>
-            <tr class="summary-total">
-                <td colspan="2">Total Hours</td>
-                <td><?= number_format($totalHoursDecimal, 2) ?></td>
-            </tr>
-            <tr class="summary-regular">
-                <td colspan="2">Regular Hours (≤ 40/week)</td>
-                <td><?= number_format($totalRegular, 2) ?></td>
-            </tr>
-            <tr class="summary-overtime">
-                <td colspan="2">Overtime Hours (> 40/week)</td>
-                <td><?= number_format($totalOvertime, 2) ?></td>
-            </tr>
-        </table>
-
-        <?php if (empty($employeeID) && count($totalsPerEmployee)): ?>
-            <div class="per-employee-summary">
-                <h3>Per Employee Total</h3>
-                <ul>
-                    <?php foreach ($totalsPerEmployee as $name => $total): ?>
-                        <li><strong><?= htmlspecialchars($name) ?></strong>: <?= number_format($total, 2) ?> hrs</li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-
-        <div class="summary-controls">
-            <form method="POST" action="export_summary_excel.php">
-                <input type="hidden" name="start" value="<?= $startDate ?>">
-                <input type="hidden" name="end" value="<?= $endDate ?>">
-                <input type="hidden" name="emp" value="<?= $employeeID ?>">
-                <input type="hidden" name="rounding" value="<?= $rounding ?>">
-                <input type="hidden" name="separate_pages" value="<?= $separatePages ?>">
-                <button type="submit">Export to Excel</button>
-            </form>
-
-            <form method="POST" action="export_summary_pdf.php">
-                <input type="hidden" name="start" value="<?= $startDate ?>">
-                <input type="hidden" name="end" value="<?= $endDate ?>">
-                <input type="hidden" name="emp" value="<?= $employeeID ?>">
-                <input type="hidden" name="rounding" value="<?= $rounding ?>">
-                <input type="hidden" name="separate_pages" value="<?= $separatePages ?>">
-                <button type="submit">Export to PDF</button>
-            </form>
-        </div>
-    </div>
+<div class="page-header">
+  <h1>Summary Report</h1>
 </div>
+
+<form method="GET" class="filter-bar">
+  <div class="form-group">
+    <label>Date Range</label>
+    <input type="text" name="dates" id="dateRange" class="date-input"
+           value="<?= date('m/d/Y', strtotime($startDate)) ?> - <?= date('m/d/Y', strtotime($endDate)) ?>">
+  </div>
+  <div class="form-group">
+    <label>Employee</label>
+    <select name="emp">
+      <option value="">All Employees</option>
+      <?php while ($emp = $employeeList->fetch_assoc()): ?>
+        <option value="<?= $emp['ID'] ?>" <?= ($emp['ID'] == $employeeID ? 'selected' : '') ?>>
+          <?= htmlspecialchars($emp['FirstName'] . ' ' . $emp['LastName']) ?>
+        </option>
+      <?php endwhile; ?>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Round to Nearest</label>
+    <select name="rounding">
+      <?php foreach ([0, 5, 10, 15, 20, 25, 30] as $min): ?>
+        <option value="<?= $min ?>" <?= ($rounding == $min ? 'selected' : '') ?>><?= $min === 0 ? 'No rounding' : "$min minutes" ?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+  <div class="form-group" style="justify-content:flex-end;flex-direction:row;align-items:center;gap:8px;min-width:auto">
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px">
+      <input type="checkbox" name="separate_pages" value="1" <?= $separatePages ? 'checked' : '' ?>>
+      Separate pages per user
+    </label>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <a href="summary.php" class="btn btn-secondary">Reset</a>
+  </div>
+</form>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="padding:16px 20px;border-bottom:1px solid #e1e4e8;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:14px;font-weight:600;color:#374151">
+      <?= date('M j Y', strtotime($startDate)) ?> — <?= date('M j Y', strtotime($endDate)) ?>
+    </span>
+    <div style="display:flex;gap:8px">
+      <form method="POST" action="export_summary_excel.php" style="margin:0">
+        <input type="hidden" name="start" value="<?= $startDate ?>">
+        <input type="hidden" name="end" value="<?= $endDate ?>">
+        <input type="hidden" name="emp" value="<?= $employeeID ?>">
+        <input type="hidden" name="rounding" value="<?= $rounding ?>">
+        <input type="hidden" name="separate_pages" value="<?= $separatePages ?>">
+        <button type="submit" class="btn btn-sm btn-secondary">Export Excel</button>
+      </form>
+      <form method="POST" action="export_summary_pdf.php" style="margin:0">
+        <input type="hidden" name="start" value="<?= $startDate ?>">
+        <input type="hidden" name="end" value="<?= $endDate ?>">
+        <input type="hidden" name="emp" value="<?= $employeeID ?>">
+        <input type="hidden" name="rounding" value="<?= $rounding ?>">
+        <input type="hidden" name="separate_pages" value="<?= $separatePages ?>">
+        <button type="submit" class="btn btn-sm btn-secondary">Export PDF</button>
+      </form>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Date</th>
+        <th>Hours</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if (count($rows)): ?>
+        <?php foreach ($rows as $row): ?>
+        <tr>
+          <td><?= htmlspecialchars($row['FirstName'] . ' ' . $row['LastName']) ?></td>
+          <td><?= date('M j Y', strtotime($row['Date'])) ?></td>
+          <td><?= number_format($row['DecimalHours'], 2) ?></td>
+        </tr>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <tr><td colspan="3" style="text-align:center;padding:40px;color:#9ca3af">No punches found for this period.</td></tr>
+      <?php endif; ?>
+      <tr class="summary-total">
+        <td colspan="2"><strong>Total Hours</strong></td>
+        <td><strong><?= number_format($totalHoursDecimal, 2) ?></strong></td>
+      </tr>
+      <tr class="summary-regular">
+        <td colspan="2">Regular (≤ 40 hrs/week)</td>
+        <td><?= number_format($totalRegular, 2) ?></td>
+      </tr>
+      <tr class="summary-overtime">
+        <td colspan="2">Overtime (&gt; 40 hrs/week)</td>
+        <td><?= number_format($totalOvertime, 2) ?></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<?php if (empty($employeeID) && count($totalsPerEmployee)): ?>
+<div class="card" style="margin-top:16px">
+  <h2>Per Employee Totals</h2>
+  <table class="data-table">
+    <thead><tr><th>Employee</th><th>Total Hours</th></tr></thead>
+    <tbody>
+      <?php foreach ($totalsPerEmployee as $name => $total): ?>
+      <tr>
+        <td><?= htmlspecialchars($name) ?></td>
+        <td><strong><?= number_format($total, 2) ?></strong></td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js"></script>
 <script src="../js/summary.js"></script>
 
-</body>
-</html>
+<?php include 'includes/footer.php'; ?>

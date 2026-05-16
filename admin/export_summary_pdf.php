@@ -12,6 +12,19 @@ $emp = $_POST['emp'] ?? '';
 $rounding = intval($_POST['rounding'] ?? 0);
 $separatePages = intval($_POST['separate_pages'] ?? 0);
 
+
+// Log export to report_exports table
+function logExport(mysqli $conn, string $type, string $start, string $end, 
+                   string $emp, string $empName, string $format, int $rounding, string $by = 'admin'): void {
+    $stmt = $conn->prepare(
+        "INSERT INTO report_exports (ReportType,StartDate,EndDate,EmployeeID,EmployeeName,Format,Rounding,ExportedBy)
+         VALUES (?,?,?,?,?,?,?,?)"
+    );
+    $empId = $emp !== '' ? (int)$emp : null;
+    $stmt->bind_param("sssissis", $type, $start, $end, $empId, $empName, $format, $rounding, $by);
+    $stmt->execute();
+}
+
 if (!$start || !$end) {
     header('Location: ../error.php?code=400&message=' . urlencode('Start and end dates are required.'));
     exit;
@@ -67,9 +80,14 @@ while ($row = $result->fetch_assoc()) {
 }
 
 // PDF Setup
+$logEmpName = '';
+if ($emp) { $r = $conn->query("SELECT CONCAT(FirstName,' ',LastName) n FROM users WHERE ID=".(int)$emp." LIMIT 1"); if($r && $row=$r->fetch_assoc()) $logEmpName=$row['n']; }
+if (!headers_sent()) { session_start(); }
+logExport($conn, 'summary_pdf', $start, $end, (string)$emp, $logEmpName, 'pdf', $rounding, $_SESSION['admin'] ?? 'admin');
+
 $pdf = new TCPDF();
 $pdf->SetCreator('TimeClock System');
-$pdf->SetAuthor('D-Best Technologies');
+$pdf->SetAuthor('Foley IT');
 $pdf->SetTitle('Payroll Summary Report');
 $pdf->SetMargins(15, 15, 15);
 $pdf->SetFont('helvetica', '', 11);

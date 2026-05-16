@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme -->
+    <style name="Theme.TimeClock" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:statusBarColor">@color/colorStatusBar</item>
+        <item name="android:navigationBarColor">@color/colorNavigationBar</item>
+    </style>
+
+    <!-- Splash screen theme -->
+    <style name="Theme.TimeClock.Splash" parent="Theme.TimeClock">
+        <item name="android:windowBackground">@color/colorSplashBackground</item>
+        <item name="android:statusBarColor">@color/colorSplashBackground</item>
+        <item name="android:navigationBarColor">@color/colorSplashBackground</item>
+    </style>
+
+</resources>

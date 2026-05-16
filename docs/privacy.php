@@ -5,12 +5,13 @@ date_default_timezone_set('America/Chicago');
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Privacy Policy - D-Best TimeClock</title>
+  <title>Privacy Policy - FoleyTimePro</title>
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-  <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
+    <link rel="stylesheet" href="../css/redesign.css">
+  <link rel="icon" type="image/png" href="/images/FoleyTimePro.png">
+    <link rel="apple-touch-icon" href="/images/FoleyTimePro.png">
+  <link rel="icon" type="image/png" href="../images/FoleyTimePro-favicon.png">
+    <link rel="apple-touch-icon" href="../images/FoleyTimePro-favicon.png">
     <link rel="manifest" href="/manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#126ab3">
@@ -21,8 +22,8 @@ date_default_timezone_set('America/Chicago');
 <!-- 🌐 Desktop Nav -->
 <header class="topnav desktop-only">
   <div class="topnav-left">
-    <img src="/images/D-Best.png" class="nav-logo" alt="Logo">
-    <span class="nav-title">D-BEST TimeSmart</span>
+    <img src="/images/FoleyTimePro.png" class="nav-logo" alt="Logo">
+    <span class="nav-title">FoleyTimePro</span>
   </div>
   <div class="topnav-right">
     <span class="nav-date"><?= date('F j, Y') ?></span>
@@ -40,8 +41,8 @@ date_default_timezone_set('America/Chicago');
 
 <!-- 📱 Mobile Banner -->
 <div class="mobile-banner mobile-only">
-  <img src="/images/D-Best.png" alt="Logo" class="nav-logo">
-  <span class="nav-title">D-BEST TimeSmart</span>
+  <img src="/images/FoleyTimePro.png" alt="Logo" class="nav-logo">
+  <span class="nav-title">FoleyTimePro</span>
 </div>
 
 <!-- 📱 Mobile Menu Trigger -->
@@ -66,7 +67,7 @@ date_default_timezone_set('America/Chicago');
     <h1>Privacy Policy</h1>
     <p><strong>Effective Date:</strong> July 30, 2025</p>
 
-    <p>D-Best TimeClock is committed to protecting your privacy. This policy outlines what data we collect, how it is used, and your rights regarding your personal information.</p>
+    <p>FoleyTimePro is committed to protecting your privacy. This policy outlines what data we collect, how it is used, and your rights regarding your personal information.</p>
 
     <h3>Information We Collect</h3>
     <ul>
@@ -90,7 +91,7 @@ date_default_timezone_set('America/Chicago');
 </div>
 
 <footer>
-  <p>D-BEST TimeSmart &copy; <?= date('Y') ?>. All rights reserved.</p>
+  <p>FoleyTimePro &copy; <?= date('Y') ?>. All rights reserved.</p>
   <p style="margin-top: 0.3rem;">
     <a href="/docs/privacy.php" style="color:#e0e0e0; text-decoration:none; margin-right:15px;">Privacy Policy</a>
     <a href="/docs/terms.php" style="color:#e0e0e0; text-decoration:none;">Terms of Use</a>

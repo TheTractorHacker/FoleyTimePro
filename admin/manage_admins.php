@@ -25,71 +25,42 @@ if ($result) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage Admins</title>
-    <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="../images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="../images/D-Best-favicon.png">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/admin.css">
-</head>
-<body>
-    <header>
-        <img src="/images/D-Best.png" alt="Logo" class="logo">
-        <h1>Manage Admins</h1>
-        <nav>
-        <a href="dashboard.php">Dashboard</a>
-        <a href="view_punches.php">Timesheets</a>
-        <a href="summary.php">Summary</a>
-        <a href="reports.php">Reports</a>
-        <a href="manage_users.php">Users</a>
-        <a href="manage_offices.php">Offices</a>
-        <a href="attendance.php">Attendance</a>
-        <a href="manage_admins.php" class="active">Admins</a>
-        <a href="settings.php">Settings</a>
-        <a href="../logout.php">Logout</a>
-    </nav>
-    </header>
+<?php
+$pageTitle   = 'Manage Admins';
+$headerTitle = 'Manage Admins';
+include 'includes/header.php';
+?>
 
-    <div class="container">
-        <div class="summary-filter">
-            <div class="row">
-                <div class="field">
-                    <h2 style="margin-bottom: 1rem;">Admin Accounts</h2>
-                </div>
-                <div class="buttons">
-                    <a href="add_admin.php" class="btn-reset" style="background-color: var(--primary-color); color: white;">+ Add Admin</a>
-                </div>
-            </div>
-        </div>
+<div class="page-header">
+  <h1>Admin Accounts</h1>
+  <a href="add_admin.php" class="btn btn-primary">+ Add Admin</a>
+</div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($admins as $admin): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($admin['id']) ?></td>
-                        <td><?= htmlspecialchars($admin['username']) ?></td>
-                        <td>
-                            <a class="btn-reset" style="background-color: var(--primary-color); color: white; margin-right: 0.5rem;" href="edit_admin.php?id=<?= $admin['id'] ?>">Edit</a>
-                            <a class="btn-reset" style="background-color: #dc3545; color: white;" href="?delete=<?= $admin['id'] ?>" onclick="return confirm('Are you sure you want to delete this admin?');">Delete</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>
+<div class="card" style="padding:0;overflow:hidden">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($admins as $admin): ?>
+      <tr>
+        <td style="color:#9ca3af;font-size:12px"><?= (int)$admin['id'] ?></td>
+        <td><strong><?= htmlspecialchars($admin['username']) ?></strong></td>
+        <td>
+          <a class="btn btn-sm btn-secondary" href="edit_admin.php?id=<?= $admin['id'] ?>">Edit</a>
+          <a class="btn btn-sm btn-danger" href="?delete=<?= $admin['id'] ?>" onclick="return confirm('Delete this admin?')">Delete</a>
+        </td>
+      </tr>
+      <?php endforeach; ?>
+      <?php if (empty($admins)): ?>
+      <tr><td colspan="3" style="text-align:center;padding:32px;color:#9ca3af">No admin accounts found.</td></tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
+</div>
+
+<?php include 'includes/footer.php'; ?>

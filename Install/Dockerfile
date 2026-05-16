@@ -1,48 +1,40 @@
-# ------------------------------
-# Dockerfile (with Supervisor)
-# ------------------------------
+# FoleyTimePro — GitHub-clone based image (used by CI/CD)
+# For local builds use the root Dockerfile instead.
+
 FROM php:8.3-fpm
 
-# Install dependencies
 RUN apt-get update && apt-get install -y \
-    nginx \
-    git \
-    supervisor \
-    libzip-dev \
-    nano \
-    unzip \
-    libpng-dev \
+    nginx supervisor git libzip-dev libpng-dev \
+    libfreetype6-dev libjpeg62-turbo-dev unzip curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql mysqli zip gd opcache \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mysqli zip gd
+RUN printf 'opcache.enable=1\nopcache.validate_timestamps=0\nopcache.max_accelerated_files=10000\nopcache.memory_consumption=192\nopcache.interned_strings_buffer=16\nopcache.fast_shutdown=1\n' \
+    > /usr/local/etc/php/conf.d/opcache.ini
 
-# Get latest Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN printf 'upload_max_filesize=20M\npost_max_size=20M\nmemory_limit=256M\nmax_execution_time=60\nexpose_php=Off\ndisplay_errors=Off\nlog_errors=On\n' \
+    > /usr/local/etc/php/conf.d/app.ini
 
-# Copy configs
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 COPY nginx.conf /etc/nginx/sites-available/default
-RUN rm /etc/nginx/sites-enabled/default && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY www.conf /usr/local/etc/php-fpm.d/www.conf
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Set working directory
+COPY www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 WORKDIR /var/www/html
 
-# Clone repo
-RUN find . -mindepth 1 -delete && git clone https://github.com/D-Best-App/Timesmart.git .
+RUN git clone https://github.com/TheTractorHacker/FoleyTimePro.git . \
+    && composer install --no-dev --optimize-autoloader --no-scripts --no-interaction \
+    && mkdir -p logs uploads cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 logs uploads cache \
+    && rm -rf .git android-app Install/.git
 
-# Install Composer deps
-RUN composer install --no-dev --optimize-autoloader
-
-# Permissions
-RUN chown -R www-data:www-data /var/www/html
-
-# Expose HTTP
 EXPOSE 80
-
-# Override default ENTRYPOINT to avoid php-fpm conflict
 ENTRYPOINT []
-
-# Launch Supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

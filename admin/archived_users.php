@@ -14,38 +14,17 @@ while ($row = $archived_users_result->fetch_assoc()) {
     $archived_users_data[] = $row;
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Archived Users - D-Best TimeClock</title>
-    <link rel="icon" type="image/webp" href="../images/D-Best-favicon.webp">
-    <link rel="stylesheet" href="../css/uman.css">
-    <link rel="stylesheet" href="../css/manage_users.css">
-</head>
-<body>
-<header class="banner">
-    <img src="/images/D-Best.png" alt="D-Best Logo" class="logo">
-    <h1>Archived Users</h1>
-    <nav>
-        <a href="dashboard.php">Dashboard</a>
-        <a href="view_punches.php">Timesheets</a>
-        <a href="summary.php">Summary</a>
-        <a href="reports.php">Reports</a>
-        <a href="manage_users.php">Users</a>
-        <a href="manage_offices.php">Offices</a>
-        <a href="attendance.php">Attendance</a>
-        <a href="manage_admins.php">Admins</a>
-        <a href="../logout.php">Logout</a>
-    </nav>
-</header>
 
-<div class="uman-container">
-    <div class="uman-header">
-        <h2>Archived Users</h2>
+<?php
+$pageTitle   = 'Archived Users';
+$headerTitle = 'Archived Users';
+include 'includes/header.php';
+?>
+<div class="page-header">
+        <h1>Archived Users</h2>
     </div>
 
-    <table class="uman-table">
+    <table class="data-table">
         <thead>
         <tr>
             <th>Full Name</th>
@@ -63,11 +42,11 @@ while ($row = $archived_users_result->fetch_assoc()) {
                 <td>
                     <form action="unarchive_user.php" method="POST" style="display:inline;">
                         <input type="hidden" name="ID" value="<?= (int)$user['ID'] ?>">
-                        <button type="submit" class="btn primary small">Unarchive</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Unarchive</button>
                     </form>
                     <form action="permanently_delete_user.php" method="POST" style="display:inline;">
                         <input type="hidden" name="ID" value="<?= (int)$user['ID'] ?>">
-                        <button type="submit" class="btn danger small" onclick="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">Delete Permanently</button>
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">Delete Permanently</button>
                     </form>
                 </td>
             </tr>
@@ -76,5 +55,4 @@ while ($row = $archived_users_result->fetch_assoc()) {
     </table>
 </div>
 
-</body>
-</html>
+<?php include 'includes/footer.php'; ?>

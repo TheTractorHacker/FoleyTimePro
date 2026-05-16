@@ -1,79 +1,100 @@
-<!-- Modal HTML -->
+<!-- ── Main clock modal ─────────────────────────────────── -->
 <div id="modal" class="modal hidden">
   <div class="modal-content">
-    <span id="modalClose" class="close">&times;</span> 
+    <button id="modalClose" class="close" aria-label="Close">&times;</button>
+
     <div id="modalBody">
       <h3 id="employeeName"></h3>
-     <form id="pinForm">
-  <input type="hidden" name="EmployeeID" id="modalEmployeeID">
 
-  <!-- 📍 Location fields for GPS -->
-  <input type="hidden" id="latitude" name="latitude">
-  <input type="hidden" id="longitude" name="longitude">
-  <input type="hidden" id="accuracy" name="accuracy">
-  <input type="hidden" id="ip_address" name="ip_address">
+      <!-- Hidden GPS + employee fields -->
+      <input type="hidden" id="modalEmployeeID">
+      <input type="hidden" id="latitude">
+      <input type="hidden" id="longitude">
+      <input type="hidden" id="accuracy">
+      <input type="hidden" id="ip_address">
 
+      <!-- Step 1: PIN entry -->
+      <form id="pinForm">
+        <div class="modal-pin-label">Enter your PIN to continue</div>
+        <input
+          type="password"
+          id="modalPIN"
+          name="PIN"
+          class="modal-pin-input"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="••••"
+          maxlength="20"
+          required>
+        <button type="submit" class="modal-submit-btn">Verify PIN</button>
+      </form>
 
-  <!-- 🔐 PIN input -->
-  <label for="modalPIN">Enter PIN:</label><br>
-  <input type="password" id="modalPIN" name="PIN" required><br><br>
-
-  <button type="submit">Verify</button>
-</form>
-
+      <!-- Step 2: Action selection (shown after PIN verified) -->
       <div id="statusArea" class="hidden">
-        <p id="currentStatus"></p>
-        <textarea id="note" placeholder="Optional note..."></textarea><br>
+        <div id="currentStatus" class="modal-current-status"></div>
+        <textarea id="note" class="modal-note" placeholder="Optional note…"></textarea>
         <div class="action-grid">
           <div class="col">
-            <button class="clockin" onclick="submitAction('clockin')">Clock In</button>
-            <button class="clockout" onclick="submitAction('clockout')">Clock Out</button>
+            <button class="clockin"    onclick="submitAction('clockin')">Clock In</button>
+            <button class="clockout"   onclick="submitAction('clockout')">Clock Out</button>
           </div>
           <div class="col">
             <button class="lunchstart" onclick="submitAction('lunchstart')">Lunch Start</button>
-            <button class="lunchend" onclick="submitAction('lunchend')">Lunch End</button>
+            <button class="lunchend"   onclick="submitAction('lunchend')">Lunch End</button>
           </div>
         </div>
       </div>
+
       <p id="modalError" class="error"></p>
     </div>
   </div>
 </div>
-<!-- Confirm Time Popup -->
+
+<!-- ── Confirm time popup ───────────────────────────────── -->
 <div id="confirmPopup" class="modal hidden">
-  <div class="modal-content">
-    <h3>Adjust Time?</h3>
-    <p>You can manually set a different time if needed.</p>
-    <p>Time: <strong id="confirmTimeText"></strong></p>
-    <input type="hidden" id="confirmAction" />
-    <button onclick="openAdjuster()">🕓 Adjust Time</button>
-    <button onclick="confirmSubmit()">✅ Submit</button>
+  <div class="modal-content" style="max-width:320px;text-align:center">
+    <h3 style="margin-bottom:6px">Confirm Time</h3>
+    <p style="color:#6b7280;font-size:13px;margin-bottom:20px">Submit this punch at the current time, or adjust it manually.</p>
+    <div class="confirm-time-display" id="confirmTimeText"></div>
+    <input type="hidden" id="confirmAction">
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+      <button class="modal-submit-btn" onclick="confirmSubmit()">Submit Now</button>
+      <button class="modal-secondary-btn" onclick="openAdjuster()">Adjust Time</button>
+    </div>
   </div>
 </div>
 
-<!-- Confirmation Popup -->
+<!-- ── Clock-out confirmation ───────────────────────────── -->
 <div id="confirmationPopup" class="popup hidden">
   <div class="popup-content">
-    <p id="confirmationMessage"></p>
-    <button id="confirmYes">Yes</button>
-    <button id="confirmNo">No</button>
+    <div style="font-size:36px;margin-bottom:12px">🕐</div>
+    <p id="confirmationMessage" style="font-size:15px;font-weight:600;margin-bottom:20px"></p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="confirmNo"  class="popup-btn popup-btn-cancel">Cancel</button>
+      <button id="confirmYes" class="popup-btn popup-btn-confirm">Yes, Clock Out</button>
+    </div>
   </div>
 </div>
 
-<!-- Adjust Time Popup -->
+<!-- ── Adjust time popup ────────────────────────────────── -->
 <div id="adjustPopup" class="modal hidden">
-  <div class="modal-content">
-    <h3>Manual Time Adjust</h3>
-    <input type="text" id="adjustTimeInput" placeholder="e.g., 03:45 PM" style="text-align:center; padding:10px; font-size:18px;">
-    <br><br>
-    <button onclick="submitWithAdjustment()">✅ Submit with Adjusted Time</button>
+  <div class="modal-content" style="max-width:320px;text-align:center">
+    <h3 style="margin-bottom:6px">Adjust Time</h3>
+    <p style="color:#6b7280;font-size:13px;margin-bottom:20px">Enter the correct time for this punch.</p>
+    <input
+      type="text"
+      id="adjustTimeInput"
+      class="modal-pin-input"
+      placeholder="e.g. 09:30 AM"
+      style="text-align:center;font-size:22px;letter-spacing:.05em">
+    <button class="modal-submit-btn" style="margin-top:14px" onclick="submitWithAdjustment()">Submit Adjusted Time</button>
   </div>
 </div>
 
-<!-- ✅ Feedback Popup -->
+<!-- ── Feedback popup ───────────────────────────────────── -->
 <div id="customPopup" class="popup hidden">
   <div class="popup-content">
-    <p id="popupMessage"></p>
-    <button id="popupClose">OK</button>
+    <p id="popupMessage" style="font-size:15px;margin-bottom:20px"></p>
+    <button id="popupClose" class="popup-btn popup-btn-confirm">OK</button>
   </div>
 </div>

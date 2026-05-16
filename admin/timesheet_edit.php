@@ -51,10 +51,10 @@ $result = $stmt->get_result();
 
 ?>
 
-<div class="timesheet-edit-container">
-    <h2>Edit Timesheet for <?= $employeeName ?> (<?= htmlspecialchars($from_raw) ?> to <?= htmlspecialchars($to_raw) ?>)</h2>
+<div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
+<div style="padding:14px 20px;border-bottom:1px solid #e1e4e8;font-weight:600">Edit Timesheet — <?= $employeeName ?> &nbsp;<span style="font-weight:400;color:#6b7280;font-size:13px"><?= htmlspecialchars($from_raw) ?> to <?= htmlspecialchars($to_raw) ?></span></div>
 
-    <table class="timesheet-edit-table">
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Date</th>
@@ -84,61 +84,18 @@ $result = $stmt->get_result();
                 <?php endwhile; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="7">No punches found for this period.</td>
+                    <td colspan="7" style="text-align:center;padding:32px;color:#9ca3af">No punches found for this period.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
     </table>
-
-    <button id="btn-add-new-punch">Add New Punch</button>
-    <button id="btn-save-changes">Save Changes</button>
 </div>
 
-<style>
-.modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-.modal-content { background: white; padding: 2rem; border-radius: 10px; width: 400px; max-width: 90%; margin: 10% auto; position: relative; }
-.modal-content h3 { margin-top: 0; }
-.close-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; }
-#punch-info {
-    background-color: #f4f6f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 15px;
-}
-#punch-info p {
-    margin: 5px 0;
-}
-#punch-types-checkboxes {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-#punch-types-checkboxes label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-#punch-types-checkboxes input[type="checkbox"] {
-    margin-right: 10px;
-    width: 18px;
-    height: 18px;
-}
-#confirmSpecificDelete {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    width: 100%;
-}
-#confirmSpecificDelete:hover {
-    background-color: #c82333;
-}
-</style>
+<div style="display:flex;gap:10px;margin-bottom:16px">
+  <button id="btn-add-new-punch" class="btn btn-secondary">+ Add Punch</button>
+  <button id="btn-save-changes" class="btn btn-primary">Save Changes</button>
+</div>
+
 <!-- Specific Punch Deletion Modal -->
 <div id="specificPunchDeleteModal" class="modal" style="display:none;">
     <div class="modal-content">
@@ -152,7 +109,7 @@ $result = $stmt->get_result();
             <label><input type="checkbox" value="LunchEnd"> Lunch In</label>
             <label><input type="checkbox" value="TimeOut"> Clock Out</label>
         </div>
-        <button id="confirmSpecificDelete">Confirm Delete</button>
+        <button id="confirmSpecificDelete" class="btn btn-danger" style="width:100%">Confirm Delete</button>
     </div>
 </div>
 
@@ -166,8 +123,8 @@ $result = $stmt->get_result();
         <span class="close-btn">&times;</span>
         <p id="customAlertMessage"></p>
         <div id="customAlertActions" style="display:none;">
-            <button id="customAlertConfirm">Yes</button>
-            <button id="customAlertCancel">No</button>
+            <button id="customAlertConfirm" class="btn btn-primary">Yes</button>
+            <button id="customAlertCancel" class="btn btn-secondary">No</button>
         </div>
     </div>
 </div>

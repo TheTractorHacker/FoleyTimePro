@@ -14,6 +14,19 @@ $employeeID = $_POST['emp'] ?? '';
 $rounding = intval($_POST['rounding'] ?? 0);
 $separatePages = intval($_POST['separate_pages'] ?? 0);
 
+
+// Log export to report_exports table
+function logExport(mysqli $conn, string $type, string $start, string $end, 
+                   string $emp, string $empName, string $format, int $rounding, string $by = 'admin'): void {
+    $stmt = $conn->prepare(
+        "INSERT INTO report_exports (ReportType,StartDate,EndDate,EmployeeID,EmployeeName,Format,Rounding,ExportedBy)
+         VALUES (?,?,?,?,?,?,?,?)"
+    );
+    $empId = $emp !== '' ? (int)$emp : null;
+    $stmt->bind_param("sssissis", $type, $start, $end, $empId, $empName, $format, $rounding, $by);
+    $stmt->execute();
+}
+
 if (!$startDate || !$endDate) {
     header('Location: ../error.php?code=400&message=' . urlencode('Start and end dates are required.'));
     exit;
@@ -59,6 +72,11 @@ function getPunches($conn, $start, $end, $emp = '') {
 $result = getPunches($conn, $startDate, $endDate, $employeeID);
 
 // === CREATE SPREADSHEET ===
+// Resolve employee name for logging
+$logEmpName = '';
+if ($employeeID) { $r = $conn->query("SELECT CONCAT(FirstName,' ',LastName) n FROM users WHERE ID=".(int)$employeeID." LIMIT 1"); if($r && $row=$r->fetch_assoc()) $logEmpName=$row['n']; }
+logExport($conn, 'summary_excel', $startDate, $endDate, (string)$employeeID, $logEmpName, 'excel', $rounding, $_SESSION['admin'] ?? 'admin');
+
 $spreadsheet = new Spreadsheet();
 $spreadsheet->removeSheetByIndex(0); // we'll add sheets dynamically
 

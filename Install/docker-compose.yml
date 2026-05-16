@@ -1,6 +1,6 @@
 services:
   app:
-    image: dbest25/timesmart:beta
+    image: foleyit/foleytimepro:latest
     container_name: COMPANY_NAME_PLACEHOLDER
     # ports:
     #   - "8080:80"

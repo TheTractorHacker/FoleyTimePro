@@ -10,6 +10,7 @@ function openModal(empID, fullName) {
     document.getElementById("modalError").innerText = "";
     document.getElementById("adjustPopup").classList.add("hidden");
     document.getElementById("confirmPopup").classList.add("hidden");
+  setTimeout(function(){ var p = document.getElementById("modalPIN"); if(p) p.focus(); }, 80);
 }
 
 // ❌ Close popups on click outside
@@ -41,7 +42,10 @@ document.getElementById("pinForm").addEventListener("submit", function (e) {
         if (data.success) {
             document.getElementById("statusArea").classList.remove("hidden");
             document.getElementById("pinForm").classList.add("hidden");
-            document.getElementById("currentStatus").innerText = `Status: ${data.status}, Time: ${data.time}`;
+            const statusLabels = { In: 'Clocked In', Lunch: 'On Lunch', Out: 'Clocked Out' };
+            const sl = statusLabels[data.status] || data.status;
+            document.getElementById("currentStatus").innerHTML = 
+              `<span style="font-weight:700">${sl}</span><span style="color:#9ca3af;font-size:12px;margin-left:6px">last activity: ${data.time}</span>`;
             document.getElementById("modalError").innerText = "";
         } else {
             document.getElementById("modalError").innerText = data.message;
@@ -92,7 +96,7 @@ async function proceedWithAction(action) {
         if (data.success && data.value === '1') {
             // GPS is required
             if (!navigator.geolocation) {
-                showPopup("📍 Geolocation is required but not supported by your browser.");
+                showPopup("Location access is required but not supported by this browser.");
                 return;
             }
 
@@ -113,13 +117,13 @@ async function proceedWithAction(action) {
                             document.getElementById('latitude').value = latitude;
                             document.getElementById('longitude').value = longitude;
                             document.getElementById('accuracy').value = accuracy;
-                            showPopup("📍 Using approximate location. Enable precise location for better accuracy.");
+                            showPopup("Using approximate location. Enable precise location for better accuracy.");
                             setTimeout(() => showConfirmPopup(action), 1500);
                         },
                         (fallbackError) => {
                             console.warn("📍 Low-accuracy GPS also failed:", fallbackError.message);
                             // Proceed without GPS. The server will decide if this is acceptable.
-                            showPopup("🛰️ GPS failed. Your location will be based on your network. This may be rejected if GPS is required.");
+                            showPopup("GPS unavailable. Your location will be estimated from your network connection.");
                             setTimeout(() => showConfirmPopup(action), 2500); // Give user time to read the message
                         },
                         { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
@@ -207,7 +211,7 @@ function sendPunch(empID, action, note, time, lat = '', lon = '', accuracy = '')
     })
     .catch((error) => {
         console.error('Punch Error:', error);
-        showPopup(`❌ Error submitting punch. ${error.message}`);
+        showPopup(`Error submitting punch. ${error.message}`);
     });
 }
 
@@ -229,43 +233,7 @@ function submitWithAdjustment() {
     const action = document.getElementById("confirmAction").value;
 
     if (!customTime) {
-        showPopup("⏱ Please enter a valid time.");
-        return;
-    }
-
-    sendPunch(empID, action, note, customTime, lat, lon, acc);
-}
-
-
-// ✅ Popup Feedback Box
-function showPopup(message) {
-    document.getElementById("popupMessage").textContent = message;
-    document.getElementById("customPopup").classList.remove("hidden");
-}
-
-document.getElementById("popupClose").addEventListener("click", () => {
-    document.getElementById("customPopup").classList.add("hidden");
-});
-
-// ✏️ Show time adjuster with prefilled time
-function openAdjuster() {
-    document.getElementById("adjustTimeInput").value = selectedTime;
-    document.getElementById("confirmPopup").classList.add("hidden");
-    document.getElementById("adjustPopup").classList.remove("hidden");
-}
-
-// 🕒 Submit adjusted time
-function submitWithAdjustment() {
-    const empID = document.getElementById("modalEmployeeID").value;
-    const note = document.getElementById("note").value;
-    const customTime = document.getElementById("adjustTimeInput").value;
-    const lat = document.getElementById("latitude").value;
-    const lon = document.getElementById("longitude").value;
-    const acc = document.getElementById("accuracy").value;
-    const action = document.getElementById("confirmAction").value;
-
-    if (!customTime) {
-        showPopup("⏱ Please enter a valid time.");
+        showPopup("Please enter a valid time.");
         return;
     }
 

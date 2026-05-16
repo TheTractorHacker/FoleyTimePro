@@ -1,0 +1,279 @@
+/**
+ * FoleyTimePro UI Redesign — v2
+ * Layered on top of existing styles. Import AFTER admin.css / style.css.
+ */
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --ft-primary:        #073851;
+  --ft-primary-dark:   #042a3d;
+  --ft-primary-light:  #0d4f73;
+  --ft-accent:         #2ecc71;
+  --ft-accent-dark:    #27ae60;
+  --ft-danger:         #e74c3c;
+  --ft-warning:        #f39c12;
+  --ft-info:           #3498db;
+
+  --ft-bg:             #f0f2f5;
+  --ft-surface:        #ffffff;
+  --ft-surface-2:      #f8f9fa;
+  --ft-border:         #e1e4e8;
+  --ft-border-focus:   #0d4f73;
+
+  --ft-text:           #1a1f2e;
+  --ft-text-muted:     #5a6474;
+  --ft-text-light:     #8792a2;
+
+  --ft-radius:         10px;
+  --ft-radius-lg:      14px;
+  --ft-shadow:         0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  --ft-shadow-hover:   0 4px 12px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06);
+  --ft-transition:     0.18s ease;
+}
+
+/* ── Global ─────────────────────────────────────────────────── */
+body {
+  background: var(--ft-bg) !important;
+  color: var(--ft-text) !important;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Top Navigation ─────────────────────────────────────────── */
+.topnav, header.topnav {
+  background: linear-gradient(135deg, var(--ft-primary) 0%, var(--ft-primary-light) 100%) !important;
+  box-shadow: 0 2px 8px rgba(7,56,81,0.25) !important;
+  padding: 12px 24px !important;
+}
+
+.nav-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+/* ── Cards ──────────────────────────────────────────────────── */
+.card, .admin-card, .dashboard-card, .stat-card {
+  background: var(--ft-surface) !important;
+  border: 1px solid var(--ft-border) !important;
+  border-radius: var(--ft-radius-lg) !important;
+  box-shadow: var(--ft-shadow) !important;
+  padding: 24px !important;
+  transition: box-shadow var(--ft-transition) !important;
+}
+.card:hover { box-shadow: var(--ft-shadow-hover) !important; }
+
+/* ── Stat cards on dashboards ───────────────────────────────── */
+.stat-box, .summary-card, .metric-card {
+  background: var(--ft-surface) !important;
+  border: 1px solid var(--ft-border) !important;
+  border-radius: var(--ft-radius-lg) !important;
+  box-shadow: var(--ft-shadow) !important;
+  padding: 20px 24px !important;
+  position: relative;
+  overflow: hidden;
+}
+.stat-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--ft-primary);
+  border-radius: 0 0 0 var(--ft-radius-lg);
+}
+.stat-value, .stat-number {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: var(--ft-primary) !important;
+  line-height: 1 !important;
+}
+.stat-label {
+  font-size: 13px !important;
+  color: var(--ft-text-muted) !important;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn, button.btn, input[type="submit"].btn, a.btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px;
+  padding: 9px 18px !important;
+  border-radius: var(--ft-radius) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  border: none !important;
+  text-decoration: none !important;
+  transition: background var(--ft-transition), transform var(--ft-transition), box-shadow var(--ft-transition) !important;
+  line-height: 1.4 !important;
+}
+.btn:active { transform: translateY(1px) !important; }
+
+.btn-primary, .btn.primary, button[type="submit"]:not(.btn-secondary):not(.btn-danger) {
+  background: var(--ft-primary) !important;
+  color: #fff !important;
+}
+.btn-primary:hover { background: var(--ft-primary-dark) !important; box-shadow: 0 4px 12px rgba(7,56,81,0.3) !important; }
+
+.btn-secondary, .btn.secondary {
+  background: var(--ft-surface-2) !important;
+  color: var(--ft-text) !important;
+  border: 1px solid var(--ft-border) !important;
+}
+.btn-secondary:hover { background: var(--ft-border) !important; }
+
+.btn-danger, .btn.danger {
+  background: var(--ft-danger) !important;
+  color: #fff !important;
+}
+.btn-danger:hover { background: #c0392b !important; }
+
+.btn-sm { padding: 5px 12px !important; font-size: 12px !important; }
+.btn-lg { padding: 12px 28px !important; font-size: 16px !important; }
+
+/* ── Forms ───────────────────────────────────────────────────── */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="date"], input[type="time"],
+select, textarea {
+  border: 1.5px solid var(--ft-border) !important;
+  border-radius: var(--ft-radius) !important;
+  padding: 9px 12px !important;
+  font-size: 14px !important;
+  color: var(--ft-text) !important;
+  background: var(--ft-surface) !important;
+  transition: border-color var(--ft-transition), box-shadow var(--ft-transition) !important;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: var(--ft-border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(13,79,115,0.12) !important;
+}
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.data-table, table.admin-table, .timesheet-table {
+  width: 100%;
+  border-collapse: collapse !important;
+  font-size: 14px !important;
+}
+.data-table th, table.admin-table th {
+  background: var(--ft-primary) !important;
+  color: #fff !important;
+  padding: 12px 16px !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.data-table th:first-child { border-radius: var(--ft-radius) 0 0 0; }
+.data-table th:last-child  { border-radius: 0 var(--ft-radius) 0 0; }
+.data-table td, table.admin-table td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--ft-border) !important;
+  vertical-align: middle !important;
+}
+.data-table tr:hover td { background: #f5f8ff !important; }
+.data-table tr:last-child td { border-bottom: none !important; }
+
+/* ── Status badges ───────────────────────────────────────────── */
+.badge, .status-badge, .status-pill {
+  display: inline-flex !important;
+  align-items: center;
+  padding: 3px 10px !important;
+  border-radius: 20px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badge-pending, .status-pending   { background: #fff3cd !important; color: #856404 !important; }
+.badge-approved, .status-approved { background: #d1f2e8 !important; color: #1a6b3c !important; }
+.badge-rejected, .status-rejected { background: #fde8e8 !important; color: #9b1c1c !important; }
+.badge-active   { background: #d1f2e8 !important; color: #1a6b3c !important; }
+.badge-inactive { background: #f0f0f0 !important; color: #666 !important; }
+
+/* ── Alert messages ──────────────────────────────────────────── */
+.alert {
+  padding: 14px 18px !important;
+  border-radius: var(--ft-radius) !important;
+  margin-bottom: 20px !important;
+  font-size: 14px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alert-success, .alert.success { background: #d1f2e8 !important; color: #1a6b3c !important; border: 1px solid #a7f3d0 !important; }
+.alert-error,   .alert.error   { background: #fde8e8 !important; color: #9b1c1c !important; border: 1px solid #fca5a5 !important; }
+.alert-warning, .alert.warning { background: #fff3cd !important; color: #856404 !important; border: 1px solid #fed7aa !important; }
+.alert-info,    .alert.info    { background: #dbeafe !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; }
+
+/* ── Page header ─────────────────────────────────────────────── */
+.page-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-header h1 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--ft-text) !important;
+}
+
+/* ── Clock buttons (employee) ────────────────────────────────── */
+.clock-btn, .punch-btn, .action-btn {
+  border-radius: 14px !important;
+  padding: 18px 32px !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+.clock-btn:hover { transform: translateY(-2px) !important; box-shadow: 0 10px 28px rgba(0,0,0,0.16) !important; }
+
+/* ── Mobile bottom nav ───────────────────────────────────────── */
+.bottom-nav, .mobile-nav {
+  background: var(--ft-surface) !important;
+  border-top: 1px solid var(--ft-border) !important;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.06) !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ft-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ft-text-light); }
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.text-muted  { color: var(--ft-text-muted) !important; }
+.text-danger { color: var(--ft-danger) !important; }
+.text-success{ color: var(--ft-accent-dark) !important; }
+.fw-bold     { font-weight: 700 !important; }
+.mt-0 { margin-top: 0 !important; }
+
+/* ── Geofence admin ──────────────────────────────────────────── */
+.fence-row td { vertical-align: middle !important; }
+
+/* ── QB integration ──────────────────────────────────────────── */
+.qb-status { background: var(--ft-surface) !important; border: 1px solid var(--ft-border) !important; border-radius: var(--ft-radius-lg) !important; }
+
+/* ── Leave balance pills ─────────────────────────────────────── */
+.balance-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--ft-surface-2);
+  border: 1px solid var(--ft-border);
+  border-radius: 20px;
+  font-size: 13px;
+}
+.balance-pill strong { color: var(--ft-primary); }

@@ -8,13 +8,13 @@ $message = $_GET['message'] ?? 'Something went wrong';
 <head>
   <meta charset="UTF-8" />
   <title><?= htmlspecialchars($code) ?> | Something went wrong</title>
-  <link rel="icon" type="image/png" href="/images/D-Best.png">
-    <link rel="apple-touch-icon" href="/images/D-Best.png">
+  <link rel="icon" type="image/png" href="/images/FoleyTimePro.png">
+    <link rel="apple-touch-icon" href="/images/FoleyTimePro.png">
     <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/png" href="images/D-Best-favicon.png">
-    <link rel="apple-touch-icon" href="images/D-Best-favicon.png">
+  <link rel="icon" type="image/png" href="images/FoleyTimePro-favicon.png">
+    <link rel="apple-touch-icon" href="images/FoleyTimePro-favicon.png">
     <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/webp" href="images/D-Best-favicon.webp">
+  <link rel="icon" type="image/webp" href="images/FoleyTimePro-favicon.webp">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {

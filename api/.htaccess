@@ -1,0 +1,56 @@
+RewriteEngine On
+
+# Enable CORS
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+Header always set Access-Control-Max-Age "3600"
+
+# Handle OPTIONS requests for CORS preflight
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# API v1 routes
+RewriteRule ^v1/auth/login$ v1/auth.php?action=login [L,QSA]
+RewriteRule ^v1/auth/refresh$ v1/auth.php?action=refresh [L,QSA]
+RewriteRule ^v1/auth/logout$ v1/auth.php?action=logout [L,QSA]
+RewriteRule ^v1/auth/logout-all$ v1/auth.php?action=logout-all [L,QSA]
+
+# Clock endpoints
+RewriteRule ^v1/clock/in$ v1/clock.php?action=in [L,QSA]
+RewriteRule ^v1/clock/out$ v1/clock.php?action=out [L,QSA]
+RewriteRule ^v1/clock/status$ v1/clock.php?action=status [L,QSA]
+RewriteRule ^v1/clock/history$ v1/clock.php?action=history [L,QSA]
+
+# User endpoints
+RewriteRule ^v1/user/profile$ v1/user.php?action=profile [L,QSA]
+RewriteRule ^v1/user/update$ v1/user.php?action=update [L,QSA]
+
+# Shifts endpoints
+RewriteRule ^v1/shifts$ v1/shifts.php?action=list [L,QSA]
+RewriteRule ^v1/shifts/my$ v1/shifts.php?action=my [L,QSA]
+
+# Branding endpoints
+RewriteRule ^v1/branding$ v1/branding.php [L,QSA]
+
+# Time-off endpoints
+RewriteRule ^v1/timeoff$ v1/timeoff.php?action=timeoff [L,QSA]
+RewriteRule ^v1/timeoff/request$ v1/timeoff.php?action=request [L,QSA]
+RewriteRule ^v1/timeoff/all$ v1/timeoff.php?action=all [L,QSA]
+RewriteRule ^v1/timeoff/([0-9]+)/cancel$ v1/timeoff.php?action=cancel&id=$1 [L,QSA]
+RewriteRule ^v1/timeoff/([0-9]+)/approve$ v1/timeoff.php?action=approve&id=$1 [L,QSA]
+RewriteRule ^v1/timeoff/([0-9]+)/reject$ v1/timeoff.php?action=reject&id=$1 [L,QSA]
+
+# Notification endpoints
+RewriteRule ^v1/notifications/register$ v1/notifications.php?action=register [L,QSA]
+RewriteRule ^v1/notifications/unregister$ v1/notifications.php?action=unregister [L,QSA]
+RewriteRule ^v1/notifications/preferences$ v1/notifications.php?action=preferences [L,QSA]
+
+# Prevent directory listing
+Options -Indexes
+
+# Deny access to sensitive files
+<FilesMatch "\.(env|json|lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

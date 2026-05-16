@@ -1,0 +1,25 @@
+# Environment / secrets
+.env
+auth/.env
+*.env.local
+
+# Cache & uploads (runtime-generated, not source)
+cache/
+uploads/
+
+# Logs
+logs/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Claude internal
+.claude/
+
+# Misc leftovers
+task-*.txt
+timeclock/

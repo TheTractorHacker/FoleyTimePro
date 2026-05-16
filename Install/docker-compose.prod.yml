@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # Database service
+  db:
+    image: mariadb:11
+    container_name: timesmart_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-changeme_root}
+      MYSQL_DATABASE: ${DB_NAME:-timeclock}
+      MYSQL_USER: ${DB_USER:-timeclock}
+      MYSQL_PASSWORD: ${DB_PASS:-changeme}
+      TZ: ${TIMEZONE:-America/Chicago}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backups:/backups
+    networks:
+      - timesmart-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  # Application service
+  app:
+    image: foleyit/foleytimepro:latest
+    container_name: timesmart_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-timeclock}
+      DB_USER: ${DB_USER:-timeclock}
+      DB_PASS: ${DB_PASS:-changeme}
+      DB_TIMEZONE: ${TIMEZONE:-America/Chicago}
+    volumes:
+      - app_logs:/var/www/html/logs
+      - app_uploads:/var/www/html/uploads
+    networks:
+      - timesmart-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  # Nginx reverse proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: timesmart_nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    networks:
+      - timesmart-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # Certbot for Let's Encrypt SSL
+  certbot:
+    image: certbot/certbot:latest
+    container_name: timesmart_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - timesmart-network
+
+  # Watchtower for automatic updates (optional)
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: timesmart_watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=86400  # Check daily
+      - WATCHTOWER_LABEL_ENABLE=true
+    networks:
+      - timesmart-network
+
+networks:
+  timesmart-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_uploads:
+    driver: local
