@@ -201,10 +201,15 @@ class ApiClient(private val baseUrl: String) {
         } else PunchResult(false, error = json.optString("message", "Punch failed"))
     } catch (e: Exception) { PunchResult(false, error = e.message ?: "Network error") }
 
-    fun getPunchHistory(token: String): PunchHistory = try {
+    fun getPunchHistory(token: String, start: String? = null, end: String? = null): PunchHistory = try {
+        val params = buildString {
+            append("$baseUrl/api/v1/punch.php?action=history")
+            if (start != null) append("&start=$start")
+            if (end   != null) append("&end=$end")
+        }
         val resp = http.newCall(
             Request.Builder()
-                .url("$baseUrl/api/v1/punch.php?action=history")
+                .url(params)
                 .header("Authorization", "Bearer $token")
                 .build()
         ).execute()

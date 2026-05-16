@@ -39,7 +39,8 @@ fun TimesheetScreen(prefs: PrefsManager) {
 
     fun load() = scope.launch {
         loading = true
-        val h = withContext(Dispatchers.IO) { api.getPunchHistory(prefs.getAccessToken()) }
+        val (start, end) = weekDates(weekOffset)
+        val h = withContext(Dispatchers.IO) { api.getPunchHistory(prefs.getAccessToken(), start, end) }
         if (h.success) { punches = h.punches; totalHours = h.totalHours }
         loading = false
     }
@@ -130,6 +131,17 @@ private fun TimesheetRow(entry: PunchEntry) {
             )
         }
     }
+}
+
+private fun weekDates(offset: Int): Pair<String, String> {
+    val iso = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val cal = Calendar.getInstance()
+    cal.add(Calendar.WEEK_OF_YEAR, offset)
+    cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+    val start = iso.format(cal.time)
+    cal.add(Calendar.DAY_OF_MONTH, 6)
+    val end = iso.format(cal.time)
+    return Pair(start, end)
 }
 
 private fun weekLabel(offset: Int): String {

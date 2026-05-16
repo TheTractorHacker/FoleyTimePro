@@ -188,7 +188,7 @@ function handleHistory(int $empID): void
     global $conn;
 
     $start = $_GET['start'] ?? date('Y-m-d', strtotime('monday this week'));
-    $end   = $_GET['end']   ?? date('Y-m-d', strtotime('friday this week'));
+    $end   = $_GET['end']   ?? date('Y-m-d', strtotime('monday this week +6 days'));
 
     $stmt = $conn->prepare(
         "SELECT Date, TimeIN, LunchStart, LunchEnd, TimeOUT, TotalHours, Note

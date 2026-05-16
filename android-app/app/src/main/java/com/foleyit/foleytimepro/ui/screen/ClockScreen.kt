@@ -228,9 +228,10 @@ fun ClockScreen(prefs: PrefsManager) {
                         if (h.punches.isEmpty()) {
                             Text("No punches this week", color = TextHint, modifier = Modifier.padding(16.dp).fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         } else {
-                            h.punches.take(7).forEachIndexed { i, entry ->
+                            val displayed = h.punches.take(7)
+                            displayed.forEachIndexed { i, entry ->
                                 PunchRowItem(entry)
-                                if (i < h.punches.size - 1) HorizontalDivider(color = DividerColor)
+                                if (i < displayed.size - 1) HorizontalDivider(color = DividerColor)
                             }
                         }
                     }
