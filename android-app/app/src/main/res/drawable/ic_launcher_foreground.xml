@@ -5,65 +5,48 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Dark background circle -->
-    <path android:fillColor="#2D3748"
-        android:pathData="M54,4 A50,50 0 1,1 53.99,4 Z"/>
+    <!-- White clock face -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M54,24 A30,30 0 1,1 53.999,24 Z"/>
 
-    <!-- Cyan clock arc (open at bottom-right) -->
-    <path android:strokeColor="#00BCD4"
-        android:strokeWidth="4.5"
+    <!-- Navy border ring -->
+    <path android:strokeColor="#073851"
+        android:strokeWidth="2.5"
         android:fillColor="#00000000"
-        android:pathData="M54,16 A26,26 0 1,1 72,46"/>
+        android:pathData="M54,24 A30,30 0 1,1 53.999,24 Z"/>
 
-    <!-- Clock tick marks as paths -->
-    <path android:strokeColor="#00BCD4" android:strokeWidth="2.5"
+    <!-- 12 o'clock tick (slightly thicker) -->
+    <path android:strokeColor="#073851" android:strokeWidth="3"
         android:strokeLineCap="round" android:fillColor="#00000000"
-        android:pathData="M54,18 L54,23"/>
-    <path android:strokeColor="#00BCD4" android:strokeWidth="2.5"
-        android:strokeLineCap="round" android:fillColor="#00000000"
-        android:pathData="M80,42 L75,44"/>
-    <path android:strokeColor="#00BCD4" android:strokeWidth="2.5"
-        android:strokeLineCap="round" android:fillColor="#00000000"
-        android:pathData="M30,42 L35,44"/>
+        android:pathData="M54,24 L54,31"/>
 
-    <!-- Hour hand (toward 10) -->
-    <path android:strokeColor="#FFFFFF" android:strokeWidth="3"
+    <!-- 3 o'clock tick -->
+    <path android:strokeColor="#073851" android:strokeWidth="2.5"
         android:strokeLineCap="round" android:fillColor="#00000000"
-        android:pathData="M54,42 L44,32"/>
+        android:pathData="M84,54 L77,54"/>
 
-    <!-- Minute hand (toward 1) -->
-    <path android:strokeColor="#FFFFFF" android:strokeWidth="2.5"
+    <!-- 6 o'clock tick -->
+    <path android:strokeColor="#073851" android:strokeWidth="2.5"
         android:strokeLineCap="round" android:fillColor="#00000000"
-        android:pathData="M54,42 L62,28"/>
+        android:pathData="M54,84 L54,77"/>
+
+    <!-- 9 o'clock tick -->
+    <path android:strokeColor="#073851" android:strokeWidth="2.5"
+        android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M24,54 L31,54"/>
+
+    <!-- Hour hand (10 o'clock) -->
+    <path android:strokeColor="#073851" android:strokeWidth="4"
+        android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M54,54 L42,47"/>
+
+    <!-- Minute hand (2 o'clock) -->
+    <path android:strokeColor="#073851" android:strokeWidth="3"
+        android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M54,54 L71,44"/>
 
     <!-- Center dot -->
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M54,39.5 A2.5,2.5 0 1,1 53.99,39.5 Z"/>
-
-    <!-- Timeclock machine body (cyan) -->
-    <path android:fillColor="#00BCD4"
-        android:pathData="M60,48 L78,48 L78,66 L60,66 Z"/>
-
-    <!-- Machine display (white) -->
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M62,51 L70,51 L70,56 L62,56 Z"/>
-
-    <!-- Paper slip above machine -->
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M63,44 L73,44 L73,50 L63,50 Z"/>
-
-    <!-- Paper lines on slip -->
-    <path android:strokeColor="#00BCD4" android:strokeWidth="1"
-        android:fillColor="#00000000"
-        android:pathData="M65,46 L71,46 M65,48 L69,48"/>
-
-    <!-- Keypad dots (3x2 grid) -->
-    <path android:fillColor="#2D3748"
-        android:pathData="M63,59 A1,1 0 1,1 62.99,59 Z
-                          M67,59 A1,1 0 1,1 66.99,59 Z
-                          M71,59 A1,1 0 1,1 70.99,59 Z
-                          M63,63 A1,1 0 1,1 62.99,63 Z
-                          M67,63 A1,1 0 1,1 66.99,63 Z
-                          M71,63 A1,1 0 1,1 70.99,63 Z"/>
+    <path android:fillColor="#073851"
+        android:pathData="M54,51.5 A2.5,2.5 0 1,1 53.999,51.5 Z"/>
 
 </vector>
