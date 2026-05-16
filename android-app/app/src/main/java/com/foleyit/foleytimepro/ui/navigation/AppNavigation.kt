@@ -39,7 +39,11 @@ fun AppNavigation(startDestination: String, prefs: PrefsManager) {
             SetupScreen(prefs = prefs, onConnected = { navController.navigate("login") { popUpTo("setup") { inclusive = true } } })
         }
         composable("login") {
-            LoginScreen(prefs = prefs, onLoggedIn = { navController.navigate("dashboard") { popUpTo("login") { inclusive = true } } })
+            LoginScreen(
+                prefs          = prefs,
+                onLoggedIn     = { navController.navigate("dashboard") { popUpTo("login") { inclusive = true } } },
+                onChangeServer = { navController.navigate("setup") { popUpTo(0) { inclusive = true } } },
+            )
         }
         composable("dashboard") {
             DashboardShell(prefs = prefs, onLogout = { navController.navigate("login") { popUpTo("dashboard") { inclusive = true } } })

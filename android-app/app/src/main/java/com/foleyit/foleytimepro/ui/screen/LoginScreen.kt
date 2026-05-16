@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun LoginScreen(prefs: PrefsManager, onLoggedIn: () -> Unit) {
+fun LoginScreen(prefs: PrefsManager, onLoggedIn: () -> Unit, onChangeServer: () -> Unit) {
     val scope    = rememberCoroutineScope()
     var email    by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -113,17 +113,14 @@ fun LoginScreen(prefs: PrefsManager, onLoggedIn: () -> Unit) {
             modifier = Modifier.fillMaxWidth().height(52.dp),
         ) {
             if (loading) CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
-            else Text(if (needs2FA) "Verify & Sign In" else "Sign In", fontWeight = FontWeight.Bold)
+            else Text(if (needs2FA) "Verify & Sign In" else "Sign In", fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
         }
 
         Spacer(Modifier.height(24.dp))
         HorizontalDivider()
         Spacer(Modifier.height(16.dp))
 
-        TextButton(onClick = {
-            prefs.clearAll()
-            // Restart app navigation — pop back to setup
-        }) {
+        TextButton(onClick = { prefs.clearAll(); onChangeServer() }) {
             Text("Change Server", color = TextSecondary)
         }
     }

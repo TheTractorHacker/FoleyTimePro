@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
     val scope   = rememberCoroutineScope()
-    var url     by remember { mutableStateOf("") }
+    var url     by remember { mutableStateOf("https://") }
     var loading by remember { mutableStateOf(false) }
     var error   by remember { mutableStateOf("") }
     var company by remember { mutableStateOf("") }
@@ -42,9 +42,12 @@ fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
 
         OutlinedTextField(
             value = url,
-            onValueChange = { url = it; verified = false; error = "" },
+            onValueChange = { newVal ->
+                url = if (newVal.startsWith("https://")) newVal else "https://"
+                verified = false; error = ""
+            },
             label = { Text("Server URL") },
-            placeholder = { Text("https://time.yourcompany.com") },
+            placeholder = { Text("time.yourcompany.com") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
@@ -69,7 +72,7 @@ fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
             }
             Spacer(Modifier.height(16.dp))
             Button(onClick = onConnected, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                Text("Continue to Sign In →", fontWeight = FontWeight.Bold)
+                Text("Continue to Sign In →", fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
             }
         } else {
             Button(
@@ -80,11 +83,11 @@ fun SetupScreen(prefs: PrefsManager, onConnected: () -> Unit) {
                         loading = false
                     }
                 },
-                enabled  = url.isNotBlank() && !loading,
+                enabled  = url.length > 8 && !loading,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
                 if (loading) CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
-                else Text("Connect", fontWeight = FontWeight.Bold)
+                else Text("Connect", fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color.White)
             }
         }
     }
