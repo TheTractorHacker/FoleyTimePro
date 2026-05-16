@@ -45,24 +45,11 @@ $branding = getBranding($conn);
         <line x1="18" y1="8" x2="18" y2="16"/>
       </svg>
     </div>
-    <p class="k-scan-hint">Scan your badge <span style="opacity:.5">or</span> enter your PIN below</p>
+    <p class="k-scan-hint">Scan your badge or enter your Tag ID</p>
     <input type="text" id="tagInput"
-           placeholder="Scan badge or type Tag ID…"
+           placeholder="Scan badge or type ID…"
            autocomplete="off" autocorrect="off"
            spellcheck="false" autofocus>
-
-    <!-- PIN pad -->
-    <div class="k-pin-wrap" id="pinWrap">
-      <div class="k-pin-display" id="pinDisplay">——</div>
-      <div class="k-pin-grid">
-        <?php foreach (['1','2','3','4','5','6','7','8','9','','0','⌫'] as $k): ?>
-          <button class="k-pin-btn<?= $k==='' ? ' k-pin-empty' : '' ?>"
-                  <?= $k==='' ? 'disabled' : '' ?>
-                  onclick="pinKey('<?= $k ?>')"><?= $k ?></button>
-        <?php endforeach; ?>
-      </div>
-      <button class="k-pin-submit" id="pinSubmit" onclick="submitPin()" disabled>Enter</button>
-    </div>
   </div>
 
   <!-- ── Clock panel (after scan) ──────────────────── -->
@@ -134,45 +121,9 @@ const successBeep = document.getElementById('successBeep');
 const errorBeep   = document.getElementById('errorBeep');
 
 let scannedTag = '';
-let pinMode    = false;  // true = PIN entry mode
-let currentPin = '';
 let scanTimer  = null;
 
 tagInput.focus();
-
-// ── PIN pad ───────────────────────────────────────────
-const pinDisplay = document.getElementById('pinDisplay');
-const pinSubmit  = document.getElementById('pinSubmit');
-
-window.pinKey = function(k) {
-  if (k === '⌫') {
-    currentPin = currentPin.slice(0, -1);
-  } else if (currentPin.length < 8) {
-    currentPin += k;
-  }
-  pinDisplay.textContent = currentPin.length ? '●'.repeat(currentPin.length) : '——';
-  pinSubmit.disabled = currentPin.length < 4;
-};
-
-window.submitPin = function() {
-  if (currentPin.length < 4) return;
-  fetch('../functions/clock_action.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ PIN: currentPin, mode: 'kiosk_pin_status' })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (!data.success) { showFeedback(false, data.message || 'PIN not recognized'); currentPin = ''; pinDisplay.textContent = '——'; pinSubmit.disabled = true; return; }
-    scannedTag = '__PIN__';
-    pinMode    = true;
-    document.getElementById('welcomeName').textContent = data.firstName + (data.lastName ? ' ' + data.lastName : '');
-    setStatusBadge(data.status);
-    scanPanel.classList.add('hidden');
-    clockPanel.classList.remove('hidden');
-  })
-  .catch(() => showFeedback(false, 'Network error'));
-};
 
 tagInput.addEventListener('input', () => {
   clearTimeout(scanTimer);
@@ -218,13 +169,10 @@ function setStatusBadge(status) {
 
 window.submitPunch = function(action) {
   if (!scannedTag || !action) return;
-  const params = pinMode
-    ? new URLSearchParams({ PIN: currentPin, mode: 'kiosk_pin', action })
-    : new URLSearchParams({ TagID: scannedTag, mode: 'kiosk', action });
   fetch('../functions/clock_action.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params
+    body: new URLSearchParams({ TagID: scannedTag, mode: 'kiosk', action })
   })
   .then(r => r.json())
   .then(data => {
@@ -239,10 +187,6 @@ window.resetKiosk = function() {
   scanPanel.classList.remove('hidden');
   tagInput.value = '';
   scannedTag = '';
-  pinMode    = false;
-  currentPin = '';
-  pinDisplay.textContent = '——';
-  pinSubmit.disabled = true;
   tagInput.focus();
 };
 

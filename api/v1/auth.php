@@ -31,9 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Get request body
 $input = json_decode(file_get_contents('php://input'), true);
 
-// Determine action from URL path
-$requestUri = $_SERVER['REQUEST_URI'];
-$action = basename(parse_url($requestUri, PHP_URL_PATH));
+// Action from ?action= query param (direct .php call) or URL path (pretty URL)
+$action = $_GET['action'] ?? basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
 switch ($action) {
     case 'login':

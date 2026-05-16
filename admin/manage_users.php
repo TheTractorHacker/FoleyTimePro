@@ -137,7 +137,7 @@ include 'includes/header.php';
       </div>
       <div class="form-row">
         <div class="form-group"><label>Login Password *</label><input type="password" name="Password" placeholder="App &amp; web login" required></div>
-        <div class="form-group"><label>Kiosk PIN (4–8 digits)</label><input type="text" name="UserPIN" placeholder="Optional" pattern="\d{4,8}" inputmode="numeric" maxlength="8"></div>
+        <div class="form-group"><label>Web Portal PIN (2–8 digits)</label><input type="text" name="UserPIN" placeholder="Optional" pattern="\d{2,6}" inputmode="numeric" maxlength="6"></div>
       </div>
       <div class="form-group"><label>Badge / Tag ID</label><input type="text" name="TagID" placeholder="Optional – for NFC badge"></div>
       <div class="modal-actions">

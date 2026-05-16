@@ -84,8 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Update PIN separately if provided
         if ($newPin !== '') {
-            if (!ctype_digit($newPin) || strlen($newPin) < 4 || strlen($newPin) > 8) {
-                $error = "Kiosk PIN must be 4–8 digits.";
+            if (!ctype_digit($newPin) || strlen($newPin) < 2 || strlen($newPin) > 6) {
+                $error = "Web Portal PIN must be 2–6 digits.";
             } else {
                 $pinHash = hash('sha256', $newPin);
                 $pinStmt = $conn->prepare("UPDATE users SET UserPIN=? WHERE ID=?");
@@ -221,8 +221,8 @@ include 'includes/header.php';
       </div>
 
       <div class="card" style="margin-bottom:16px">
-        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Kiosk PIN</h3>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">4–8 digit numeric PIN for punching in/out at the kiosk. Separate from the login password. Leave blank to keep existing.</p>
+        <h3 style="margin-bottom:16px;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Web Portal PIN</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">2–6 digit numeric PIN for the web portal login. Separate from the app password. Leave blank to keep existing.</p>
         <div class="form-group">
           <label>New PIN (4–8 digits)</label>
           <input type="text" name="UserPIN" id="pinField"

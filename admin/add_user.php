@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $hashed    = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    $hashedPin = (!empty($pin) && ctype_digit($pin) && strlen($pin) >= 4 && strlen($pin) <= 8)
+    $hashedPin = (!empty($pin) && ctype_digit($pin) && strlen($pin) >= 2 && strlen($pin) <= 6)
                  ? hash('sha256', $pin) : null;
 
     $stmt = $conn->prepare("

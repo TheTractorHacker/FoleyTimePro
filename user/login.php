@@ -104,14 +104,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nameKey     = norm_name_key($namePrefill);
 
         if ($namePrefill === '' || $password === '') {
-            $error = "Please enter both name and password.";
+            $error = "Please enter your name and PIN.";
         } else {
             [$first, $last] = parse_name($namePrefill);
             $user = null;
 
             if ($first !== '' && $last !== '') {
                 $stmt = $conn->prepare("
-                    SELECT ID, FirstName, LastName, Pass, TwoFAEnabled, LockOut
+                    SELECT ID, FirstName, LastName, UserPIN, TwoFAEnabled, LockOut
                     FROM users
                     WHERE FirstName = ? AND LastName = ?
                     LIMIT 1
@@ -134,8 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($user['LockOut'])) {
                     $error = "Your account is locked. Please contact an administrator.";
                 } else {
-                    // Not locked: check password
-                    $valid = is_string($user['Pass']) && $user['Pass'] !== '' && password_verify($password, $user['Pass']);
+                    // Check PIN (SHA-256 hash comparison)
+                    $valid = !empty($user['UserPIN']) && hash_equals($user['UserPIN'], hash('sha256', $password));
 
                     if ($valid) {
                         // Success: clear attempts for both maps
@@ -262,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div class="u-form-group">
-        <label for="passInput">PIN / Password</label>
+        <label for="passInput">PIN</label>
         <input
           type="password"
           name="password"
