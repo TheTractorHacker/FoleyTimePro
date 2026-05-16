@@ -31,28 +31,43 @@ import java.util.TimeZone
 fun TimeOffScreen(prefs: PrefsManager) {
     val scope  = rememberCoroutineScope()
     val api    = remember { ApiClient(prefs.getInstanceUrl()) }
-    var requests by remember { mutableStateOf<List<TimeOffRequest>>(emptyList()) }
-    var loading  by remember { mutableStateOf(true) }
+    var requests   by remember { mutableStateOf<List<TimeOffRequest>>(emptyList()) }
+    var loading    by remember { mutableStateOf(true) }
+    var submitting by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
+    var statusMsg  by remember { mutableStateOf("") }
+    var statusOk   by remember { mutableStateOf(true) }
 
-    fun load() = scope.launch {
+    suspend fun reload() {
         loading = true
         val r = withContext(Dispatchers.IO) { api.getTimeOffRequests(prefs.getAccessToken()) }
         if (r.success) requests = r.requests
         loading = false
     }
 
-    LaunchedEffect(Unit) { load() }
+    LaunchedEffect(Unit) { reload() }
 
     if (showDialog) {
         TimeOffRequestDialog(
             onDismiss = { showDialog = false },
             onSubmit  = { start, end, reason ->
-                scope.launch {
-                    withContext(Dispatchers.IO) { api.submitTimeOffRequest(prefs.getAccessToken(), start, end, reason) }
-                    load()
-                }
                 showDialog = false
+                submitting = true
+                statusMsg  = ""
+                scope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        api.submitTimeOffRequest(prefs.getAccessToken(), start, end, reason)
+                    }
+                    submitting = false
+                    if (result.success) {
+                        statusMsg = "Request submitted — pending approval"
+                        statusOk  = true
+                        reload()
+                    } else {
+                        statusMsg = result.error.ifEmpty { "Failed to submit. Please try again." }
+                        statusOk  = false
+                    }
+                }
             }
         )
     }
@@ -72,7 +87,31 @@ fun TimeOffScreen(prefs: PrefsManager) {
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp)) {
             Text("Your Requests", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 4.dp))
-            Text("Submitted time off requests", color = TextSecondary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 16.dp))
+            Text("Submitted time off requests", color = TextSecondary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
+
+            if (submitting) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp))
+            }
+
+            if (statusMsg.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (statusOk) GreenIn.copy(alpha = 0.1f)
+                                         else MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                    ),
+                    elevation = CardDefaults.cardElevation(0.dp),
+                ) {
+                    Text(
+                        statusMsg,
+                        color = if (statusOk) GreenIn else MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
+            }
 
             if (loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(32.dp))
@@ -103,9 +142,9 @@ private fun TimeOffRow(req: TimeOffRequest) {
             if (req.reason.isNotEmpty()) Text(req.reason, fontSize = 11.sp, color = TextHint, modifier = Modifier.padding(top = 2.dp))
         }
         val (bgColor, label) = when (req.status) {
-            "Approved" -> Pair(Color(0xFF16A34A), "Approved")
-            "Denied"   -> Pair(Color(0xFFDC2626), "Denied")
-            else       -> Pair(Color(0xFFF97316), "Pending")
+            "Approved"         -> Pair(Color(0xFF16A34A), "Approved")
+            "Rejected", "Denied" -> Pair(Color(0xFFDC2626), "Rejected")
+            else               -> Pair(Color(0xFFF97316), "Pending")
         }
         Surface(shape = RoundedCornerShape(12.dp), color = bgColor) {
             Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
