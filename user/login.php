@@ -268,12 +268,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="u-form-group">
         <label for="passInput">PIN</label>
         <input
-          type="password"
+          type="tel"
           name="password"
           id="passInput"
+          inputmode="numeric"
+          maxlength="6"
           placeholder="Enter your PIN"
           required
-          autocomplete="current-password"
+          autocomplete="off"
+          data-lpignore="true"
+          data-form-type="other"
           inputmode="numeric">
       </div>
 
