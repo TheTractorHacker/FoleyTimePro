@@ -269,17 +269,33 @@ class ApiClient(private val baseUrl: String) {
         val body = resp.body?.string().orEmpty().takeIf { it.isNotEmpty() } ?: "{}"
         val json = org.json.JSONObject(body)
         if (json.optBoolean("success")) {
-            val d = json.optJSONObject("data") ?: org.json.JSONObject()
-            val daysArr = d.optJSONArray("days_of_week") ?: org.json.JSONArray()
+            val shifts = json.optJSONObject("data")?.optJSONArray("shifts")
+            val s = shifts?.takeIf { it.length() > 0 }?.getJSONObject(0)
+            if (s == null) return ShiftInfo(false, error = "No shift assigned")
+            val daysArr = s.optJSONArray("days") ?: org.json.JSONArray()
             val days = (0 until daysArr.length()).map { daysArr.getString(it) }
             ShiftInfo(
-                success = true, shiftName = d.optString("shift_name", ""),
-                startTime = d.optString("start_time", ""), endTime = d.optString("end_time", ""),
-                daysOfWeek = days, lunchDuration = d.optInt("lunch_duration", 0),
-                autoClockOut = d.optBoolean("auto_clock_out", false)
+                success = true,
+                shiftName = s.optString("name", ""),
+                startTime = s.optString("start_time", ""),
+                endTime = s.optString("end_time", ""),
+                daysOfWeek = days,
+                lunchDuration = s.optInt("lunch_duration", 0),
+                autoClockOut = s.optBoolean("auto_clock_out", false)
             )
         } else ShiftInfo(false, error = json.optString("message", "No shift assigned"))
     } catch (e: Exception) { ShiftInfo(false, error = e.message ?: "Network error") }
+
+    fun changePassword(token: String, newPassword: String): PunchResult = try {
+        val body = org.json.JSONObject().apply { put("password", newPassword) }
+            .toString().toRequestBody(JSON_TYPE)
+        val resp = http.newCall(Request.Builder()
+            .url("$baseUrl/api/v1/user.php?action=change_password")
+            .header("Authorization", "Bearer $token").post(body).build()).execute()
+        val json = org.json.JSONObject(resp.body?.string().orEmpty().ifEmpty { "{}" })
+        if (json.optBoolean("success")) PunchResult(true, json.optString("message", "Password updated"))
+        else PunchResult(false, error = json.optString("message", "Failed to update password"))
+    } catch (e: Exception) { PunchResult(false, error = e.message ?: "Network error") }
 
     fun refreshToken(refreshToken: String): LoginResult = try {
         val body = JSONObject().apply { put("refresh_token", refreshToken) }

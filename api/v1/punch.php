@@ -197,7 +197,7 @@ function handleHistory(int $empID): void
     );
     $stmt->bind_param("iss", $empID, $start, $end);
     $stmt->execute();
-    $rows   = $stmt->get_result()->fetchAll(MYSQLI_ASSOC);
+    $rows   = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $punches = [];
     $totalHours = 0.0;
 

@@ -34,13 +34,22 @@
                     android:background="@drawable/status_card_bg">
 
                     <TextView
+                        android:id="@+id/tvGreeting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="13sp"
+                        android:textColor="#AADDFF"
+                        android:letterSpacing=".04"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
                         android:id="@+id/tvName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="22sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"
-                        android:layout_marginBottom="10dp"/>
+                        android:layout_marginBottom="12dp"/>
 
                     <TextView
                         android:id="@+id/tvStatusBadge"

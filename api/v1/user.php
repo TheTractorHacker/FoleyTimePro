@@ -43,6 +43,18 @@ switch ($action) {
         handleUpdateProfile($userId);
         break;
 
+    case 'change_password':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') ApiResponse::error('Method not allowed', 405);
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $newPw = trim($input['password'] ?? '');
+        if (strlen($newPw) < 6) ApiResponse::error('Password must be at least 6 characters', 400);
+        $hash = password_hash($newPw, PASSWORD_BCRYPT, ['cost' => 12]);
+        $s = $conn->prepare("UPDATE users SET Pass=? WHERE ID=?");
+        $s->bind_param("si", $hash, $userId);
+        $s->execute();
+        ApiResponse::success([], 'Password updated successfully');
+        break;
+
     default:
         ApiResponse::error('Invalid endpoint', 404);
 }

@@ -10,16 +10,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:paddingBottom="24dp">
 
-        <!-- Avatar card -->
+        <!-- Avatar hero card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="14dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -30,10 +30,10 @@
 
                 <TextView
                     android:id="@+id/tvInitials"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="76dp"
+                    android:layout_height="76dp"
                     android:gravity="center"
-                    android:textSize="30sp"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
                     android:background="@drawable/avatar_bg"
@@ -46,7 +46,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
-                    android:layout_marginBottom="4dp"/>
+                    android:layout_marginBottom="3dp"/>
 
                 <TextView
                     android:id="@+id/tvEmail"
@@ -54,11 +54,10 @@
                     android:layout_height="wrap_content"
                     android:textSize="13sp"
                     android:textColor="#AADDFF"/>
-
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Info card -->
+        <!-- Account info card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -66,72 +65,43 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             app:cardBackgroundColor="@color/colorSurface">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="4dp">
 
-                <!-- Server row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Server"
-                        android:textSize="14sp"
-                        android:textColor="@color/colorTextSecondary"/>
-
-                    <TextView
-                        android:id="@+id/tvServer"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorOnSurface"
-                        android:maxLines="1"
-                        android:ellipsize="end"/>
+                <!-- Server -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="52dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="16dp" android:paddingEnd="16dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Server"
+                        android:textSize="14sp" android:textColor="@color/colorTextSecondary"/>
+                    <TextView android:id="@+id/tvServer" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="13sp"
+                        android:textColor="@color/colorOnSurface" android:maxLines="1" android:ellipsize="end"/>
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp"
                     android:layout_marginStart="16dp" android:background="@color/colorDivider"/>
 
-                <!-- Company row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Company"
-                        android:textSize="14sp"
-                        android:textColor="@color/colorTextSecondary"/>
-
-                    <TextView
-                        android:id="@+id/tvCompany"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="13sp"
+                <!-- Company -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="52dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="16dp" android:paddingEnd="16dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Company"
+                        android:textSize="14sp" android:textColor="@color/colorTextSecondary"/>
+                    <TextView android:id="@+id/tvCompany" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="13sp"
                         android:textColor="@color/colorOnSurface"/>
                 </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Actions card -->
+        <!-- Change password card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -139,45 +109,108 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
             app:cardBackgroundColor="@color/colorSurface">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Change Password"
+                    android:textSize="14sp" android:textStyle="bold"
+                    android:textColor="@color/colorOnSurface" android:layout_marginBottom="12dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:hint="New Password">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etNewPassword"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:inputType="textPassword" android:autocomplete="off"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:hint="Confirm Password">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etConfirmPassword"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnChangePassword"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="Update Password"
+                    app:backgroundTint="@color/colorPrimary" app:cornerRadius="10dp"/>
+
+                <TextView android:id="@+id/tvPasswordMsg"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" android:gravity="center"
+                    android:textSize="12sp" android:visibility="gone"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Settings card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/colorSurface">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="4dp">
 
-                <LinearLayout
-                    android:id="@+id/rowChangeServer"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:clickable="true"
-                    android:focusable="true"
+                <!-- Change Server -->
+                <LinearLayout android:id="@+id/rowChangeServer"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="16dp" android:paddingEnd="16dp"
+                    android:clickable="true" android:focusable="true"
                     android:background="?attr/selectableItemBackground">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Change Server"
+                        android:textSize="14sp" android:textColor="@color/colorOnSurface"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="›" android:textSize="22sp" android:textColor="@color/colorTextSecondary"/>
+                </LinearLayout>
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Change Server"
-                        android:textSize="14sp"
-                        android:textColor="@color/colorOnSurface"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:layout_marginStart="16dp" android:background="@color/colorDivider"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="›"
-                        android:textSize="20sp"
-                        android:textColor="@color/colorTextSecondary"/>
+                <!-- 2FA Status -->
+                <LinearLayout android:id="@+id/row2FA"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="16dp" android:paddingEnd="16dp"
+                    android:clickable="true" android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Two-Factor Auth (2FA)"
+                            android:textSize="14sp" android:textColor="@color/colorOnSurface"/>
+                        <TextView android:id="@+id/tv2FAStatus"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Manage via web portal"
+                            android:textSize="11sp" android:textColor="@color/colorTextSecondary"/>
+                    </LinearLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="›" android:textSize="22sp" android:textColor="@color/colorTextSecondary"/>
                 </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Logout button -->
+        <!-- Sign out -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"

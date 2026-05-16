@@ -84,7 +84,7 @@ class TimeOffFragment : Fragment() {
 
             requestsContainer.addView(card)
             card.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
-                startOffset = (i * 80).toLong()
+                startOffset = (i * 25).toLong()
             })
         }
     }

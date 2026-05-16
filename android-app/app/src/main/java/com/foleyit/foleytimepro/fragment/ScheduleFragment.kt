@@ -127,7 +127,7 @@ class ScheduleFragment : Fragment() {
             }
 
             row.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in).apply {
-                startOffset = (i * 60).toLong()
+                startOffset = (i * 25).toLong()
             })
         }
     }
