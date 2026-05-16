@@ -150,7 +150,7 @@ $statusColor = match($user['ClockStatus'] ?? 'Out') {
 ?>
 
 <style>
-.eu-wrap { max-width: 960px; }
+.eu-wrap { max-width: 960px; margin: 0 auto; }
 
 /* ── Page header ── */
 .eu-hero {
