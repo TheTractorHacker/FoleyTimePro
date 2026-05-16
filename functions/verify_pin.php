@@ -13,13 +13,13 @@ if (!$empID || !$pin) {
 }
 
 // Prepare user lookup
-$stmt = $conn->prepare("SELECT ID, Pass, ClockStatus FROM users WHERE ID = ?");
+$stmt = $conn->prepare("SELECT ID, UserPIN, ClockStatus FROM users WHERE ID = ?");
 $stmt->bind_param("s", $empID);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($user = $result->fetch_assoc()) {
-    if (password_verify($pin, $user['Pass'])) {
+    if (!empty($user['UserPIN']) && hash_equals($user['UserPIN'], hash('sha256', $pin))) {
 
         // Use a single optimized query for latest punch
         $punchStmt = $conn->prepare("
