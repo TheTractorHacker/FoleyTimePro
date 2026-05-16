@@ -43,5 +43,11 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize"/>
 
+        <activity
+            android:name=".DashboardActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize"/>
+
     </application>
 </manifest>

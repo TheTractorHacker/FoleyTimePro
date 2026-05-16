@@ -21,4 +21,8 @@
     <color name="colorStatusIn">#2E7D32</color>
     <color name="colorStatusLunch">#E65100</color>
     <color name="colorStatusOut">#757575</color>
+    <color name="colorPrimaryLight">#E8F0F5</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#111827</color>
+    <color name="colorTextHint">#9CA3AF</color>
 </resources>

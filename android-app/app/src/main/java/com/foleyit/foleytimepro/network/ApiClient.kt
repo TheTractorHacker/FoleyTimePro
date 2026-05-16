@@ -48,6 +48,33 @@ data class PunchHistory(
     val error: String = ""
 )
 
+data class TimeOffRequest(
+    val id: Int,
+    val startDate: String,
+    val endDate: String,
+    val reason: String,
+    val status: String,
+    val type: String,
+    val createdAt: String
+)
+
+data class TimeOffResult(
+    val success: Boolean,
+    val requests: List<TimeOffRequest> = emptyList(),
+    val error: String = ""
+)
+
+data class ShiftInfo(
+    val success: Boolean,
+    val shiftName: String = "",
+    val startTime: String = "",
+    val endTime: String = "",
+    val daysOfWeek: List<String> = emptyList(),
+    val lunchDuration: Int = 0,
+    val autoClockOut: Boolean = false,
+    val error: String = ""
+)
+
 data class LoginResult(
     val success: Boolean,
     val accessToken: String = "",
@@ -200,6 +227,59 @@ class ApiClient(private val baseUrl: String) {
             PunchHistory(true, list, d.optString("total_hours", "0.00"))
         } else PunchHistory(false, error = json.optString("message", "Failed to load history"))
     } catch (e: Exception) { PunchHistory(false, error = e.message ?: "Network error") }
+
+    fun getTimeOffRequests(token: String): TimeOffResult = try {
+        val resp = http.newCall(Request.Builder()
+            .url("$baseUrl/api/v1/timeoff.php?action=timeoff")
+            .header("Authorization", "Bearer $token").build()).execute()
+        val body = resp.body?.string().orEmpty().takeIf { it.isNotEmpty() } ?: "{}"
+        val json = org.json.JSONObject(body)
+        if (json.optBoolean("success")) {
+            val arr = json.optJSONObject("data")?.optJSONArray("requests") ?: org.json.JSONArray()
+            val list = (0 until arr.length()).map { i ->
+                val r = arr.getJSONObject(i)
+                TimeOffRequest(
+                    id = r.optInt("id"), startDate = r.optString("start_date"),
+                    endDate = r.optString("end_date"), reason = r.optString("reason"),
+                    status = r.optString("status"), type = r.optString("type", "Vacation"),
+                    createdAt = r.optString("created_at")
+                )
+            }
+            TimeOffResult(true, list)
+        } else TimeOffResult(false, error = json.optString("message", "Failed"))
+    } catch (e: Exception) { TimeOffResult(false, error = e.message ?: "Network error") }
+
+    fun submitTimeOffRequest(token: String, startDate: String, endDate: String, reason: String, type: String = "Vacation"): PunchResult = try {
+        val body = org.json.JSONObject().apply {
+            put("start_date", startDate); put("end_date", endDate)
+            put("reason", reason); put("type", type)
+        }.toString().toRequestBody(JSON_TYPE)
+        val resp = http.newCall(Request.Builder()
+            .url("$baseUrl/api/v1/timeoff.php?action=request")
+            .header("Authorization", "Bearer $token").post(body).build()).execute()
+        val json = org.json.JSONObject(resp.body?.string().orEmpty().ifEmpty { "{}" })
+        if (json.optBoolean("success")) PunchResult(true, json.optString("message", "Request submitted"))
+        else PunchResult(false, error = json.optString("message", "Failed to submit"))
+    } catch (e: Exception) { PunchResult(false, error = e.message ?: "Network error") }
+
+    fun getMyShift(token: String): ShiftInfo = try {
+        val resp = http.newCall(Request.Builder()
+            .url("$baseUrl/api/v1/shifts.php?action=my")
+            .header("Authorization", "Bearer $token").build()).execute()
+        val body = resp.body?.string().orEmpty().takeIf { it.isNotEmpty() } ?: "{}"
+        val json = org.json.JSONObject(body)
+        if (json.optBoolean("success")) {
+            val d = json.optJSONObject("data") ?: org.json.JSONObject()
+            val daysArr = d.optJSONArray("days_of_week") ?: org.json.JSONArray()
+            val days = (0 until daysArr.length()).map { daysArr.getString(it) }
+            ShiftInfo(
+                success = true, shiftName = d.optString("shift_name", ""),
+                startTime = d.optString("start_time", ""), endTime = d.optString("end_time", ""),
+                daysOfWeek = days, lunchDuration = d.optInt("lunch_duration", 0),
+                autoClockOut = d.optBoolean("auto_clock_out", false)
+            )
+        } else ShiftInfo(false, error = json.optString("message", "No shift assigned"))
+    } catch (e: Exception) { ShiftInfo(false, error = e.message ?: "Network error") }
 
     fun refreshToken(refreshToken: String): LoginResult = try {
         val body = JSONObject().apply { put("refresh_token", refreshToken) }

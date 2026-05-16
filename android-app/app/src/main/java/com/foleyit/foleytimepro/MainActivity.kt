@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
         val next = when {
             prefs.getInstanceUrl().isEmpty() -> SetupActivity::class.java
             prefs.getAccessToken().isEmpty() -> LoginActivity::class.java
-            else                             -> HomeActivity::class.java
+            else                             -> DashboardActivity::class.java
         }
         startActivity(Intent(this, next))
         finish()

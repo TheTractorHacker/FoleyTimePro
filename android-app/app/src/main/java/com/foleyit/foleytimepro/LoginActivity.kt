@@ -88,7 +88,7 @@ class LoginActivity : AppCompatActivity() {
                     mgr.flush()
                 }
                 setLoading(false)
-                startActivity(Intent(this, HomeActivity::class.java))
+                startActivity(Intent(this, DashboardActivity::class.java))
                 finish()
             }
         }.start()

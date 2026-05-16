@@ -1,17 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FoleyTimePro icon: cyan clock arc + timeclock machine on dark background -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Clock face -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,20 A34,34 0 1,1 53.99,20 Z"/>
-    <!-- Clock hands -->
-    <path
-        android:fillColor="#073851"
-        android:strokeColor="#073851"
+
+    <!-- Dark background circle -->
+    <path android:fillColor="#2D3748"
+        android:pathData="M54,4 A50,50 0 1,1 53.9,4 Z"/>
+
+    <!-- Cyan clock arc (open at bottom-right) -->
+    <path android:strokeColor="#00BCD4"
+        android:strokeWidth="4.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,16 A26,26 0 1,1 72,46"/>
+
+    <!-- Clock tick marks -->
+    <line android:x1="54" android:y1="18" android:x2="54" android:y2="23"
+        android:strokeColor="#00BCD4" android:strokeWidth="2.5"/>
+    <line android:x1="80" android:y1="42" android:x2="75" android:y2="44"
+        android:strokeColor="#00BCD4" android:strokeWidth="2.5"/>
+    <line android:x1="30" android:y1="42" android:x2="35" android:y2="44"
+        android:strokeColor="#00BCD4" android:strokeWidth="2.5"/>
+
+    <!-- Hour hand (pointing toward 10) -->
+    <path android:strokeColor="#FFFFFF"
         android:strokeWidth="3"
-        android:pathData="M54,36 L54,54 L66,54"/>
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,42 L44,32"/>
+
+    <!-- Minute hand (pointing toward 1) -->
+    <path android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,42 L62,28"/>
+
+    <!-- Center dot -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M54,42 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0"/>
+
+    <!-- Timeclock machine body (cyan) -->
+    <path android:fillColor="#00BCD4"
+        android:pathData="M60,48 L78,48 L78,66 L60,66 Z"
+        android:strokeWidth="0"/>
+
+    <!-- Machine screen/display (white) -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M62,51 L70,51 L70,56 L62,56 Z"/>
+
+    <!-- Machine keypad dots -->
+    <path android:fillColor="#2D3748"
+        android:pathData="M62,58 m1,0 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0
+                          M66,58 m1,0 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0
+                          M70,58 m1,0 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0
+                          M62,61 m1,0 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0
+                          M66,61 m1,0 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0
+                          M70,61 m1,0 a1,1 0 1,1 2,0 a1,1 0 1,1 -2,0"/>
+
+    <!-- Paper slip -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M63,44 L73,44 L73,50 L63,50 Z"/>
+    <path android:fillColor="#00BCD4"
+        android:pathData="M65,46 L71,46 M65,48 L69,48"
+        android:strokeColor="#00BCD4" android:strokeWidth="1"/>
+
 </vector>
