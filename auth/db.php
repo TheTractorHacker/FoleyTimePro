@@ -10,7 +10,8 @@ $host = $_ENV['DB_HOST']     ?? 'localhost';
 $db   = $_ENV['DB_NAME']     ?? 'timeclock';
 $user = $_ENV['DB_USER']     ?? 'timeclock';
 $pass = $_ENV['DB_PASS']     ?? '';
-$tz   = $_ENV['DB_TIMEZONE'] ?? 'America/Chicago';
+$rawTz = $_ENV['DB_TIMEZONE'] ?? 'America/Chicago';
+$tz    = in_array($rawTz, timezone_identifiers_list(), true) ? $rawTz : 'America/Chicago';
 
 $conn = @new mysqli($host, $user, $pass, $db);
 
@@ -29,4 +30,7 @@ if ($conn->connect_error) {
 }
 
 $conn->set_charset('utf8mb4');
-$conn->query("SET time_zone = '{$tz}'");
+$tzStmt = $conn->prepare("SET time_zone = ?");
+$tzStmt->bind_param("s", $tz);
+$tzStmt->execute();
+$tzStmt->close();
