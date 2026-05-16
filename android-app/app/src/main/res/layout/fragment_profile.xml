@@ -128,7 +128,7 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etNewPassword"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:inputType="textPassword" android:autocomplete="off"/>
+                        android:inputType="textPassword"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
