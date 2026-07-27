@@ -23,6 +23,10 @@ session_start();
 
 require '../auth/db.php';
 require '../functions/pin_helper.php';
+require '../functions/get_branding.php';
+$branding      = getBranding($conn);
+$brandLogo     = !empty($branding['LogoPath']) ? htmlspecialchars($branding['LogoPath']) : '/images/FoleyTimePro-logo.png';
+$brandCompany  = htmlspecialchars($branding['CompanyName'] ?? 'FoleyTimePro');
 
 /* ---------- Config ---------- */
 const MAX_LOGIN_ATTEMPTS_USER = 5;     // lock after this many failures
@@ -228,10 +232,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="u-login-card">
 
     <div class="u-login-logo">
-      <img src="../images/FoleyTimePro-logo.png" alt="Logo"
-           onerror="this.onerror=null;this.src='../images/FoleyTimePro-favicon.webp'">
+      <img src="<?= $brandLogo ?>" alt="Logo"
+           onerror="this.onerror=null;this.src='/images/FoleyTimePro-logo.png'">
       <div>
-        <div class="u-login-logo-name">FoleyTimePro</div>
+        <div class="u-login-logo-name"><?= $brandCompany ?></div>
         <div class="u-login-logo-sub">Employee Portal</div>
       </div>
     </div>

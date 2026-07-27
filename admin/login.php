@@ -37,6 +37,10 @@ const FAILURE_DELAY_MICROSECONDS   = 350000;    // ~350ms artificial delay on fa
 
 // ---------- DB ----------
 require '../auth/db.php'; // must set $conn (mysqli)
+require '../functions/get_branding.php';
+$branding      = getBranding($conn);
+$brandLogo     = !empty($branding['LogoPath']) ? htmlspecialchars($branding['LogoPath']) : '/images/FoleyTimePro-logo.png';
+$brandCompany  = htmlspecialchars($branding['CompanyName'] ?? 'FoleyTimePro');
 
 // ---------- Helpers ----------
 function current_username_from_post(): string {
@@ -251,10 +255,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="al-card">
   <div class="al-logo">
-    <img src="../images/FoleyTimePro-logo.png" alt="Logo"
-         onerror="this.onerror=null;this.src='../images/FoleyTimePro-favicon.webp'">
+    <img src="<?= $brandLogo ?>" alt="Logo"
+         onerror="this.onerror=null;this.src='/images/FoleyTimePro-logo.png'">
     <div>
-      <div class="al-brand">FoleyTimePro</div>
+      <div class="al-brand"><?= $brandCompany ?></div>
       <div class="al-sub">Admin Portal</div>
     </div>
   </div>
