@@ -8,6 +8,18 @@ if (!isset($_SESSION['admin'])) {
     exit('Forbidden');
 }
 
+// Require POST + valid CSRF so a page under the attacker's control can't
+// silently flip 2FA / lockout for any user on behalf of a logged-in admin.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method not allowed');
+}
+require_once __DIR__ . '/includes/csrf.php';
+if (!csrf_valid()) {
+    http_response_code(403);
+    exit('Invalid CSRF token');
+}
+
 $id     = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 $action = $_POST['action'] ?? '';
 

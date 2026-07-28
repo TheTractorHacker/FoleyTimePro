@@ -7,6 +7,19 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
+// Require POST + valid CSRF for every code path in this file (add, delete,
+// batch edit). Without this, a page controlled by an attacker could insert,
+// delete, or edit any timepunch on behalf of a logged-in admin.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method not allowed');
+}
+require_once __DIR__ . '/includes/csrf.php';
+if (!csrf_valid()) {
+    http_response_code(403);
+    exit('Invalid CSRF token');
+}
+
 date_default_timezone_set('America/Chicago');
 
 // Helper to calculate total hours
