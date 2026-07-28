@@ -235,19 +235,38 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_pin_status' && isset($_P
     $firstName = $found['FirstName'];
     $lastName  = $found['LastName'];
 
-    $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
+    $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT, Date FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
     $punch->bind_param("i", $empID);
     $punch->execute();
     $punch->store_result();
-    $punch->bind_result($pTimeIn, $pLunchStart, $pLunchEnd, $pTimeOut);
+    $punch->bind_result($pTimeIn, $pLunchStart, $pLunchEnd, $pTimeOut, $pDate);
     $status = 'Out';
+    $hasOpen = false;
     if ($punch->fetch() && empty($pTimeOut)) {
+        $hasOpen = true;
         if (empty($pLunchStart))      $status = 'In';
         elseif (empty($pLunchEnd))    $status = 'Lunch';
         else                          $status = 'In';
     }
     $punch->close();
-    echo json_encode(['success' => true, 'firstName' => $firstName, 'lastName' => $lastName, 'empID' => $empID, 'status' => $status]);
+
+    $sinceIso = null; $lunchStartIso = null;
+    if ($hasOpen && $pTimeIn && $pDate) {
+        try { $sinceIso = (new DateTime($pDate . ' ' . $pTimeIn, new DateTimeZone(date_default_timezone_get())))->format('c'); } catch (Exception $e) {}
+    }
+    if ($status === 'Lunch' && $pLunchStart && $pDate) {
+        try { $lunchStartIso = (new DateTime($pDate . ' ' . $pLunchStart, new DateTimeZone(date_default_timezone_get())))->format('c'); } catch (Exception $e) {}
+    }
+
+    echo json_encode([
+        'success'        => true,
+        'firstName'      => $firstName,
+        'lastName'       => $lastName,
+        'empID'          => $empID,
+        'status'         => $status,
+        'sinceTime'      => $sinceIso,
+        'lunchStartTime' => $lunchStartIso,
+    ]);
     exit;
 }
 
@@ -335,14 +354,16 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_status' && !empty($_POST
     $stmt->close();
 
     // Read most recent punch with bind_result so variables are actually populated
-    $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
+    $punch = $conn->prepare("SELECT TimeIN, LunchStart, LunchEnd, TimeOUT, Date FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
     $punch->bind_param("i", $empID);
     $punch->execute();
     $punch->store_result();
-    $punch->bind_result($pTimeIn, $pLunchStart, $pLunchEnd, $pTimeOut);
+    $punch->bind_result($pTimeIn, $pLunchStart, $pLunchEnd, $pTimeOut, $pDate);
 
     $status = 'Out';
+    $hasOpen = false;
     if ($punch->fetch() && empty($pTimeOut)) {
+        $hasOpen = true;
         if (empty($pLunchStart)) {
             $status = 'In';
         } elseif (empty($pLunchEnd)) {
@@ -353,11 +374,21 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk_status' && !empty($_POST
     }
     $punch->close();
 
+    $sinceIso = null; $lunchStartIso = null;
+    if ($hasOpen && $pTimeIn && $pDate) {
+        try { $sinceIso = (new DateTime($pDate . ' ' . $pTimeIn, new DateTimeZone(date_default_timezone_get())))->format('c'); } catch (Exception $e) {}
+    }
+    if ($status === 'Lunch' && $pLunchStart && $pDate) {
+        try { $lunchStartIso = (new DateTime($pDate . ' ' . $pLunchStart, new DateTimeZone(date_default_timezone_get())))->format('c'); } catch (Exception $e) {}
+    }
+
     echo json_encode([
-        'success'   => true,
-        'firstName' => $firstName,
-        'lastName'  => $lastName,
-        'status'    => $status,
+        'success'        => true,
+        'firstName'      => $firstName,
+        'lastName'       => $lastName,
+        'status'         => $status,
+        'sinceTime'      => $sinceIso,
+        'lunchStartTime' => $lunchStartIso,
     ]);
     exit;
 }
@@ -459,7 +490,51 @@ if (!empty($_POST['mode']) && $_POST['mode'] === 'kiosk' && !empty($_POST['TagID
 // --- Input Processing ---
 $input = json_decode(file_get_contents('php://input'), true);
 
-$empID        = (int) ($input['EmployeeID'] ?? 0);
+// -----------------------------------------------------------------------------
+// AUTH GATE for the JSON entry point (kiosk PIN modes handled earlier — they
+// exit before reaching here). Historical behavior trusted EmployeeID from the
+// request body, so any unauthenticated caller could clock any employee in/out.
+//
+// Accept two auth sources, in order of preference:
+//   1. $_SESSION['EmployeeID']         — user is logged into the web portal
+//   2. $_SESSION['punch_authorized_*'] — one-shot PIN ticket from verify_pin.php
+//                                        (60s TTL, consumed after use)
+// EmployeeID from the body is IGNORED — we always derive it server-side.
+// -----------------------------------------------------------------------------
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'domain'   => '',
+    'secure'   => !empty($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+session_start();
+
+$authorizedEmpID = 0;
+$consumePinTicket = false;
+
+if (!empty($_SESSION['EmployeeID'])) {
+    $authorizedEmpID = (int)$_SESSION['EmployeeID'];
+} elseif (
+    !empty($_SESSION['punch_authorized_empID']) &&
+    !empty($_SESSION['punch_authorized_until']) &&
+    time() <= (int)$_SESSION['punch_authorized_until']
+) {
+    $authorizedEmpID  = (int)$_SESSION['punch_authorized_empID'];
+    $consumePinTicket = true;
+}
+
+if ($authorizedEmpID <= 0) {
+    send_json_response(false, "🔒 Session expired — please re-enter your PIN.", 401);
+}
+
+// Consume the one-shot PIN ticket up front so a slow retry can't replay it.
+if ($consumePinTicket) {
+    unset($_SESSION['punch_authorized_empID'], $_SESSION['punch_authorized_until']);
+}
+
+$empID        = $authorizedEmpID;
 $action       = $input['action'] ?? '';
 $note         = trim($input['note'] ?? '');
 $adjustedTime = $input['time'] ?? '';

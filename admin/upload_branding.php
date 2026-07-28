@@ -13,6 +13,7 @@ if (!isset($_SESSION['admin'])) {
 
 require_once __DIR__ . '/../auth/db.php';
 require_once __DIR__ . '/../functions/get_branding.php';
+require_once __DIR__ . '/includes/csrf.php';
 
 $uploadType = $_GET['type'] ?? 'logo';
 $message = '';
@@ -20,6 +21,11 @@ $messageType = '';
 
 // Handle file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
+    // CSRF gate — the form emits csrf_field(); reject any POST that doesn't carry a valid token.
+    if (!csrf_valid()) {
+        http_response_code(403);
+        die('Invalid CSRF token. Reload the page and try again.');
+    }
     $file = $_FILES['file'];
 
     // Validate file upload
@@ -67,9 +73,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
                     $message = 'Invalid file type. Allowed types: ' . implode(', ', $allowedTypes);
                     $messageType = 'danger';
                 } else {
-                    // Always store logos/favicons as WebP; backgrounds keep original format
-                    $origExt   = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                    $extension = ($uploadType !== 'background') ? 'webp' : $origExt;
+                    // Never trust the client filename's extension — derive it from the
+                    // MIME reported by finfo (magic-byte read). This is what stops
+                    // uploading "shell.jpg.php" and getting a .php file in /uploads/.
+                    $mimeToExt = [
+                        'image/jpeg'                => 'jpg',
+                        'image/jpg'                 => 'jpg',
+                        'image/png'                 => 'png',
+                        'image/webp'                => 'webp',
+                        'image/svg+xml'             => 'svg',
+                        'image/x-icon'              => 'ico',
+                        'image/vnd.microsoft.icon'  => 'ico',
+                    ];
+                    // Logos/favicons are always re-encoded to WebP by optimizeImage;
+                    // backgrounds keep their original raster format (whitelisted here).
+                    $safeBgExt = $mimeToExt[$mimeType] ?? null;
+                    $extension = match ($uploadType) {
+                        'logo', 'favicon' => 'webp',
+                        'background'      => in_array($safeBgExt, ['jpg', 'png', 'webp'], true) ? $safeBgExt : null,
+                        default           => null,
+                    };
+                    if ($extension === null) {
+                        $message = 'Unsupported image format for this upload type.';
+                        $messageType = 'danger';
+                    } else {
                     $filename  = $prefix . time() . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
                     $targetPath = $targetDir . $filename;
 
@@ -118,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
                         $message = 'Failed to move uploaded file';
                         $messageType = 'danger';
                     }
+                    } // end of $extension !== null branch
                 }
             }
         }
