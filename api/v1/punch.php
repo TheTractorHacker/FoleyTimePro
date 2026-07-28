@@ -104,13 +104,41 @@ function handlePunch(int $empID, string $action): void
     $lon   = isset($input['longitude']) ? (float)$input['longitude'] : null;
     $ip    = getClientIp();
 
-    // Offline queue support: the mobile app may send `captured_at` (epoch millis)
-    // and `source=offline_sync` when draining queued punches. We honor both if
-    // the timestamp is within a sane window (7 days back, never in the future),
-    // otherwise fall back to live server time. Live web/kiosk punches ignore
-    // these fields and behave exactly as before.
-    $source = normalizeSource($input['source'] ?? 'live');
-    [$date, $now, $capturedAtDatetime] = resolveCaptureTime($input['captured_at'] ?? null, $source);
+    // Source is derived SERVER-SIDE from captured_at, never trusted from the
+    // body. Prior behavior let a caller send source='offline_sync' on a live
+    // request to unlock the 7-day backdate window.
+    //   * no captured_at, or captured_at within +/-2min of now  -> 'live'
+    //   * captured_at older than that (up to 7 days back)       -> 'offline_sync'
+    //   * captured_at in the future or older than 7 days        -> 400
+    [$date, $now, $capturedAtDatetime, $source] = resolveCaptureTime($input['captured_at'] ?? null);
+
+    // Offline-sync writes require an Idempotency-Key so that a retried queue-
+    // drain (mobile lost the response) doesn't insert the punch again. Live
+    // writes accept a key too but don't require one.
+    $idemKey = readIdempotencyKey();
+    if ($source === 'offline_sync' && $idemKey === null) {
+        ApiResponse::error('Idempotency-Key header required for offline_sync writes', 400);
+    }
+    if ($idemKey !== null) {
+        $cached = idempotencyLookup($empID, $idemKey);
+        if ($cached !== null) {
+            // Replay hit — return a no-op success so the client stops retrying.
+            ApiResponse::success(['idempotent_replay' => true, 'punch_id' => $cached], 'Already recorded');
+        }
+    }
+
+    // Hire-date floor (defense in depth): if the org has recorded a hire date,
+    // reject captured_at earlier than it. Skips silently when HireDate is NULL.
+    if ($source === 'offline_sync' && $capturedAtDatetime !== null) {
+        $hd = $conn->prepare("SELECT HireDate FROM users WHERE ID = ?");
+        $hd->bind_param('i', $empID);
+        $hd->execute();
+        $hdRow = $hd->get_result()->fetch_assoc();
+        $hd->close();
+        if ($hdRow && !empty($hdRow['HireDate']) && $date < $hdRow['HireDate']) {
+            ApiResponse::error('captured_at is earlier than the employee hire date', 422);
+        }
+    }
 
     // Current status
     $uStmt = $conn->prepare("SELECT ClockStatus FROM users WHERE ID = ?");
@@ -135,6 +163,28 @@ function handlePunch(int $empID, string $action): void
             if ($punch) {
                 ApiResponse::error('Already clocked in since ' . date('g:i A', strtotime($punch['TimeIN'])), 409);
             }
+
+            // Overlap check for backdated inserts — refuse if the (date,time)
+            // being inserted falls inside an existing punch on that Date. Live
+            // punches skip this: the "already clocked in" check above catches
+            // the only realistic collision.
+            if ($source === 'offline_sync') {
+                $ov = $conn->prepare(
+                    "SELECT ID FROM timepunches
+                     WHERE EmployeeID = ? AND Date = ?
+                       AND TimeIN <= ?
+                       AND (TimeOUT IS NULL OR TimeOUT >= ?)
+                     LIMIT 1"
+                );
+                $ov->bind_param('isss', $empID, $date, $now, $now);
+                $ov->execute();
+                $ovRow = $ov->get_result()->fetch_assoc();
+                $ov->close();
+                if ($ovRow) {
+                    ApiResponse::error('Backdated clock-in overlaps an existing punch on that date', 409);
+                }
+            }
+
             $stmt = $conn->prepare(
                 "INSERT INTO timepunches
                      (EmployeeID, Date, TimeIN, Note, LatitudeIN, LongitudeIN, IPAddressIN, CapturedAt, Source)
@@ -145,8 +195,10 @@ function handlePunch(int $empID, string $action): void
                 $empID, $date, $now, $note, $lat, $lon, $ip, $capturedAtDatetime, $source
             );
             if (!$stmt->execute()) ApiResponse::serverError('Clock in failed');
+            $newPunchId = $conn->insert_id;
             setClockStatus($conn, $empID, 'In');
-            ApiResponse::success(['time' => date('g:i A', strtotime($now))], 'Clocked in at ' . date('g:i A', strtotime($now)));
+            if ($idemKey !== null) idempotencyRecord($empID, $idemKey, $newPunchId);
+            ApiResponse::success(['time' => date('g:i A', strtotime($now)), 'punch_id' => $newPunchId], 'Clocked in at ' . date('g:i A', strtotime($now)));
 
         case 'lunchstart':
             if ($currentStatus !== 'In') ApiResponse::error('You must be clocked in to start lunch.', 400);
@@ -263,60 +315,101 @@ function getClientIp(): ?string
 }
 
 /**
- * Normalize the client-supplied source string to a small whitelist so callers
- * can't smuggle arbitrary strings into the audit column.
+ * Compute (date, time, capturedAtDateTime, source) for a punch, deriving
+ * `source` from captured_at rather than trusting a client-supplied string.
+ *
+ *   * no captured_at, or captured_at within +/-2min of now  -> 'live'
+ *   * captured_at in the past by >2min, still within 7 days -> 'offline_sync'
+ *   * captured_at in the future >2min, or older than 7 days -> reject (400)
+ *
+ * The prior signature took `source` by reference from the caller. That's
+ * exactly the vulnerability — a caller could send source='offline_sync' on
+ * a live request to unlock the backdate window. Now the caller passes only
+ * captured_at and the server decides what source it was.
+ *
+ * @return array{0:string,1:string,2:?string,3:string} [date Y-m-d, time H:i:s, capturedAtDateTime Y-m-d H:i:s|null, source]
  */
-function normalizeSource(?string $raw): string
+function resolveCaptureTime($capturedAtMillisRaw): array
 {
-    $allowed = ['live', 'offline_sync', 'kiosk'];
-    $s = strtolower(trim((string)($raw ?? '')));
-    return in_array($s, $allowed, true) ? $s : 'live';
-}
-
-/**
- * Compute the effective (date, time, datetime-for-CapturedAt) for a punch.
- *
- * When the app sends `captured_at` (epoch millis) AND source=='offline_sync',
- * we use that timestamp as the punch time — subject to sanity limits:
- *   - not in the future (allow +2 minutes of clock drift),
- *   - not more than 7 days in the past.
- * Anything outside that window is clamped back to server-now and logged in
- * `Source` as 'live' so the record isn't silently backdated.
- *
- * For every other source (live/kiosk), `captured_at` is ignored and we use
- * server-now — preserving the pre-migration behavior exactly.
- *
- * @return array [string $date (Y-m-d), string $time (H:i:s), ?string $capturedAtDateTime (Y-m-d H:i:s)]
- */
-function resolveCaptureTime($capturedAtMillisRaw, string &$source): array
-{
-    $nowTs = time();
+    $nowTs    = time();
     $liveDate = date('Y-m-d', $nowTs);
     $liveTime = date('H:i:s', $nowTs);
 
-    if ($source !== 'offline_sync' || $capturedAtMillisRaw === null) {
-        return [$liveDate, $liveTime, null];
+    if ($capturedAtMillisRaw === null || $capturedAtMillisRaw === '') {
+        return [$liveDate, $liveTime, null, 'live'];
     }
 
     $ms = is_numeric($capturedAtMillisRaw) ? (int)$capturedAtMillisRaw : 0;
     if ($ms <= 0) {
-        $source = 'live';
-        return [$liveDate, $liveTime, null];
+        return [$liveDate, $liveTime, null, 'live'];
     }
 
     $ts = intdiv($ms, 1000);
     $maxFuture = $nowTs + 120;                 // 2 min clock drift tolerance
     $maxPast   = $nowTs - (7 * 24 * 3600);     // 7 days back
+    $liveWindow = 120;                          // +/- 2 min => still "live"
 
     if ($ts > $maxFuture || $ts < $maxPast) {
-        // Out of range — record as live, don't retroactively rewrite history.
-        $source = 'live';
-        return [$liveDate, $liveTime, null];
+        ApiResponse::error('captured_at is outside the allowed window (must be within 7 days and not in the future)', 400);
+    }
+
+    if (abs($nowTs - $ts) <= $liveWindow) {
+        return [$liveDate, $liveTime, null, 'live'];
     }
 
     return [
         date('Y-m-d', $ts),
         date('H:i:s', $ts),
         date('Y-m-d H:i:s', $ts),
+        'offline_sync',
     ];
+}
+
+/**
+ * Idempotency-Key header reader. Accepts opaque tokens up to 64 chars of
+ * URL-safe base64-ish characters (the mobile client generates UUIDv4 hex).
+ */
+function readIdempotencyKey(): ?string
+{
+    $raw = null;
+    if (function_exists('getallheaders')) {
+        foreach (getallheaders() as $k => $v) {
+            if (strcasecmp($k, 'Idempotency-Key') === 0) { $raw = $v; break; }
+        }
+    }
+    if ($raw === null) {
+        $raw = $_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? null;
+    }
+    if ($raw === null) return null;
+    $raw = trim((string)$raw);
+    if ($raw === '' || strlen($raw) > 64 || !preg_match('/^[A-Za-z0-9._~-]+$/', $raw)) {
+        return null;
+    }
+    return $raw;
+}
+
+/** Return the punch_id previously recorded under this (user, key), or null. */
+function idempotencyLookup(int $empID, string $key): ?int
+{
+    global $conn;
+    $stmt = $conn->prepare(
+        "SELECT punch_id FROM punch_idempotency WHERE user_id = ? AND idem_key = ?"
+    );
+    $stmt->bind_param('is', $empID, $key);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $row ? (int)$row['punch_id'] : null;
+}
+
+/** Persist (user, key, punch_id) so the next replay hits the cache. */
+function idempotencyRecord(int $empID, string $key, int $punchId): void
+{
+    global $conn;
+    $stmt = $conn->prepare(
+        "INSERT IGNORE INTO punch_idempotency (user_id, idem_key, punch_id) VALUES (?, ?, ?)"
+    );
+    $stmt->bind_param('isi', $empID, $key, $punchId);
+    $stmt->execute();
+    $stmt->close();
 }
