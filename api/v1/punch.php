@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 require_once __DIR__ . '/../../auth/db.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/ApiResponse.php';
+require_once __DIR__ . '/../middleware/ClientIp.php';
 
 date_default_timezone_set('America/Chicago');
 
@@ -102,8 +103,14 @@ function handlePunch(int $empID, string $action): void
     $lat   = isset($input['latitude'])  ? (float)$input['latitude']  : null;
     $lon   = isset($input['longitude']) ? (float)$input['longitude'] : null;
     $ip    = getClientIp();
-    $now   = date('H:i:s');
-    $date  = date('Y-m-d');
+
+    // Offline queue support: the mobile app may send `captured_at` (epoch millis)
+    // and `source=offline_sync` when draining queued punches. We honor both if
+    // the timestamp is within a sane window (7 days back, never in the future),
+    // otherwise fall back to live server time. Live web/kiosk punches ignore
+    // these fields and behave exactly as before.
+    $source = normalizeSource($input['source'] ?? 'live');
+    [$date, $now, $capturedAtDatetime] = resolveCaptureTime($input['captured_at'] ?? null, $source);
 
     // Current status
     $uStmt = $conn->prepare("SELECT ClockStatus FROM users WHERE ID = ?");
@@ -129,10 +136,14 @@ function handlePunch(int $empID, string $action): void
                 ApiResponse::error('Already clocked in since ' . date('g:i A', strtotime($punch['TimeIN'])), 409);
             }
             $stmt = $conn->prepare(
-                "INSERT INTO timepunches (EmployeeID, Date, TimeIN, Note, LatitudeIN, LongitudeIN, IPAddressIN)
-                 VALUES (?, ?, ?, ?, ?, ?, INET_ATON(?))"
+                "INSERT INTO timepunches
+                     (EmployeeID, Date, TimeIN, Note, LatitudeIN, LongitudeIN, IPAddressIN, CapturedAt, Source)
+                 VALUES (?, ?, ?, ?, ?, ?, INET_ATON(?), ?, ?)"
             );
-            $stmt->bind_param("isssdds", $empID, $date, $now, $note, $lat, $lon, $ip);
+            $stmt->bind_param(
+                "isssddsss",
+                $empID, $date, $now, $note, $lat, $lon, $ip, $capturedAtDatetime, $source
+            );
             if (!$stmt->execute()) ApiResponse::serverError('Clock in failed');
             setClockStatus($conn, $empID, 'In');
             ApiResponse::success(['time' => date('g:i A', strtotime($now))], 'Clocked in at ' . date('g:i A', strtotime($now)));
@@ -191,7 +202,7 @@ function handleHistory(int $empID): void
     $end   = $_GET['end']   ?? date('Y-m-d', strtotime('monday this week +6 days'));
 
     $stmt = $conn->prepare(
-        "SELECT Date, TimeIN, LunchStart, LunchEnd, TimeOUT, TotalHours, Note
+        "SELECT Date, TimeIN, LunchStart, LunchEnd, TimeOUT, TotalHours, Note, Source
          FROM timepunches WHERE EmployeeID = ? AND Date BETWEEN ? AND ?
          ORDER BY Date DESC, TimeIN DESC"
     );
@@ -212,6 +223,7 @@ function handleHistory(int $empID): void
             'out'         => $row['TimeOUT']   ? date('g:i A', strtotime($row['TimeOUT']))   : null,
             'hours'       => $hours ? number_format($hours, 2) : null,
             'note'        => $row['Note'] ?? '',
+            'source'      => $row['Source'] ?? 'live',
         ];
     }
 
@@ -242,8 +254,69 @@ function calculateHours(?string $in, ?string $lunchStart, ?string $lunchEnd, str
 
 function getClientIp(): ?string
 {
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        return trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+    // Delegates to trusted_client_ip() — see api/middleware/ClientIp.php.
+    // Previously honored X-Forwarded-For unconditionally, so the punch
+    // audit columns (IPAddressIN / IPAddressOut / IPAddressLunch*) were
+    // spoofable by any caller.
+    $ip = trusted_client_ip();
+    return $ip !== 'unknown' ? $ip : null;
+}
+
+/**
+ * Normalize the client-supplied source string to a small whitelist so callers
+ * can't smuggle arbitrary strings into the audit column.
+ */
+function normalizeSource(?string $raw): string
+{
+    $allowed = ['live', 'offline_sync', 'kiosk'];
+    $s = strtolower(trim((string)($raw ?? '')));
+    return in_array($s, $allowed, true) ? $s : 'live';
+}
+
+/**
+ * Compute the effective (date, time, datetime-for-CapturedAt) for a punch.
+ *
+ * When the app sends `captured_at` (epoch millis) AND source=='offline_sync',
+ * we use that timestamp as the punch time — subject to sanity limits:
+ *   - not in the future (allow +2 minutes of clock drift),
+ *   - not more than 7 days in the past.
+ * Anything outside that window is clamped back to server-now and logged in
+ * `Source` as 'live' so the record isn't silently backdated.
+ *
+ * For every other source (live/kiosk), `captured_at` is ignored and we use
+ * server-now — preserving the pre-migration behavior exactly.
+ *
+ * @return array [string $date (Y-m-d), string $time (H:i:s), ?string $capturedAtDateTime (Y-m-d H:i:s)]
+ */
+function resolveCaptureTime($capturedAtMillisRaw, string &$source): array
+{
+    $nowTs = time();
+    $liveDate = date('Y-m-d', $nowTs);
+    $liveTime = date('H:i:s', $nowTs);
+
+    if ($source !== 'offline_sync' || $capturedAtMillisRaw === null) {
+        return [$liveDate, $liveTime, null];
     }
-    return $_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
+
+    $ms = is_numeric($capturedAtMillisRaw) ? (int)$capturedAtMillisRaw : 0;
+    if ($ms <= 0) {
+        $source = 'live';
+        return [$liveDate, $liveTime, null];
+    }
+
+    $ts = intdiv($ms, 1000);
+    $maxFuture = $nowTs + 120;                 // 2 min clock drift tolerance
+    $maxPast   = $nowTs - (7 * 24 * 3600);     // 7 days back
+
+    if ($ts > $maxFuture || $ts < $maxPast) {
+        // Out of range — record as live, don't retroactively rewrite history.
+        $source = 'live';
+        return [$liveDate, $liveTime, null];
+    }
+
+    return [
+        date('Y-m-d', $ts),
+        date('H:i:s', $ts),
+        date('Y-m-d H:i:s', $ts),
+    ];
 }

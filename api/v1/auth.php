@@ -22,6 +22,7 @@ require_once __DIR__ . '/../../auth/db.php';
 require_once __DIR__ . '/../auth/JWTHandler.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/ApiResponse.php';
+require_once __DIR__ . '/../middleware/ClientIp.php';
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -107,9 +108,11 @@ function handleLogin($input)
 
     $email = trim($input['email']);
     $password = $input['password'];
-    $ip       = $_SERVER['HTTP_X_FORWARDED_FOR']
-                    ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0])
-                    : ($_SERVER['HTTP_X_REAL_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    // Trusted-proxy-gated — see api/middleware/ClientIp.php. Prior code
+    // trusted X-Forwarded-For unconditionally, letting an attacker rotate
+    // the header to bypass the per-IP lockout, or poison the counter with
+    // a victim's IP to lock the victim out.
+    $ip = trusted_client_ip();
 
     // Rate-limit by both email and IP
     checkLoginAttempts($email);
