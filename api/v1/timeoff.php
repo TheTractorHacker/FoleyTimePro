@@ -90,7 +90,7 @@ switch ($action) {
         if (!isAdmin($user['email'])) {
             ApiResponse::forbidden('Admin access required');
         }
-        handleApproveRequest($userId, $requestId);
+        handleApproveRequest($user['email'], $requestId);
         break;
 
     case 'reject':
@@ -100,7 +100,7 @@ switch ($action) {
         if (!isAdmin($user['email'])) {
             ApiResponse::forbidden('Admin access required');
         }
-        handleRejectRequest($userId, $requestId);
+        handleRejectRequest($user['email'], $requestId);
         break;
 
     default:
@@ -348,7 +348,7 @@ function handleGetAllRequests()
 /**
  * Approve time-off request (admin only)
  */
-function handleApproveRequest($adminUserId, $requestId)
+function handleApproveRequest($adminEmail, $requestId)
 {
     global $conn;
 
@@ -359,10 +359,14 @@ function handleApproveRequest($adminUserId, $requestId)
     $input = json_decode(file_get_contents('php://input'), true);
     $notes = $input['notes'] ?? '';
 
-    // Get admin ID
-    $stmtAdmin = $conn->prepare("SELECT ID FROM admins WHERE ID = (SELECT ID FROM admins LIMIT 1)");
+    // Resolve the ACTING admin (was: always the first admin in the table,
+    // making ReviewedBy useless for audit).
+    $stmtAdmin = $conn->prepare("SELECT ID FROM admins WHERE username = ?");
+    $stmtAdmin->bind_param('s', $adminEmail);
     $stmtAdmin->execute();
-    $adminId = $stmtAdmin->get_result()->fetch_assoc()['ID'] ?? 1;
+    $adminId = $stmtAdmin->get_result()->fetch_assoc()['ID'] ?? null;
+    $stmtAdmin->close();
+    if ($adminId === null) ApiResponse::forbidden('Admin account not found');
 
     // Check if request exists and get employee ID and dates
     $stmt = $conn->prepare("
@@ -409,7 +413,7 @@ function handleApproveRequest($adminUserId, $requestId)
 /**
  * Reject time-off request (admin only)
  */
-function handleRejectRequest($adminUserId, $requestId)
+function handleRejectRequest($adminEmail, $requestId)
 {
     global $conn;
 
@@ -424,10 +428,13 @@ function handleRejectRequest($adminUserId, $requestId)
         ApiResponse::validationError(['notes' => 'Rejection reason is required']);
     }
 
-    // Get admin ID
-    $stmtAdmin = $conn->prepare("SELECT ID FROM admins WHERE ID = (SELECT ID FROM admins LIMIT 1)");
+    // Resolve the ACTING admin (was: always the first admin in the table).
+    $stmtAdmin = $conn->prepare("SELECT ID FROM admins WHERE username = ?");
+    $stmtAdmin->bind_param('s', $adminEmail);
     $stmtAdmin->execute();
-    $adminId = $stmtAdmin->get_result()->fetch_assoc()['ID'] ?? 1;
+    $adminId = $stmtAdmin->get_result()->fetch_assoc()['ID'] ?? null;
+    $stmtAdmin->close();
+    if ($adminId === null) ApiResponse::forbidden('Admin account not found');
 
     // Check if request exists and get employee ID and dates
     $stmt = $conn->prepare("
