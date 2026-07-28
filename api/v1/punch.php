@@ -194,7 +194,15 @@ function handlePunch(int $empID, string $action): void
                 "isssddsss",
                 $empID, $date, $now, $note, $lat, $lon, $ip, $capturedAtDatetime, $source
             );
-            if (!$stmt->execute()) ApiResponse::serverError('Clock in failed');
+            if (!$stmt->execute()) {
+                // The uk_open_per_employee UNIQUE index (migration 013) fires when
+                // two concurrent clockin requests race past the SELECT above. That's
+                // a benign concurrency collision — surface it as 409, not 500.
+                if ((int)$conn->errno === 1062) {
+                    ApiResponse::error('Already clocked in (concurrent request)', 409);
+                }
+                ApiResponse::serverError('Clock in failed');
+            }
             $newPunchId = $conn->insert_id;
             setClockStatus($conn, $empID, 'In');
             if ($idemKey !== null) idempotencyRecord($empID, $idemKey, $newPunchId);
