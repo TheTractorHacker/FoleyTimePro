@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Dark-mode counterpart. Only the pre-Compose window background differs: it
+      has to match FoleyTimeProTheme's dark `surface` (Neutral6) or the app
+      flashes a light rectangle before the first Compose frame lands.
+    -->
+    <style name="Theme.FoleyTimePro" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:windowBackground">@color/colorBackgroundDark</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+</resources>

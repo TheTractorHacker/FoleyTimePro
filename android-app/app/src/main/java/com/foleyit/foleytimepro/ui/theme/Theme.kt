@@ -1,45 +1,85 @@
 package com.foleyit.foleytimepro.ui.theme
 
-import androidx.compose.material3.*
+import android.app.Activity
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-private val ColorScheme = lightColorScheme(
-    primary          = Navy,
-    onPrimary        = Color.White,
-    primaryContainer = NavyLight,
-    secondary        = Cyan,
-    onSecondary      = Color.White,
-    background       = Background,
-    onBackground     = TextPrimary,
-    surface          = Surface,
-    onSurface        = TextPrimary,
-    surfaceVariant   = Background,
-    onSurfaceVariant = TextSecondary,
-    outline          = DividerColor,
-    error            = ClockOutRed,
-)
-
-val AppTypography = Typography(
-    headlineLarge  = TextStyle(fontWeight = FontWeight.Bold,   fontSize = 26.sp, color = TextPrimary),
-    headlineMedium = TextStyle(fontWeight = FontWeight.Bold,   fontSize = 22.sp, color = TextPrimary),
-    titleLarge     = TextStyle(fontWeight = FontWeight.Bold,   fontSize = 18.sp, color = TextPrimary),
-    titleMedium    = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = TextPrimary),
-    bodyLarge      = TextStyle(fontWeight = FontWeight.Normal, fontSize = 14.sp, color = TextPrimary),
-    bodyMedium     = TextStyle(fontWeight = FontWeight.Normal, fontSize = 13.sp, color = TextSecondary),
-    bodySmall      = TextStyle(fontWeight = FontWeight.Normal, fontSize = 11.sp, color = TextHint),
-    labelLarge     = TextStyle(fontWeight = FontWeight.Bold,   fontSize = 14.sp),
-    labelMedium    = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 12.sp),
-)
-
+/**
+ * The app theme.
+ *
+ * `MaterialExpressiveTheme` and the `MotionScheme` API are compiled into
+ * material3 1.4.0 but still `internal` there — Google shipped the bytecode
+ * ahead of making it public API, and it only becomes callable in the still-alpha
+ * 1.5.x line. Confirmed directly against the resolved dependency: probing it
+ * with a standalone `kotlinc` against the real `material3-android-1.4.0.aar`
+ * reports "internal in file" for `MaterialExpressiveTheme`, `MotionScheme`, and
+ * the `motionScheme`-accepting `MaterialTheme` overload alike. This theme uses
+ * the stable 3-arg `MaterialTheme(colorScheme, shapes, typography, content)`
+ * instead. Revisit once the project moves to a material3 release where that
+ * surface has stabilized.
+ *
+ * ## Why dynamic color is off by default
+ *
+ * FoleyTimePro runs on two very different devices: an employee's personal phone
+ * and a shared, wall-mounted kiosk. Material You would repaint the kiosk to
+ * whatever wallpaper happens to be set on it, and the punch-state colors — the
+ * one thing on screen that has to be unambiguous at arm's length — would shift
+ * with it. The brand palette is the same everywhere instead. Callers can still
+ * pass `dynamicColor = true` for a personal-device build.
+ */
 @Composable
-fun FoleyTimeProTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = ColorScheme,
-        typography  = AppTypography,
-        content     = content
-    )
+fun FoleyTimeProTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val ctx = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
+        }
+        darkTheme -> BrandDarkScheme
+        else      -> BrandLightScheme
+    }
+    val statusColors = if (darkTheme) DarkStatusColors else LightStatusColors
+
+    // The window is drawn edge-to-edge (see MainActivity), so the only thing left
+    // to sync is which way the system-bar icons are tinted.
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars     = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
+        }
+    }
+
+    CompositionLocalProvider(LocalStatusColors provides statusColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            shapes      = AppShapes,
+            typography  = AppTypography,
+            content     = content,
+        )
+    }
 }
+
+/**
+ * Punch-state colors, reached the same way as the stock roles:
+ * `MaterialTheme.statusColors.clockedInContainer`.
+ */
+val MaterialTheme.statusColors: StatusColors
+    @Composable @ReadOnlyComposable
+    get() = LocalStatusColors.current
