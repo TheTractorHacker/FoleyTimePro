@@ -1,0 +1,19 @@
+# Admin area — clean URLs for pages that get linked externally or typed by hand.
+#
+# Only extensionless paths that do NOT correspond to a real file or directory are
+# rewritten, so every existing /admin/*.php URL keeps working untouched.
+#
+# If mod_rewrite is unavailable or AllowOverride is off for this directory, these
+# rules are simply ignored — the in-app links all point at the .php filenames, so
+# navigation still works. The clean URL is a convenience, never a dependency.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api-docs/?$ api-docs.php [L]
+</IfModule>
+
+# Do not list directory contents
+Options -Indexes

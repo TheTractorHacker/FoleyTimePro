@@ -23,6 +23,29 @@ function navLink(string $href, string $label, array $matches, int $badge = 0): s
     $b = $badge > 0 ? '<span class="anb">'.$badge.'</span>' : '';
     return '<a href="'.$href.'" class="'.$active.'">'.$label.$b.'</a>';
 }
+
+/**
+ * Append ?v=<mtime> to a local asset URL so an edited CSS/JS file is fetched
+ * immediately instead of possibly sitting in a browser's cache — nginx serves
+ * these with only ETag/Last-Modified (no Cache-Control), which some browsers
+ * treat as heuristically cacheable and can skip revalidating on an ordinary
+ * reload. Changing the URL itself, not just the file, makes a stale copy
+ * impossible: a browser has never seen the new querystring before.
+ * Absolute URLs (Google Fonts, any future CDN link) pass through untouched —
+ * there is no local file to stat, and cache-busting someone else's CDN asset
+ * is not this function's job.
+ */
+function versionedAsset(string $href): string {
+    if (preg_match('#^(https?:)?//#', $href)) return $href;
+    $disk = __DIR__ . '/../' . ltrim($href, '/');
+    // realpath() also rejects a path that has been rewritten/escaped oddly;
+    // fall back to the bare href rather than emit a broken query string.
+    $real = realpath($disk);
+    if ($real === false) return $href;
+    $mtime = @filemtime($real);
+    if ($mtime === false) return $href;
+    return $href . (str_contains($href, '?') ? '&' : '?') . 'v=' . $mtime;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="<?= htmlspecialchars($adminTheme) ?>">
@@ -33,9 +56,9 @@ function navLink(string $href, string $label, array $matches, int $badge = 0): s
 <link rel="icon" type="image/webp" href="<?= htmlspecialchars($branding['FaviconPath']) ?>">
 <meta name="theme-color" content="<?= htmlspecialchars($branding['PrimaryColor'] ?? '#073851') ?>">
 <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['admin_csrf'] ?? '') ?>">
-<link rel="stylesheet" href="../css/admin-layout.css">
+<link rel="stylesheet" href="<?= htmlspecialchars(versionedAsset('../css/admin-layout.css')) ?>">
 <?php foreach ((array)($additionalCSS ?? []) as $css): ?>
-<link rel="stylesheet" href="<?= htmlspecialchars($css) ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(versionedAsset($css)) ?>">
 <?php endforeach; ?>
 </head>
 <body>
@@ -92,12 +115,14 @@ function navLink(string $href, string $label, array $matches, int $badge = 0): s
       </div>
 
       <div class="a-dropdown">
-        <button class="a-dropbtn<?= in_array($cur,['reports.php','manage_admins.php','add_admin.php','edit_admin.php','settings.php','enable_2fa.php']) ? ' active' : '' ?>">Admin</button>
+        <button class="a-dropbtn<?= in_array($cur,['reports.php','manage_admins.php','add_admin.php','edit_admin.php','settings.php','enable_2fa.php','api_keys.php','api-docs.php']) ? ' active' : '' ?>">Admin</button>
         <div class="a-dropmenu">
           <?= navLink('reports.php',         'Reports',         ['reports.php']) ?>
           <?= navLink('custom_reports.php',  'Custom Reports',  ['custom_reports.php']) ?>
           <?= navLink('export_history.php',  'Export History',  ['export_history.php']) ?>
           <?= navLink('manage_admins.php','Admins',   ['manage_admins.php','add_admin.php','edit_admin.php']) ?>
+          <?= navLink('api_keys.php',     'API Keys', ['api_keys.php']) ?>
+          <?= navLink('api-docs.php',     'API Docs', ['api-docs.php']) ?>
           <?= navLink('settings.php',     'Settings', ['settings.php']) ?>
         </div>
       </div>

@@ -315,6 +315,15 @@ input:focus, select:focus, textarea:focus {
   background: var(--surface); padding: 28px; border-radius: 12px;
   width: 440px; max-width: 90%; margin: 8% auto; position: relative;
   box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  /* Matches the 8% top/bottom margin above so the box never exceeds the
+     viewport it's centered in. Without this, content taller than the
+     viewport (e.g. the API key create form's permission checklist) was
+     simply clipped at the browser edge with no way to reach the rest —
+     neither this element nor .modal had any overflow rule at all. Shared
+     by every admin modal; harmless for shorter ones since the scrollbar
+     only appears once content actually exceeds max-height. */
+  max-height: 84vh;
+  overflow-y: auto;
 }
 .modal-content h3 { margin: 0 0 16px; font-size: 17px; }
 .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }

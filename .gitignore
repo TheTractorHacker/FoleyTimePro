@@ -1,5 +1,9 @@
 # Environment / secrets
+# Glob, not just `.env` — a stray `.env.bak` from a manual edit is exactly as
+# sensitive as the original and was NOT covered by the bare filename before.
 .env
+.env.*
+!.env.example
 auth/.env
 *.env.local
 docker/companies/*
