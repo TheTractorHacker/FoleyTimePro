@@ -46,7 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $typeRow = $typeStmt->get_result()->fetch_assoc();
             if ($typeRow) {
                 $hours = businessHoursBetween($typeRow['StartDate'], $typeRow['EndDate']);
-                deductLeaveBalance($conn, $request['EmployeeID'], $typeRow['RequestType'], $hours);
+                // leave_balances.LeaveType only tracks Vacation/Sick/Personal/Other —
+                // migration 017 added 'Unpaid' to time_off_requests.RequestType
+                // (for the Android app's new Unpaid option) deliberately WITHOUT
+                // adding it here too, since unpaid time off has no accrued balance
+                // to draw down. deductLeaveBalance()'s INSERT ... LeaveType=? was
+                // still being called unconditionally for every approval, so any
+                // Unpaid request crashed this whole request with a 500 the moment
+                // it hit that enum mismatch (Status was already committed to
+                // Approved by the UPDATE above before the crash, so the approval
+                // itself took effect — only the confirmation and this ledger step
+                // were lost). Vacation/Sick/Personal/Other keep deducting exactly
+                // as before; only the type with no ledger row skips it.
+                if (in_array($typeRow['RequestType'], ['Vacation', 'Sick', 'Personal', 'Other'], true)) {
+                    deductLeaveBalance($conn, $request['EmployeeID'], $typeRow['RequestType'], $hours);
+                }
                 $conn->prepare("UPDATE time_off_requests SET HoursRequested=? WHERE ID=?")->execute([$hours, $requestId]);
             }
         }
