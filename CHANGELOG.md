@@ -1,5 +1,31 @@
 # Change Log
 
+## v1.3.0 (August 25, 2026)
+
+### External Reporting API
+
+*   **New read-only API surface** (`api/external/v1/`, API-key authenticated): hours, summary,
+    overtime, utilization, attendance, payroll, exceptions, trends, punctuality, and geofence
+    reports; office/shift/schedule dimension endpoints; a live clock-in status feed; and an
+    audit trail (punch changes, access log, auto-clockouts).
+*   **OData v4 endpoint** (`api/external/odata/`) with `$filter`/`$select`/`$orderby`/`$top`/
+    `$skip`/`$count` support, so Power BI's native connector can browse the API directly.
+*   **OpenAPI 3.1 specification** generated from `api/docs/openapi.yaml`, plus a new admin-facing
+    reference page (`Admin → API Docs`) with copy-paste-ready examples and a one-click demo key.
+
+### API Key Management
+
+*   The create-key form now shows a permission checklist instead of a free-text scope field.
+*   Keys can be **viewed again** after creation (encrypted at rest, separate from the existing
+    hash used for authentication; viewing requires re-entering the admin password) and **deleted**
+    outright, in addition to the existing revoke action.
+
+### Fixes
+
+*   Admin modals with content taller than the viewport (e.g. the new permission checklist) are
+    now scrollable instead of being silently clipped.
+*   Admin CSS/JS assets are now cache-busted on every edit.
+
 ## Recent Updates (September 5, 2025)
 
 This log summarizes the recent modifications and bug fixes implemented in the Timeclock application.

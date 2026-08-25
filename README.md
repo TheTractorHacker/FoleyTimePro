@@ -2,7 +2,7 @@
 
 A modern, self-hosted time clock application built for small businesses. Employees clock in and out from any browser or the dedicated kiosk — admins get a full dashboard with reports, scheduling, and payroll exports.
 
-**Current version: v1.2.2** · [Releases](https://github.com/TheTractorHacker/FoleyTimePro/releases) · [Docker Hub](https://hub.docker.com/r/bfoley23/foleytimepro)
+**Current version: v1.3.0** · [Releases](https://github.com/TheTractorHacker/FoleyTimePro/releases) · [Docker Hub](https://hub.docker.com/r/bfoley23/foleytimepro)
 
 ---
 
