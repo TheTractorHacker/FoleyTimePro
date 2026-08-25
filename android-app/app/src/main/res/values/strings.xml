@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">FoleyTimePro</string>
-    <string name="shortcut_clock_in">Clock In</string>
-    <string name="shortcut_clock_in_short">Clock In</string>
-    <string name="shortcut_timesheet">View Timesheet</string>
-    <string name="shortcut_timesheet_short">Timesheet</string>
-</resources>

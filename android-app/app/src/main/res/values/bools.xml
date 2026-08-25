@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Enable notification delegation for push notifications from the web app -->
-    <bool name="enableNotification">true</bool>
-
-    <!-- Enable location delegation for geolocation -->
-    <bool name="enableLocation">true</bool>
-</resources>
