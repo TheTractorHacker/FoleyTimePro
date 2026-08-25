@@ -1,0 +1,31 @@
+-- Migration 019: enforce email uniqueness at the database level.
+--
+-- users.Email had no uniqueness guarantee at all — every write path (admin
+-- console, and the new external employees:write API) only ever checked
+-- "does another row already have this email" with a plain SELECT before its
+-- own INSERT/UPDATE. Two concurrent creates/renames to the same new email
+-- could both pass that check before either commits and both succeed,
+-- silently producing two user accounts sharing one email address.
+--
+-- Safe to apply: verified against the live data before writing this
+-- migration — zero duplicate non-null emails, and every "no email" row is a
+-- genuine NULL (not empty string). A UNIQUE index treats every NULL as
+-- distinct from every other NULL (standard SQL semantics), so employees with
+-- no email on file are completely unaffected — this only ever rejects a
+-- second row that would share the same NON-NULL email as an existing one.
+--
+-- Both admin/edit_user.php + admin/add_user.php and
+-- api/external/v1/employees.php were updated in the same change to catch the
+-- resulting duplicate-key error (mysqli's default strict mode throws
+-- mysqli_sql_exception on the violation) and turn it into the same
+-- friendly "email already in use" message they already show for the
+-- pre-existing application-level check — do not add this index without
+-- also confirming those call sites still handle it gracefully, or a
+-- concurrent duplicate attempt becomes an uncaught 500 instead of a clean
+-- error.
+--
+-- Safe to re-run: MariaDB supports ADD INDEX IF NOT EXISTS (migration 010
+-- already relies on this).
+
+ALTER TABLE `users`
+  ADD UNIQUE INDEX IF NOT EXISTS `uk_users_email` (`Email`);

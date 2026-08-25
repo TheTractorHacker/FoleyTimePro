@@ -25,11 +25,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$firstName || !$lastName) {
             $msg = 'First and Last Name are required.'; $msgType = 'error';
         } else {
+            // users.Email and users.TagID both have UNIQUE indexes. A blank
+            // badge must be stored as NULL (any number of NULLs are allowed),
+            // never as '' — two employees both saving a blank badge would
+            // otherwise collide on the second one.
+            $tagIDForWrite = $tagID === '' ? null : $tagID;
+
             $stmt = $conn->prepare("UPDATE users SET FirstName=?,LastName=?,Email=?,TagID=?,JobTitle=?,PhoneNumber=? WHERE ID=?");
-            $stmt->bind_param("ssssssi", $firstName, $lastName, $email, $tagID, $jobTitle, $phone, $empID);
-            $stmt->execute();
-            $_SESSION['FirstName'] = $firstName;
-            $msg = 'Profile updated successfully.';
+            $stmt->bind_param("ssssssi", $firstName, $lastName, $email, $tagIDForWrite, $jobTitle, $phone, $empID);
+            try {
+                $stmt->execute();
+                $_SESSION['FirstName'] = $firstName;
+                $msg = 'Profile updated successfully.';
+            } catch (mysqli_sql_exception $e) {
+                if ((int)$e->getCode() === 1062 && str_contains($e->getMessage(), 'uk_users_email')) {
+                    $msg = "Email \"$email\" is already in use by another employee.";
+                    $msgType = 'error';
+                } elseif ((int)$e->getCode() === 1062 && str_contains($e->getMessage(), 'TagID')) {
+                    $msg = "Tag ID \"$tagID\" is already assigned to another employee.";
+                    $msgType = 'error';
+                } else {
+                    throw $e;
+                }
+            }
         }
 
     } elseif ($action === 'password') {

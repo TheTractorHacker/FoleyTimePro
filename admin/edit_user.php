@@ -58,6 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lastName    = trim($_POST['LastName']  ?? '');
     $email       = trim($_POST['Email']     ?? '');
     $tagID       = trim($_POST['TagID']     ?? '');
+    // users.TagID has a UNIQUE index; a blank badge must be stored as NULL
+    // (which a UNIQUE index allows any number of), never as '' — two users
+    // both saved with no badge assigned would otherwise collide on the
+    // second one, crashing with an uncaught duplicate-key error. Found live:
+    // user #1011 already had TagID='' in the database before this fix.
+    if ($tagID === '') { $tagID = null; }
     $clockStatus = trim($_POST['ClockStatus'] ?? '');
     $office      = trim($_POST['Office']    ?? '');
     $jobTitle    = trim($_POST['JobTitle']  ?? '');
@@ -81,8 +87,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("UPDATE users SET FirstName=?,LastName=?,Email=?,TagID=?,ClockStatus=?,Office=?,JobTitle=?,PhoneNumber=?,TwoFAEnabled=?,LockOut=? WHERE ID=?");
             $stmt->bind_param("ssssssssiis", $firstName, $lastName, $email, $tagID, $clockStatus, $office, $jobTitle, $phone, $enable2FA, $lockOut, $id);
         }
-        $stmt->execute();
+        // Migration 019 added a UNIQUE index on users.Email — under this app's
+        // default strict mysqli error mode, a duplicate now THROWS instead of
+        // silently succeeding (which is the whole point: two accounts could
+        // previously race to the same email with no error at all). Catch just
+        // that one case here rather than letting it fall through as an
+        // uncaught 500; every other error still propagates normally.
+        $updateSucceeded = true;
+        try {
+            $stmt->execute();
+        } catch (mysqli_sql_exception $e) {
+            if ((int)$e->getCode() === 1062 && str_contains($e->getMessage(), 'uk_users_email')) {
+                $error = "Email \"$email\" is already in use by another employee.";
+                $updateSucceeded = false;
+            } elseif ((int)$e->getCode() === 1062 && str_contains($e->getMessage(), 'TagID')) {
+                // The blank-TagID case is normalized to NULL above and can no
+                // longer collide; this remaining path is a genuinely
+                // assigned badge already in use by someone else.
+                $error = "Tag ID \"$tagID\" is already assigned to another employee.";
+                $updateSucceeded = false;
+            } else {
+                throw $e;
+            }
+        }
 
+        if ($updateSucceeded) {
         // Update PIN separately if provided
         if ($newPin !== '') {
             if (!ctype_digit($newPin) || strlen($newPin) < 2 || strlen($newPin) > 6) {
@@ -134,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt2->execute();
         $user = $stmt2->get_result()->fetch_assoc();
         $assignedShift = $newShiftId ?: null;
+        } // if ($updateSucceeded)
     }
 }
 

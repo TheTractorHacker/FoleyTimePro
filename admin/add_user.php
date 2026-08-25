@@ -16,6 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lastName  = trim($_POST['LastName'] ?? '');
     $email     = trim($_POST['Email'] ?? '');
     $tagID     = trim($_POST['TagID'] ?? '');
+    // See admin/edit_user.php for why this must be NULL, not '', when blank —
+    // users.TagID has a UNIQUE index and a live row (#1011) already had
+    // TagID='' before this fix; two blank-badge creates would otherwise
+    // collide on the second one.
+    if ($tagID === '') { $tagID = null; }
     $office    = trim($_POST['Office'] ?? '');
     $password  = $_POST['Password'] ?? '';
     $pin       = trim($_POST['UserPIN'] ?? '');
@@ -66,12 +71,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ");
     $stmt->bind_param("sssssss", $firstName, $lastName, $email, $tagID, $office, $hashed, $hashedPin);
 
-    if ($stmt->execute()) {
+    // The SELECT-based duplicate check above is TOCTOU-racy on its own (two
+    // concurrent submissions for the same new email can both pass it before
+    // either INSERTs) — migration 019's UNIQUE index on users.Email is the
+    // real backstop. Under this app's default strict mysqli error mode,
+    // execute() THROWS rather than returning false on a violation, so the
+    // `if ($stmt->execute())` / `else` shape below never actually reached its
+    // else branch for a real DB error; catch the specific duplicate-email
+    // case with a clean message instead of an uncaught 500.
+    try {
+        $stmt->execute();
         header("Location: manage_users.php");
         exit;
-    } else {
-        header('Location: ../error.php?code=500&message=' . urlencode('Error: ' . $stmt->error));
-        exit;
+    } catch (mysqli_sql_exception $e) {
+        if ((int)$e->getCode() === 1062 && str_contains($e->getMessage(), 'uk_users_email')) {
+            header('Location: ../error.php?code=400&message=' . urlencode('An account with that email already exists.'));
+            exit;
+        }
+        if ((int)$e->getCode() === 1062 && str_contains($e->getMessage(), 'TagID')) {
+            header('Location: ../error.php?code=400&message=' . urlencode('That Tag ID is already assigned to another employee.'));
+            exit;
+        }
+        throw $e;
     }
 }
 ?>

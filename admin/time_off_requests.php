@@ -59,7 +59,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // were lost). Vacation/Sick/Personal/Other keep deducting exactly
                 // as before; only the type with no ledger row skips it.
                 if (in_array($typeRow['RequestType'], ['Vacation', 'Sick', 'Personal', 'Other'], true)) {
-                    deductLeaveBalance($conn, $request['EmployeeID'], $typeRow['RequestType'], $hours);
+                    // Explicit $year: deductLeaveBalance() defaults to the
+                    // CURRENT calendar year when omitted, which is the year
+                    // this approval happens to run in — not the year the
+                    // leave was actually requested for. A request spanning a
+                    // year boundary (or just approved a few days into the
+                    // next year) would otherwise silently post its deduction
+                    // against the wrong year's ledger.
+                    $balanceYear = (int)date('Y', strtotime($typeRow['StartDate']));
+                    deductLeaveBalance($conn, $request['EmployeeID'], $typeRow['RequestType'], $hours, $balanceYear);
                 }
                 $conn->prepare("UPDATE time_off_requests SET HoursRequested=? WHERE ID=?")->execute([$hours, $requestId]);
             }

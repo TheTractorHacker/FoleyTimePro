@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../../auth/db.php';
+require_once __DIR__ . '/../../functions/leave_balance.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/ApiResponse.php';
 require_once __DIR__ . '/../services/NotificationService.php';
@@ -57,6 +58,13 @@ switch ($action) {
             ApiResponse::error('Method not allowed', 405);
         }
         handleGetMyRequests($userId);
+        break;
+
+    case 'balances':
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            ApiResponse::error('Method not allowed', 405);
+        }
+        handleGetMyBalances($userId);
         break;
 
     case 'request':
@@ -159,6 +167,42 @@ function handleGetMyRequests($userId)
 }
 
 /**
+ * Get the current employee's leave balances for the current calendar year.
+ *
+ * Reuses functions/leave_balance.php's getAllLeaveBalances() — the same ledger
+ * read admin/time_off_requests.php trusts when it deducts on approval via
+ * deductLeaveBalance() — rather than re-deriving the accrued/used/available
+ * math here. `available` is already floored at 0 by that helper.
+ *
+ * Note for whoever wires this up further: AccruedHours is not currently
+ * populated by anything (no accrual job exists yet, only manual/seeded rows),
+ * so `available` will read 0 for most employees today even though
+ * leave_accrual_policy defines a real HoursPerYear per type. That's a
+ * pre-existing gap in the accrual side of this feature, not something this
+ * endpoint papers over or fixes.
+ */
+function handleGetMyBalances($userId)
+{
+    global $conn;
+
+    $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
+    $balances = getAllLeaveBalances($conn, $userId, $year);
+
+    $out = [];
+    foreach ($balances as $type => $b) {
+        $out[] = [
+            'type'      => $type,
+            'accrued'   => $b['accrued'],
+            'used'      => $b['used'],
+            'carryover' => $b['carryover'],
+            'available' => $b['available'],
+        ];
+    }
+
+    ApiResponse::success(['year' => $year, 'balances' => $out]);
+}
+
+/**
  * Submit new time-off request
  */
 function handleSubmitRequest($userId)
@@ -178,8 +222,8 @@ function handleSubmitRequest($userId)
         $errors['end_date'] = 'End date is required';
     }
 
-    if (!isset($input['type']) || !in_array($input['type'], ['Vacation', 'Sick', 'Personal', 'Other'])) {
-        $errors['type'] = 'Valid request type is required (Vacation, Sick, Personal, Other)';
+    if (!isset($input['type']) || !in_array($input['type'], ['Vacation', 'Sick', 'Personal', 'Other', 'Unpaid'])) {
+        $errors['type'] = 'Valid request type is required (Vacation, Sick, Personal, Other, Unpaid)';
     }
 
     if (!empty($errors)) {
