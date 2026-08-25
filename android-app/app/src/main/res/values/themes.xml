@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- AppCompat base — Compose provides all Material 3 styling at runtime -->
+    <!--
+      AppCompat base only. Compose owns every pixel after the splash hands over,
+      so this theme's job is to (a) not flash the wrong background during the
+      handoff and (b) stay out of the way of edge-to-edge.
+
+      statusBarColor / navigationBarColor are transparent because MainActivity
+      calls enableEdgeToEdge(); leaving the old opaque navy here would paint a
+      solid bar over the content for the first frame and again on every
+      configuration change.
+    -->
     <style name="Theme.FoleyTimePro" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="android:windowBackground">@color/colorBackground</item>
-        <item name="android:statusBarColor">@color/colorPrimary</item>
-        <item name="android:navigationBarColor">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Theme.FoleyTimePro.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/colorPrimary</item>
+        <item name="windowSplashScreenBackground">@color/colorSplashBackground</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.FoleyTimePro</item>
     </style>

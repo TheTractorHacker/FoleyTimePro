@@ -3,7 +3,10 @@
     <color name="colorPrimary">#073851</color>
     <color name="colorPrimaryDark">#042a3d</color>
     <color name="colorAccent">#2ecc71</color>
-    <color name="colorBackground">#F5F7FA</color>
+    <!-- Pre-Compose window backgrounds. Keep in step with FoleyTimeProTheme's
+         `surface` role: Neutral98 (light) and Neutral6 (dark). -->
+    <color name="colorBackground">#F5FAFF</color>
+    <color name="colorBackgroundDark">#0B141B</color>
     <color name="colorError">#E53935</color>
     <color name="colorDivider">#E0E0E0</color>
     <color name="colorTextPrimary">#212121</color>

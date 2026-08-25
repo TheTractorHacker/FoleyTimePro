@@ -1,0 +1,32 @@
+# ---- Build output ----
+build/
+app/build/
+.gradle/
+.cxx/
+captures/
+
+# ---- Local machine config (SDK path — machine-specific, never shared) ----
+local.properties
+
+# ---- IDE ----
+.idea/
+*.iml
+.DS_Store
+
+# ---- Signing material — NEVER commit ----
+*.jks
+*.keystore
+*.p12
+*.pepk
+keystore.properties
+
+# ---- Firebase config (drop-in per gradle.properties APP_ENABLE_FIREBASE / CLAUDE.md) ----
+google-services.json
+
+# ---- Build artifacts ----
+*.apk
+*.aab
+*.aab.json
+
+# ---- Logs ----
+*.log

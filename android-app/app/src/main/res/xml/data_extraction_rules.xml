@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ (API 31+) backup and device-transfer rules.
+    Auth tokens and local databases must never leave the device.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="foley_timepro_secure.xml"/>
+        <exclude domain="database"   path="foley_timepro.db"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="foley_timepro_secure.xml"/>
+        <exclude domain="database"   path="foley_timepro.db"/>
+    </device-transfer>
+</data-extraction-rules>

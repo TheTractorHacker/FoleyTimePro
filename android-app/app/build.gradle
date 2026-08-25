@@ -1,36 +1,80 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'com.google.devtools.ksp'
+    id 'com.google.dagger.hilt.android'
+}
+
+// Firebase Cloud Messaging is applied only when google-services.json is present
+// AND APP_ENABLE_FIREBASE=true is set (e.g. in ~/.gradle/gradle.properties).
+// This keeps the codebase buildable in environments that don't ship the
+// Firebase config, while still allowing production builds to enable push.
+def firebaseEnabled = (project.findProperty('APP_ENABLE_FIREBASE') ?: 'false').toBoolean()
+if (firebaseEnabled) {
+    apply plugin: 'com.google.gms.google-services'
 }
 
 def appPackageName  = project.findProperty('APP_PACKAGE_NAME') ?: 'com.foleyit.foleytimepro'
 def appName         = project.findProperty('APP_NAME')         ?: 'FoleyTimePro'
-def versionCodeVal  = (project.findProperty('VERSION_CODE')    ?: '3').toInteger()
-def versionNameVal  = project.findProperty('VERSION_NAME')     ?: '3.0.0'
+def versionCodeVal  = (project.findProperty('VERSION_CODE')    ?: '4').toInteger()
+def versionNameVal  = project.findProperty('VERSION_NAME')     ?: '4.0.0'
+
+// Cert-pin BuildConfig fields — leave blank in dev; populate before release.
+// To extract:  openssl s_client -servername HOST -connect HOST:443 < /dev/null \
+//   | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der \
+//   | openssl dgst -sha256 -binary | base64
+def certPinPrimary = project.findProperty('CERT_PIN_PRIMARY') ?: ''
+def certPinBackup  = project.findProperty('CERT_PIN_BACKUP')  ?: ''
+def apiBaseDefault = project.findProperty('API_BASE_URL_DEFAULT') ?: ''
 
 android {
     namespace appPackageName
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId  appPackageName
-        minSdk         24
-        targetSdk      34
+        minSdk         26
+        targetSdk      35
         versionCode    versionCodeVal
         versionName    versionNameVal
         manifestPlaceholders = [appName: appName]
+
+        buildConfigField 'String',  'API_BASE_URL_DEFAULT', "\"${apiBaseDefault}\""
+        buildConfigField 'String',  'CERT_PIN_PRIMARY',     "\"${certPinPrimary}\""
+        buildConfigField 'String',  'CERT_PIN_BACKUP',      "\"${certPinBackup}\""
+        buildConfigField 'boolean', 'ENABLE_ROOT_CHECK',    'true'
+        buildConfigField 'long',    'INACTIVITY_TIMEOUT_MS','90_000L'
+    }
+
+    // Signing config reads from ~/.gradle/gradle.properties or environment.
+    // Never commit the keystore or its password.
+    signingConfigs {
+        release {
+            def storeFileProp = project.findProperty('FOLEY_KEYSTORE_PATH')
+            if (storeFileProp) {
+                storeFile     file(storeFileProp)
+                storePassword project.findProperty('FOLEY_KEYSTORE_PASS')
+                keyAlias      project.findProperty('FOLEY_KEY_ALIAS')
+                keyPassword   project.findProperty('FOLEY_KEY_PASS')
+            }
+        }
     }
 
     buildTypes {
         debug {
             applicationIdSuffix '.debug'
-            versionNameSuffix  '-debug'
+            versionNameSuffix   '-debug'
             debuggable true
         }
         release {
-            minifyEnabled    true
-            shrinkResources  true
+            minifyEnabled   true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (project.findProperty('FOLEY_KEYSTORE_PATH')) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -39,28 +83,53 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions { jvmTarget = '17' }
+    kotlinOptions {
+        jvmTarget = '17'
+        // Material 3 1.4.0 ships the expressive surface (MaterialExpressiveTheme,
+        // ShortNavigationBar, WideNavigationRail, the flexible app bars) behind
+        // opt-in markers. Declaring them once here beats an @OptIn on every file.
+        freeCompilerArgs += [
+            '-opt-in=androidx.compose.material3.ExperimentalMaterial3Api',
+            '-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi',
+        ]
+    }
 
     buildFeatures {
         buildConfig true
         compose true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.7'
+    packaging {
+        resources {
+            excludes += ['/META-INF/{AL2.0,LGPL2.1}', 'META-INF/gradle/incremental.annotation.processors']
+        }
     }
 }
 
 dependencies {
-    // Core
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    // ---- Core Android ----
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core-splashscreen:1.0.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'androidx.biometric:biometric:1.2.0-alpha05'
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
 
-    // Compose BOM — pins all compose versions together
-    def composeBom = platform('androidx.compose:compose-bom:2024.02.00')
+    // ---- Networking (OkHttp — per CLAUDE.md, NOT Retrofit) ----
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    debugImplementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
+
+    // ---- Coroutines ----
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
+
+    // ---- Compose (BOM pins all versions) ----
+    // 2025.12.01 is the first BOM carrying material3 1.4.0 -- the Material 3
+    // Expressive release. Verified drop-in for this module: the AAR declares
+    // minCompileSdk=35 / minAndroidGradlePluginVersion=8.6.0 and is compiled to
+    // Kotlin metadata 2.0, all of which compileSdk 35 / AGP 8.9.0 / Kotlin 2.1.10
+    // already satisfy.
+    def composeBom = platform('androidx.compose:compose-bom:2025.12.01')
     implementation composeBom
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-tooling-preview'
@@ -68,14 +137,38 @@ dependencies {
     implementation 'androidx.compose.material:material-icons-extended'
     debugImplementation 'androidx.compose.ui:ui-tooling'
 
-    // Activity + Navigation
-    implementation 'androidx.activity:activity-compose:1.8.2'
-    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    // ---- Activity + Navigation + Lifecycle ----
+    implementation 'androidx.activity:activity-compose:1.9.3'
+    implementation 'androidx.navigation:navigation-compose:2.8.5'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.7'
 
-    // Lifecycle
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
+    // ---- Hilt DI ----
+    implementation 'com.google.dagger:hilt-android:2.53'
+    ksp           'com.google.dagger:hilt-compiler:2.53'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
+    implementation 'androidx.hilt:hilt-work:1.2.0'
+    ksp           'androidx.hilt:hilt-compiler:1.2.0'
 
-    // Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    // ---- Room (offline queue + cached reads) ----
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    ksp           'androidx.room:room-compiler:2.6.1'
+
+    // ---- WorkManager ----
+    implementation 'androidx.work:work-runtime-ktx:2.10.0'
+
+    // ---- Firebase Cloud Messaging (via BOM) ----
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+
+    // ---- Test ----
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'io.mockk:mockk:1.13.13'
+    testImplementation 'app.cash.turbine:turbine:1.2.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.work:work-testing:2.10.0'
+    androidTestImplementation 'androidx.room:room-testing:2.6.1'
 }
