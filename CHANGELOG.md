@@ -1,5 +1,36 @@
 # Change Log
 
+## v1.4.0 (August 25, 2026)
+
+### External Write API (shipped reserved — not yet active)
+
+*   **New POST/PATCH handlers** on `api/external/v1/{punches,timeoff,employees}.php`, gated by
+    three new scopes: `punches:write`, `timeoff:write`, `employees:write`. The code is complete,
+    adversarially reviewed, and verified against the live database — but the scopes ship
+    `available => false` in `ApiScopes::CATALOG`, and that flag is now genuinely enforced at
+    authorization time (`WriteBootstrap`), not just described in the admin UI's copy. A key
+    already holding one of these scope strings gets the same `403` as a key that was never
+    granted it. Turning this on for real is a deliberate follow-up, not a side effect of this
+    release.
+*   `employees:write` can create/update an employee's name, email, office, job title, phone, and
+    lock-out status only — never a badge ID, password, PIN, or 2FA setting.
+*   Every write is idempotent via an optional `Idempotency-Key` header, and every punch/time-off
+    write is protected against concurrent-request races (proven with genuinely parallel requests,
+    not just reasoned about).
+
+### Security & correctness fixes
+
+*   Fixed a bug where an overnight-shift punch (e.g. 11pm–6am) could overlap an existing punch
+    without being detected, allowing double-counted paid hours.
+*   `users.Email` now has a real database-level uniqueness constraint — previously two concurrent
+    account creations could share an email with no error at all.
+*   Fixed a data bug where a blank Tag ID was stored as an empty string instead of `NULL`,
+    which could crash the *next* save of any badge-less employee profile (admin console *and*
+    employee self-service) with an unhandled error. One already-affected production record was
+    corrected.
+*   Fixed a bug where approving a time-off request that spans a year boundary deducted the leave
+    balance against the wrong year (present in both the admin console and the new write API).
+
 ## v1.3.0 (August 25, 2026)
 
 ### External Reporting API

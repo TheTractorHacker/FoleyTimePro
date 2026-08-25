@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "FoleyTimePro TimeClock API",
-        "version": "1.3.0",
+        "version": "1.4.0",
         "description": "The **read-only external reporting / BI surface** of FoleyTimePro TimeClock.\n\nThis API exists so a payroll system, a BI tool (Power BI, a spreadsheet import,\na QuickBooks sync), or a compliance dashboard can pull time, schedule, time-off\nand geofence data out of this installation without touching the admin UI. It is\ndeliberately **read-only** today: every endpoint is a `GET`, and the write\nscopes visible in the key-creation form (`punches:write`, `timeoff:write`,\n`employees:write`) are reserved for a future revision and are honored by\nnothing yet.\n\n### Authentication\nEvery endpoint (including discovery) requires a valid API key sent as\n`Authorization: Bearer <64-hex-char-key>`. Keys are created in\n**Admin → API Keys**, are scoped to exactly the data an integration needs, and\nare rate-limited to 60 requests/minute. See the `ApiKeyBearer` security scheme\nbelow for the full contract.\n\n### The response envelope\nEvery JSON response — success or error — is `{\"success\": true|false, ...}`.\nA row-listing endpoint's payload is `data.rows` (or, for the two endpoints with\nan older, stable public contract, `data.employees` / `data.punches`) alongside\na `data.meta` block describing exactly what was applied: the effective\ndate range, filters, rounding/overtime rules, pagination, and a `warnings`\narray that calls out anything that could make a number misleading (a partial\nweek, an open punch, a page that doesn't cover the full result set, and so on).\nRead `data.meta.warnings` before trusting a headline total.\n\n### CSV export\nEvery row-listing endpoint except `/punches` and `/meta` accepts\n`format=csv` and streams a UTF-8 (with BOM) CSV instead of the JSON envelope.\nCSV has nowhere to put `meta`, so the handful of fields an unattended importer\nneeds (timezone, row/total counts, has_more, warnings) are mirrored into\n`X-Report-*` response headers instead of being silently dropped.\n\n### Consistency across the surface\nEvery report that computes worked hours (`/reports/hours`, `/summary`,\n`/overtime`, `/utilization`, `/attendance`, `/payroll`, `/trends`) recomputes\nthem from the raw punch `TIME` columns through the same shared calculator —\n`timepunches.TotalHours` is never trusted, because one insert path writes a\nliteral `0` and admin edits do not always recompute it. Rounding is always\napplied once, to the summed day, before overtime is allocated from the rounded\nfigures — this is what keeps `/summary`, `/overtime`, `/utilization`,\n`/payroll` and `/trends` from ever disagreeing about the same employee's same\nday.\n",
         "contact": {
             "name": "FoleyTimePro",
@@ -6333,8 +6333,8 @@
     },
     "x-generated": {
         "from": "openapi.yaml",
-        "at": "2026-08-25T10:59:09-05:00",
+        "at": "2026-08-25T15:41:41-05:00",
         "generator": "scripts/openapi-to-json.php",
-        "source_sha256": "dd56477cd069bc5e9ea502c6409083ffa0c6d767f0e9d63642325be3171b810a"
+        "source_sha256": "9c4ae1b42e646b1517648d76888da7a6bd40502dc119950d2a9216ff5c1e5448"
     }
 }
