@@ -1,0 +1,12 @@
+# External server-to-server API endpoints.
+# The parent /api/.htaccess sets Access-Control-Allow-Origin: * for the
+# browser-facing mobile API — undo that here since these endpoints are
+# meant to be called only from trusted backends (ITFlow, etc.).
+
+Header always unset Access-Control-Allow-Origin
+Header always unset Access-Control-Allow-Methods
+Header always unset Access-Control-Allow-Headers
+Header always unset Access-Control-Max-Age
+
+# Do not list directory contents
+Options -Indexes

@@ -54,6 +54,71 @@ RewriteRule ^v1/notifications/register$ v1/notifications.php?action=register [L,
 RewriteRule ^v1/notifications/unregister$ v1/notifications.php?action=unregister [L,QSA]
 RewriteRule ^v1/notifications/preferences$ v1/notifications.php?action=preferences [L,QSA]
 
+# External server-to-server API (API-key authed; see /api/external/.htaccess)
+#
+# Explicit rules for every route that exists today, plus a generic fallback so a
+# NEW file dropped under external/v1/ (or external/v1/reports/, live/, audit/,
+# odata/) becomes reachable by file placement alone — no .htaccess edit required
+# for the next endpoint. [L,QSA] on every explicit rule means the generic
+# fallback only ever fires for a path with no rule above it; a route can still
+# be given a dedicated rule (e.g. to rename a URL away from its filename)
+# without conflicting with the fallback. This mirrors the nginx vhost's
+# `rewrite ^/api/(.+?)/?$ /api/$1.php` — the production server for this app
+# runs nginx, not Apache, so THAT rule is the one actually serving traffic;
+# these rules exist for Apache/Docker deployments (see Install/, Dockerfile)
+# where .htaccess is honored.
+RewriteRule ^external/v1/punches$   external/v1/punches.php   [L,QSA]
+RewriteRule ^external/v1/employees$ external/v1/employees.php [L,QSA]
+RewriteRule ^external/v1/offices$   external/v1/offices.php   [L,QSA]
+RewriteRule ^external/v1/shifts$    external/v1/shifts.php    [L,QSA]
+RewriteRule ^external/v1/schedule$  external/v1/schedule.php  [L,QSA]
+RewriteRule ^external/v1/timeoff$   external/v1/timeoff.php   [L,QSA]
+RewriteRule ^external/v1/meta$      external/v1/meta.php      [L,QSA]
+
+RewriteRule ^external/v1/reports/hours$          external/v1/reports/hours.php          [L,QSA]
+RewriteRule ^external/v1/reports/summary$        external/v1/reports/summary.php        [L,QSA]
+RewriteRule ^external/v1/reports/overtime$       external/v1/reports/overtime.php       [L,QSA]
+RewriteRule ^external/v1/reports/utilization$    external/v1/reports/utilization.php    [L,QSA]
+RewriteRule ^external/v1/reports/attendance$     external/v1/reports/attendance.php     [L,QSA]
+RewriteRule ^external/v1/reports/timeoff$        external/v1/reports/timeoff.php        [L,QSA]
+RewriteRule ^external/v1/reports/leave-balances$ external/v1/reports/leave-balances.php [L,QSA]
+RewriteRule ^external/v1/reports/payroll$        external/v1/reports/payroll.php        [L,QSA]
+RewriteRule ^external/v1/reports/exceptions$     external/v1/reports/exceptions.php     [L,QSA]
+RewriteRule ^external/v1/reports/punctuality$    external/v1/reports/punctuality.php    [L,QSA]
+RewriteRule ^external/v1/reports/trends$         external/v1/reports/trends.php         [L,QSA]
+RewriteRule ^external/v1/reports/geofence$       external/v1/reports/geofence.php       [L,QSA]
+RewriteRule ^external/v1/reports/auto-clockouts$ external/v1/reports/auto-clockouts.php [L,QSA]
+
+RewriteRule ^external/v1/live/status$      external/v1/live/status.php      [L,QSA]
+RewriteRule ^external/v1/live/headcount$   external/v1/live/headcount.php   [L,QSA]
+RewriteRule ^external/v1/audit/punch-changes$ external/v1/audit/punch-changes.php [L,QSA]
+RewriteRule ^external/v1/audit/access$     external/v1/audit/access.php     [L,QSA]
+
+# Generic fallback: <anything>.php under external/v1/ becomes reachable at
+# <anything> with no extension, as long as no explicit rule above already
+# claimed it. %{REQUEST_FILENAME}.php must exist on disk — this only maps
+# URLs onto real files, it never invents a route.
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^external/v1/(.+)$ external/v1/$1.php [L,QSA]
+
+# OData v4 surface (api/lib/ODataQuery.php + api/external/odata/) is still being
+# built as of this edit — its file layout (single dispatcher vs. one file per
+# entity set, how `$metadata` is served) is that endpoint's own call per its
+# task brief. The generic external/v1/ fallback above does not cover
+# external/odata/ (different prefix), so add its rewrite rules here once that
+# code lands and its file header documents the URLs it actually expects —
+# guessing the shape now would risk wiring a route that doesn't match what got
+# built. Until then it is reachable only via nginx's generic /api/<path> ->
+# <path>.php mapping (see the vhost), which is what serves production traffic
+# on this deployment anyway.
+#
+# openapi.yaml needs no rule: with no extension-based deny for .yaml below, a
+# static GET is served directly. openapi.json is DELIBERATELY not exposed here
+# — it is a generated artifact admin/api-docs.php reads off local disk
+# (file_get_contents, not HTTP) for the interactive reference, and the
+# FilesMatch rule a few lines down already blocks *.json for good reason
+# (composer.json, package.json, etc.) — do not carve out an exception for it.
+
 # Prevent directory listing
 Options -Indexes
 
