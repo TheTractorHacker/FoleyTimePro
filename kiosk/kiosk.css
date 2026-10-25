@@ -1,252 +1,809 @@
 /* ================================================================
-   FoleyTimePro Kiosk — kiosk.css
-   Designed for dedicated tablet/monitor kiosk display.
+   FoleyTimePro Kiosk — "Blueprint Night" aesthetic
+   Refined nocturnal transit-terminal feel: deep navy background,
+   serif display, brand-driven accent, sage/honey/clay status.
+   Designed for a dedicated tablet/monitor kiosk.
    ================================================================ */
+
+/* Fonts are loaded via <link rel="preconnect"> + <link rel="stylesheet"> in kiosk/index.php
+   for parallel loading and faster cold boot. This @import remains as a fallback in case the
+   stylesheet is served standalone. */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #040d14;
-  --surface:   rgba(255,255,255,.06);
-  --border:    rgba(255,255,255,.10);
-  --text:      #f0f4f8;
-  --muted:     rgba(255,255,255,.45);
-  --in-bg:     rgba(22,163,74,.15);
-  --lunch-bg:  rgba(217,119,6,.15);
-  --blue-bg:   rgba(37,99,235,.15);
-  --out-bg:    rgba(231,76,60,.15);
+  /* Brand colors — injected by index.php from branding settings.
+     Defaults here match get_branding.php fallbacks. */
+  --brand-primary:    #3498db;
+  --brand-secondary:  #2ecc71;
+  --brand-accent:     #e74c3c;
+  --brand-primary-15: rgba(52, 152, 219, 0.15);
+  --brand-primary-28: rgba(52, 152, 219, 0.28);
+  --brand-primary-40: rgba(52, 152, 219, 0.40);
+
+  /* Blueprint Night — cool deep-navy nocturnal palette */
+  --bg-base:      #0a1220;
+  --bg-warm:      #0f1a2e;
+  --bg-glow:      #142640;
+
+  --surface:      rgba(200, 220, 245, 0.045);
+  --surface-hi:   rgba(200, 220, 245, 0.08);
+  --border:       rgba(200, 220, 245, 0.09);
+  --border-hi:    rgba(200, 220, 245, 0.18);
+
+  --text:         #e8eef7;
+  --text-2:       rgba(232, 238, 247, 0.72);
+  --muted:        rgba(232, 238, 247, 0.50);
+  --faint:        rgba(232, 238, 247, 0.22);
+
+  /* Primary accent — drawn from brand */
+  --accent:       var(--brand-primary);
+  --accent-soft:  var(--brand-primary-15);
+  --accent-glow:  var(--brand-primary-28);
+
+  /* Status colors — semantic (match design-tokens.css clock-in/out/lunch family) */
+  --sage:         #4ade80;
+  --sage-soft:    rgba(74, 222, 128, 0.14);
+  --sage-border:  rgba(74, 222, 128, 0.32);
+
+  --honey:        #fbbf24;
+  --honey-soft:   rgba(251, 191, 36, 0.14);
+  --honey-border: rgba(251, 191, 36, 0.32);
+
+  --clay:         #f87171;
+  --clay-soft:    rgba(248, 113, 113, 0.12);
+  --clay-border:  rgba(248, 113, 113, 0.30);
+
+  --danger:       #f87171;
+
+  /* Type */
+  --f-display:    'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --f-body:       'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono:       'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --radius:       14px;
+  --radius-lg:    22px;
+  --radius-pill:  999px;
+
+  --ease:         cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html, body {
   height: 100%;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: radial-gradient(ellipse at 30% 20%, #0d3a52 0%, var(--bg) 65%);
+  font-family: var(--f-body);
+  font-size: 16px;
   color: var(--text);
   overflow: hidden;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Header ─────────────────────────────────────────────── */
-.k-header {
+body {
+  background:
+    radial-gradient(ellipse 90% 60% at 20% 15%, var(--bg-glow) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 85% 90%, #10203a 0%, transparent 60%),
+    var(--bg-base);
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Ambient grain overlay — subtle texture, no external asset */
+.k-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.78 0 0 0 0 0.85 0 0 0 0 0.96 0 0 0 0.22 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  z-index: 1;
+}
+
+/* Subtle vignette to focus the eye */
+.k-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 100% 80% at 50% 50%, transparent 55%, rgba(0,0,0,0.45) 100%);
+  z-index: 2;
+}
+
+/* =============================================================
+   STAGE: two-column landscape, stacked portrait
+   ============================================================= */
+.k-stage {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(24px, 4vw, 56px);
+  padding: clamp(28px, 4vw, 56px) clamp(28px, 4vw, 56px) clamp(60px, 5vw, 80px);
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+/* =============================================================
+   HERO (left column) — brand, time, date, status ticker
+   ============================================================= */
+.k-hero {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vh, 40px);
+  padding: clamp(12px, 2vw, 24px);
+  position: relative;
+}
+
+.k-hero::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: clamp(60px, 8vh, 100px);
+  left: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, var(--border-hi) 20%, var(--border-hi) 80%, transparent);
+}
+
+.k-brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 18px 32px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(0,0,0,.25);
-  backdrop-filter: blur(8px);
+  gap: 14px;
+  padding-left: clamp(16px, 2vw, 28px);
 }
-.k-brand { display: flex; align-items: center; gap: 12px; }
-.k-logo {
-  height: 36px; width: 36px; object-fit: contain;
-  border-radius: 8px; background: rgba(255,255,255,.1); padding: 4px;
+.k-brand-mark {
+  width: 40px; height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--surface-hi);
+  padding: 5px;
+  border: 1px solid var(--border);
 }
-.k-brand-name { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
-.k-date-display { text-align: right; }
-.k-date-day  { font-size: 15px; font-weight: 600; color: var(--muted); }
-.k-date-full { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.k-brand-name {
+  font-family: var(--f-body);
+  font-size: clamp(13px, 1.3vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
 
-/* ── Big clock ───────────────────────────────────────────── */
-.k-clock-wrap { text-align: center; padding: 32px 20px 16px; }
+.k-hero-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding-left: clamp(16px, 2vw, 28px);
+  gap: clamp(16px, 2.5vh, 32px);
+}
+
+/* Massive serif clock — the anchor of the design */
+.k-clock-wrap { position: relative; }
 .k-clock {
-  font-size: clamp(56px, 10vw, 96px);
-  font-weight: 800;
-  letter-spacing: -.03em;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(84px, 13vw, 176px);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  font-feature-settings: "tnum" 1, "lnum" 1;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
-  background: linear-gradient(135deg, #fff 40%, rgba(255,255,255,.55));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  display: flex;
+  align-items: baseline;
+  gap: 0.18em;
+  text-shadow: 0 8px 40px var(--brand-primary-15);
+}
+.k-ampm {
+  font-family: var(--f-body);
+  font-size: clamp(20px, 2.2vw, 32px);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-feature-settings: normal;
+  font-variant-numeric: normal;
 }
 
-/* ── Panel ───────────────────────────────────────────────── */
-.k-panel { max-width: 620px; margin: 0 auto; padding: 0 24px; }
-.k-panel.hidden { display: none; }
+/* Thin seconds progress bar — a minute passing */
+.k-clock-progress {
+  margin-top: 14px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  max-width: 320px;
+}
+.k-clock-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-glow), var(--accent));
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 1s linear;
+}
 
-/* ── Scan state ──────────────────────────────────────────── */
-.k-scan-icon { text-align: center; margin-bottom: 20px; }
+/* Date block */
+.k-date-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.k-date-day {
+  font-family: var(--f-body);
+  font-size: clamp(13px, 1.2vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.k-date-full {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 400;
+  color: var(--text-2);
+  letter-spacing: -0.01em;
+}
+
+/* Ambient status ticker */
+.k-hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-body);
+  font-size: clamp(11px, 1vw, 13px);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 8px;
+}
+.k-hero-status::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--sage);
+  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.18), 0 0 20px rgba(74, 222, 128, 0.55);
+  animation: readyPulse 2.6s var(--ease) infinite;
+}
+.k-hero-status.status-in::before    { background: var(--sage);  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.18),  0 0 20px rgba(74, 222, 128, 0.55); }
+.k-hero-status.status-lunch::before { background: var(--honey); box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.18),  0 0 20px rgba(251, 191, 36, 0.55); }
+.k-hero-status.status-out::before   { background: var(--clay);  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.18), 0 0 20px rgba(248, 113, 113, 0.50); }
+@keyframes readyPulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Hero footer credit */
+.k-hero-footer {
+  padding-left: clamp(16px, 2vw, 28px);
+  font-family: var(--f-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* =============================================================
+   CARD (right column) — input, tabs, employee state
+   ============================================================= */
+.k-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(246,237,224,0.045), rgba(246,237,224,0.015)),
+    rgba(15, 13, 11, 0.55);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(22px, 3vw, 40px);
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  box-shadow:
+    0 30px 80px -20px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(200, 220, 245, 0.06);
+  overflow: hidden;
+}
+
+/* Decorative corner accents — subtle depth cue */
+.k-card::before,
+.k-card::after {
+  content: "";
+  position: absolute;
+  width: 26px; height: 26px;
+  border: 1px solid var(--border-hi);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.k-card::before { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+.k-card::after  { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+/* Panel wrapper for cross-fade */
+.k-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  transition: opacity 220ms var(--ease), transform 300ms var(--ease);
+}
+.k-panel.hidden {
+  display: none;
+}
+.k-panel.entering {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* -- Tabs -- */
+.k-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  margin-bottom: clamp(24px, 3vh, 36px);
+  align-self: center;
+}
+.k-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color 180ms var(--ease), background 220ms var(--ease);
+}
+.k-tab:hover { color: var(--text-2); }
+.k-tab.active {
+  color: var(--bg-base);
+  background: var(--accent);
+  box-shadow: 0 4px 16px -2px var(--accent-glow);
+}
+.k-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Tabpanes */
+.k-tabpane {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  gap: clamp(16px, 2vh, 24px);
+}
+.k-tabpane.active { display: flex; }
+
+/* -- Scan hint + scan icon -- */
+.k-scan-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: clamp(8px, 2vh, 20px);
+}
 .k-scan-icon svg {
-  width: clamp(60px, 10vw, 86px);
-  height: clamp(60px, 10vw, 86px);
-  stroke: rgba(255,255,255,.3);
-  animation: scanPulse 2.5s ease-in-out infinite;
+  width: clamp(56px, 8vw, 80px);
+  height: clamp(56px, 8vw, 80px);
+  stroke: var(--accent);
+  stroke-width: 1.25;
+  opacity: 0.5;
+  animation: scanPulse 3s var(--ease) infinite;
 }
 @keyframes scanPulse {
-  0%,100% { opacity:.35; transform:scale(1); }
-  50%      { opacity:.8;  transform:scale(1.06); }
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.05); }
 }
+
 .k-scan-hint {
   text-align: center;
-  font-size: clamp(14px, 2vw, 18px);
-  color: var(--muted);
-  margin-bottom: 20px;
+  font-family: var(--f-body);
+  font-size: clamp(13px, 1.3vw, 16px);
   font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
-#tagInput {
-  display: block; width: 100%;
-  padding: clamp(14px, 2.5vw, 20px) 24px;
-  font-size: clamp(18px, 3vw, 26px);
-  font-family: inherit; font-weight: 600;
+
+/* -- Tag input (Badge tab) -- */
+.k-tag-input {
+  display: block;
+  width: 100%;
+  padding: clamp(16px, 2vw, 22px) 24px;
+  font-family: var(--f-mono);
+  font-size: clamp(20px, 2.4vw, 26px);
+  font-weight: 600;
   text-align: center;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  color: var(--text); outline: none;
-  transition: border-color .2s, box-shadow .2s;
-  backdrop-filter: blur(6px);
-  letter-spacing: .06em;
+  letter-spacing: 0.14em;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  outline: none;
+  transition: border-color 180ms var(--ease), box-shadow 220ms var(--ease), background 200ms var(--ease);
+  caret-color: var(--accent);
 }
-#tagInput::placeholder { color: var(--muted); font-weight: 400; letter-spacing: 0; }
-#tagInput:focus {
-  border-color: rgba(255,255,255,.32);
-  box-shadow: 0 0 0 4px rgba(255,255,255,.05), 0 8px 32px rgba(0,0,0,.3);
+.k-tag-input::placeholder {
+  color: var(--faint);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+.k-tag-input:focus {
+  border-color: var(--accent);
+  background: rgba(0,0,0,0.5);
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 8px 32px rgba(0,0,0,0.4);
 }
 
-/* ── Clock panel ─────────────────────────────────────────── */
-.k-employee { text-align: center; margin-bottom: 24px; }
-.k-emp-name {
-  font-size: clamp(26px, 5vw, 46px);
-  font-weight: 800;
-  letter-spacing: -.02em;
-  margin-bottom: 12px;
-  line-height: 1.1;
-}
-.k-status-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 7px 20px; border-radius: 24px;
-  font-size: clamp(13px, 1.8vw, 17px); font-weight: 700;
-  border: 1.5px solid transparent;
-}
-.k-status-in    { background:var(--in-bg);    color:#4ade80; border-color:rgba(74,222,128,.3); }
-.k-status-lunch { background:var(--lunch-bg); color:#fbbf24; border-color:rgba(251,191,36,.3); }
-.k-status-out   { background:rgba(255,255,255,.06); color:var(--muted); border-color:var(--border); }
-
-/* ── Action buttons ──────────────────────────────────────── */
-.k-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* -- PIN pad -- */
+.k-pin-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 12px;
+  height: 56px;
+  min-height: 56px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 20px;
 }
-.k-btn {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 8px;
-  padding: clamp(16px, 2.5vw, 22px) 12px;
-  border: 2px solid transparent; border-radius: 14px;
-  font-size: clamp(14px, 2vw, 18px); font-weight: 700;
-  font-family: inherit; cursor: pointer;
-  transition: transform .12s, filter .12s, box-shadow .12s;
-  backdrop-filter: blur(4px);
+.k-pin-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--faint);
+  transition: background 180ms var(--ease), transform 200ms var(--ease);
 }
-.k-btn svg { width: 28px; height: 28px; stroke-width: 2.2; flex-shrink: 0; }
-.k-btn:hover  { transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 8px 28px rgba(0,0,0,.35); }
-.k-btn:active { transform: translateY(0); filter: brightness(.9); }
+.k-pin-dot.filled {
+  background: var(--accent);
+  transform: scale(1.15);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
 
-.k-btn-in     { background:var(--in-bg);   color:#4ade80; border-color:rgba(74,222,128,.22); }
-.k-btn-lunch  { background:var(--lunch-bg);color:#fbbf24; border-color:rgba(251,191,36,.22); }
-.k-btn-return { background:var(--blue-bg); color:#93c5fd; border-color:rgba(147,197,253,.22); }
-.k-btn-out    { background:var(--out-bg);  color:#f87171; border-color:rgba(248,113,113,.22); }
-.k-btn-cancel {
-  grid-column: 1 / -1;
-  flex-direction: row; gap: 6px;
-  background: rgba(255,255,255,.04);
+.k-pin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.2vw, 12px);
+  max-width: 340px;
+  margin: 0 auto;
+  width: 100%;
+}
+.k-pin-btn {
+  appearance: none;
+  aspect-ratio: 1 / 1;
+  max-height: 88px;
+  border: 1px solid var(--border-hi);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 400;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 160ms var(--ease), transform 100ms var(--ease), border-color 160ms var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.k-pin-btn:hover  { background: var(--surface-hi); border-color: var(--border-hi); }
+.k-pin-btn:active { transform: scale(0.94); background: var(--accent-soft); border-color: var(--accent); }
+.k-pin-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.k-pin-btn.action {
+  font-family: var(--f-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.k-pin-btn.action.submit {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--brand-primary-40);
+}
+.k-pin-btn.action.submit:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: var(--surface);
   color: var(--muted);
   border-color: var(--border);
-  padding: clamp(12px, 1.8vw, 16px);
-  font-size: clamp(13px, 1.6vw, 16px);
+}
+.k-pin-btn.action.submit:not(:disabled):hover {
+  background: var(--accent);
+  color: var(--bg-base);
+}
+.k-pin-btn svg {
+  width: 22px; height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
 }
 
-/* ── Feedback overlay ────────────────────────────────────── */
-.k-overlay {
-  position: fixed; inset: 0;
-  background: rgba(4,13,20,.92);
-  backdrop-filter: blur(12px);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 1000; gap: 24px;
-}
-.k-overlay.hidden { display: none; }
-#feedbackVideo {
-  width: clamp(180px, 28vw, 280px);
-  border-radius: 16px;
-  box-shadow: 0 0 40px rgba(0,0,0,.6);
-}
-.k-overlay-msg {
-  font-size: clamp(20px, 3.5vw, 32px);
-  font-weight: 700; text-align: center;
-  max-width: 500px; line-height: 1.3;
-}
-
-/* ── Footer ──────────────────────────────────────────────── */
-.k-footer {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  text-align: center; font-size: 12px;
-  color: rgba(255,255,255,.18);
-  padding: 10px; letter-spacing: .04em;
-}
-
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 500px) {
-  .k-header { padding: 12px 16px; }
-  .k-clock-wrap { padding: 20px 16px 10px; }
-  .k-panel { padding: 0 12px; }
-  .k-actions { gap: 8px; }
-}
-@media (min-height: 900px) {
-  .k-clock-wrap { padding: 52px 20px 28px; }
-  .k-employee { margin-bottom: 32px; }
-}
-
-/* ── PIN pad ─────────────────────────────────────────────── */
-.k-pin-wrap {
-  margin-top: 20px;
+/* =============================================================
+   EMPLOYEE PANEL — greeting, status line, contextual actions
+   ============================================================= */
+.k-emp {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-}
-.k-pin-display {
-  font-size: 32px;
-  font-family: monospace;
-  letter-spacing: .3em;
-  color: #fff;
-  min-width: 120px;
   text-align: center;
-  background: rgba(255,255,255,.1);
-  border-radius: 12px;
-  padding: 8px 24px;
-}
-.k-pin-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 64px);
   gap: 8px;
+  margin-bottom: clamp(20px, 3vh, 32px);
 }
-.k-pin-btn {
-  width: 64px; height: 64px;
+.k-emp-greeting {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: clamp(20px, 2.2vw, 28px);
+  color: var(--accent);
+  font-weight: 400;
+}
+.k-emp-name {
+  font-family: var(--f-display);
+  font-size: clamp(38px, 5vw, 60px);
+  line-height: 1.02;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.k-emp-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: clamp(10px, 1.5vh, 16px);
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-family: var(--f-body);
+  font-size: clamp(12px, 1.1vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+}
+.k-emp-status::before {
+  content: "";
+  width: 8px; height: 8px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.3);
-  background: rgba(255,255,255,.1);
-  color: #fff;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background .15s;
+  background: currentColor;
 }
-.k-pin-btn:hover { background: rgba(255,255,255,.25); }
-.k-pin-btn:active { background: rgba(255,255,255,.4); }
-.k-pin-empty { visibility: hidden; }
-.k-pin-submit {
-  margin-top: 4px;
-  width: 140px; height: 44px;
-  border-radius: 22px;
+.k-emp-status.status-in    { color: var(--sage);  background: var(--sage-soft);  border-color: var(--sage-border); }
+.k-emp-status.status-lunch { color: var(--honey); background: var(--honey-soft); border-color: var(--honey-border); }
+.k-emp-status.status-out   { color: var(--clay);  background: var(--clay-soft);  border-color: var(--clay-border); }
+
+.k-emp-meta {
+  margin-top: 6px;
+  font-family: var(--f-body);
+  font-size: clamp(12px, 1.1vw, 14px);
+  color: var(--muted);
+  min-height: 1.4em;
+  letter-spacing: 0.02em;
+}
+.k-emp-meta strong {
+  font-family: var(--f-mono);
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 0 4px;
+}
+
+/* -- Action buttons -- */
+.k-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+.k-btn {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: clamp(16px, 2vw, 22px) 24px;
+  border: 1px solid var(--border-hi);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--f-body);
+  font-size: clamp(15px, 1.6vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: transform 120ms var(--ease), background 200ms var(--ease), border-color 200ms var(--ease), box-shadow 200ms var(--ease), opacity 200ms;
+}
+.k-btn svg {
+  width: 22px; height: 22px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.75;
+  flex-shrink: 0;
+}
+.k-btn:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--border-hi); }
+.k-btn:active:not(:disabled) { transform: translateY(0); }
+.k-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.k-btn:disabled { opacity: 0.4; cursor: wait; }
+
+.k-btn-primary {
+  background: linear-gradient(180deg, var(--accent), var(--brand-primary-dark, #266fa0));
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 8px 28px -8px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.18);
+  padding: clamp(20px, 2.5vw, 26px) 24px;
+  font-size: clamp(16px, 1.7vw, 19px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.k-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 14px 40px -10px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+  filter: brightness(1.05);
+}
+
+.k-btn-secondary {
+  background: var(--surface);
+  color: var(--text-2);
+  border-color: var(--border-hi);
+}
+.k-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-hi);
+  color: var(--text);
+}
+
+/* Status-tinted secondary variants */
+.k-btn-out    { color: var(--clay);  border-color: var(--clay-border); }
+.k-btn-out:hover:not(:disabled) { background: var(--clay-soft); }
+
+/* Cancel button — quiet */
+.k-cancel {
+  appearance: none;
   border: none;
-  background: #2ecc71;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: opacity .2s;
+  padding: 12px;
+  margin: 0 auto;
+  transition: color 180ms var(--ease);
 }
-.k-pin-submit:disabled { opacity: .35; cursor: default; }
-.k-pin-submit:not(:disabled):hover { opacity: .85; }
+.k-cancel:hover { color: var(--text-2); }
+.k-cancel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.k-cancel em { font-family: var(--f-display); font-style: italic; }
+
+/* =============================================================
+   OVERLAY — success/error feedback
+   ============================================================= */
+.k-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 13, 11, 0.94);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease);
+}
+.k-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.k-overlay.hidden { display: none; }
+
+#feedbackVideo {
+  width: clamp(180px, 26vw, 280px);
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+}
+
+.k-overlay-msg {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 3.5vw, 40px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-align: center;
+  max-width: 620px;
+  padding: 0 24px;
+  color: var(--text);
+}
+.k-overlay.error .k-overlay-msg { color: var(--danger); }
+.k-overlay.success .k-overlay-msg { color: var(--sage); }
+
+/* =============================================================
+   OFFLINE BANNER
+   ============================================================= */
+.k-offline-banner {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 999;
+  padding: 10px 22px;
+  margin-top: 12px;
+  background: var(--clay-soft);
+  border: 1px solid var(--clay-border);
+  border-radius: var(--radius-pill);
+  color: var(--clay);
+  font-family: var(--f-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 280ms var(--ease);
+  backdrop-filter: blur(14px);
+}
+.k-offline-banner.visible {
+  transform: translateX(-50%) translateY(0);
+}
+.k-offline-banner svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none; stroke-width: 2;
+}
+
+/* =============================================================
+   RESPONSIVE — portrait tablet / narrow
+   ============================================================= */
+@media (max-width: 900px), (orientation: portrait) {
+  .k-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: clamp(16px, 3vh, 28px);
+    padding: clamp(20px, 3vh, 32px);
+  }
+  .k-hero {
+    padding: 0;
+    gap: 20px;
+  }
+  .k-hero::before { display: none; }
+  .k-brand, .k-hero-body, .k-hero-footer { padding-left: 0; }
+  .k-hero-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .k-clock {
+    font-size: clamp(72px, 16vw, 120px);
+  }
+  .k-hero-footer { display: none; }
+  .k-card {
+    padding: clamp(18px, 3vw, 28px);
+  }
+}
+
+/* Narrow portrait (phones acting as kiosks) */
+@media (max-width: 500px) {
+  .k-clock { font-size: clamp(64px, 20vw, 96px); }
+  .k-date-full { font-size: 20px; }
+  .k-pin-btn { max-height: 72px; font-size: 24px; }
+}
+
+/* Ultra-wide monitors — restrain */
+@media (min-width: 1800px) {
+  .k-stage { max-width: 1700px; margin: 0 auto; }
+}
+
+/* Short screens */
+@media (max-height: 700px) {
+  .k-clock { font-size: clamp(56px, 8vw, 88px); }
+  .k-hero { gap: 14px; }
+  .k-emp-name { font-size: clamp(28px, 3.5vw, 44px); }
+}
+
+/* Reduced motion — kill animations respectfully */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 100ms !important;
+  }
+}
