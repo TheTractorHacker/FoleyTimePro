@@ -11,8 +11,9 @@
  *   - poison per-IP counters against a victim's real address to lock
  *     that address out for the throttle window (targeted DoS).
  *
- * TRUSTED_PROXIES is a comma-separated env var. If unset it defaults to
- * loopback so a bare "just installed on one box" deploy is safe by default.
+ * The number of proxies in front is an admin setting (settings.proxy_count).
+ * Unset means 0, so a bare "just installed on one box" deploy is safe by
+ * default.
  *
  * Callers:
  *   - api/v1/auth.php::handleLogin           (per-IP login lockout key)
@@ -21,31 +22,71 @@
  *   - kiosk / clock_action.php               (audit-column IPAddress*)
  */
 
+if (!function_exists('proxy_count')) {
+    /**
+     * Number of reverse proxies / load balancers between the internet and
+     * this web server (admin > Settings > Network). 0 = clients connect
+     * directly, so forwarding headers are never trusted.
+     *
+     * If the admin has not saved the setting yet, fall back to the legacy
+     * TRUSTED_PROXIES env var: when set, assume one proxy; otherwise 0.
+     */
+    function proxy_count(): int
+    {
+        static $count = null;
+        if ($count !== null) {
+            return $count;
+        }
+
+        $count = isset($_ENV['TRUSTED_PROXIES']) && trim($_ENV['TRUSTED_PROXIES']) !== '' ? 1 : 0;
+
+        global $conn;
+        if ($conn instanceof mysqli) {
+            try {
+                $res = $conn->query("SELECT SettingValue FROM settings WHERE SettingKey = 'proxy_count' LIMIT 1");
+                $row = $res ? $res->fetch_assoc() : null;
+                if ($row !== null && $row['SettingValue'] !== null && ctype_digit((string)$row['SettingValue'])) {
+                    $count = min(10, (int)$row['SettingValue']);
+                }
+            } catch (Throwable $e) {
+                // settings table unreadable — keep the fallback
+            }
+        }
+        return $count;
+    }
+}
+
 if (!function_exists('trusted_client_ip')) {
     /**
-     * Return the caller's real IP, honoring reverse-proxy headers only when
-     * the direct peer (REMOTE_ADDR) is in the TRUSTED_PROXIES allowlist.
+     * Return the caller's real IP.
+     *
+     * Every proxy appends the address it received the request from, so the
+     * trustworthy part of X-Forwarded-For is the right-hand end. With N
+     * proxies in front, the chain [...XFF entries, REMOTE_ADDR] has the real
+     * client N positions from the end; anything further left was supplied by
+     * the client and is ignored, so rotating the header cannot spoof the IP.
      *
      * Never returns null — falls back to REMOTE_ADDR, then 'unknown'.
      */
     function trusted_client_ip(): string
     {
         $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $n = proxy_count();
 
-        $trusted = $_ENV['TRUSTED_PROXIES'] ?? '127.0.0.1,::1';
-        $trustedList = array_filter(array_map('trim', explode(',', $trusted)));
-
-        if (!in_array($remoteAddr, $trustedList, true)) {
+        if ($n < 1 || empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             return $remoteAddr;
         }
 
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            // XFF is a comma-list; the left-most entry is the original client
-            // as reported by the first proxy — trust it only because we've
-            // already gated on REMOTE_ADDR being a trusted proxy.
-            return trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        $chain = [];
+        foreach (explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']) as $part) {
+            $part = trim($part);
+            if (filter_var($part, FILTER_VALIDATE_IP)) {
+                $chain[] = $part;
+            }
         }
+        $chain[] = $remoteAddr;
 
-        return $_SERVER['HTTP_X_REAL_IP'] ?? $remoteAddr;
+        $idx = count($chain) - 1 - $n;
+        return $idx >= 0 ? $chain[$idx] : $remoteAddr;
     }
 }

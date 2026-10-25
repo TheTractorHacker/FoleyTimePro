@@ -8,6 +8,7 @@
 // --- SETUP AND DEPENDENCIES ---
 require_once __DIR__ . '/../auth/db.php';
 require_once __DIR__ . '/pin_helper.php';
+require_once __DIR__ . '/../api/middleware/ClientIp.php';
 require_once __DIR__ . '/../vendor/autoload.php'; // For PHPMailer
 require_once __DIR__ . '/settings_helper.php'; // Use the new helper for settings
 date_default_timezone_set('America/Chicago');
@@ -128,14 +129,7 @@ function sendAdjustmentEmail($employeeID, $oldTime, $newTime, $note, $conn) {
  * @return string|null The client's IP address or null if not found.
  */
 function get_client_ip() {
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
-    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
-        $ip = $_SERVER['HTTP_X_REAL_IP'];
-    } else {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
-    }
-    return $ip ? trim($ip) : null;
+    return trusted_client_ip();
 }
 
 /**
