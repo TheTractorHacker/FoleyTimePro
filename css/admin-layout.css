@@ -448,3 +448,19 @@ table { width: 100%; border-collapse: collapse; }
 /* ── Settings page ────────────────────────────────────────────── */
 .settings-section { margin-bottom: 28px; }
 .settings-section h2 { font-size: 14px; font-weight: 700; color: var(--nav-bg); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+
+/* Helper text under a form field */
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted, #6b7280);
+  max-width: 60ch;
+}
+.form-hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.15);
+  font-size: 0.95em;
+}

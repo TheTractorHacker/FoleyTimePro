@@ -77,6 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Proxy count: whole number 0-10; anything else is ignored
+    if (isset($_POST['proxy_count']) && ctype_digit($_POST['proxy_count']) && (int)$_POST['proxy_count'] <= 10) {
+        $value = (string)(int)$_POST['proxy_count'];
+        $stmt = $conn->prepare("INSERT INTO settings (SettingKey, SettingValue) VALUES ('proxy_count', ?) ON DUPLICATE KEY UPDATE SettingValue = ?");
+        $stmt->bind_param("ss", $value, $value);
+        $stmt->execute();
+        $settings['proxy_count'] = $value;
+    }
+
     // Handle mail_password separately for encryption
     if (isset($_POST['mail_password']) && !empty($_POST['mail_password'])) {
         $encrypted_password = encrypt_data($_POST['mail_password']);
@@ -174,6 +183,27 @@ include 'includes/header.php';
             <div class="form-group">
                 <label for="mail_admin_address">Admin Email Address (for notifications):</label>
                 <input type="email" id="mail_admin_address" name="mail_admin_address" value="<?= htmlspecialchars($settings['mail_admin_address'] ?? '') ?>">
+            </div>
+            <h2>Network</h2>
+            <?php
+              require_once __DIR__ . '/../api/middleware/ClientIp.php';
+              $proxyCount = (string)proxy_count();
+            ?>
+            <div class="form-group">
+                <label for="proxy_count">Reverse proxies in front of this server:</label>
+                <input type="number" id="proxy_count" name="proxy_count" min="0" max="10" step="1" value="<?= htmlspecialchars($proxyCount) ?>">
+                <small class="form-hint">
+                    Count every proxy, load balancer or CDN that sits between the internet and this web server
+                    (a Cloudflare tunnel, a firewall appliance, an upstream nginx...). Use <strong>0</strong> if devices
+                    connect straight to this server. A wrong number makes IP addresses on punches, login limits
+                    and audit logs wrong or spoofable.
+                </small>
+                <small class="form-hint">
+                    This request: connecting address <code><?= htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'unknown') ?></code>,
+                    X-Forwarded-For <code><?= htmlspecialchars($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '(none)') ?></code>
+                    &rarr; your IP resolves to <code><?= htmlspecialchars(trusted_client_ip()) ?></code>.
+                    If that is not your real address, adjust the number and save.
+                </small>
             </div>
             <div class="filter-actions">
                 <button type="submit" class="btn btn-primary">Save Settings</button>

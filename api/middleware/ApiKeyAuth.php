@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/ApiResponse.php';
+require_once __DIR__ . '/ClientIp.php';
 
 class ApiKeyAuth
 {
@@ -188,27 +189,12 @@ class ApiKeyAuth
     }
 
     /**
-     * Real client IP. Only honors proxy headers when REMOTE_ADDR is in the
-     * configured TRUSTED_PROXIES allowlist (default: 127.0.0.1, ::1) —
-     * otherwise attackers could spoof LastUsedIP / audit-log IP.
+     * Real client IP, honoring forwarding headers only as far as the admin's
+     * configured proxy count allows. See ClientIp.php.
      */
     public static function clientIp(): string
     {
-        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        if (!self::isTrustedProxy($remoteAddr)) {
-            return $remoteAddr;
-        }
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            return trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
-        }
-        return $_SERVER['HTTP_X_REAL_IP'] ?? $remoteAddr;
-    }
-
-    private static function isTrustedProxy(string $ip): bool
-    {
-        $trusted = $_ENV['TRUSTED_PROXIES'] ?? '127.0.0.1,::1';
-        $list = array_map('trim', explode(',', $trusted));
-        return in_array($ip, $list, true);
+        return trusted_client_ip();
     }
 
     private static function readAuthHeader(): ?string
