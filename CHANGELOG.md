@@ -1,5 +1,32 @@
 # Change Log
 
+## v1.5.0 (October 25, 2026)
+
+### Admin
+
+*   **New setting: reverse proxies in front of this server** (Settings → Network, 0–10). Client IPs
+    are now read from the right of `X-Forwarded-For` by hop count, so a client can no longer spoof
+    the IP recorded on punches, used by login/API throttles, or written to audit logs. Shows what
+    the server currently sees for your request. Unset = 0 (headers ignored); if `TRUSTED_PROXIES`
+    is set in `.env` and the setting has not been saved, 1 is assumed.
+
+### Security
+
+*   Dependencies updated: phpmailer 7.1.1 (major), firebase/php-jwt 7.2.1, phpspreadsheet 5.10.0,
+    phpdotenv 5.7.0 plus transitive packages. `composer audit` is clean. Composer 2.10 is needed
+    to audit under PHP 8.5.
+*   nginx hardening (see the sample config): PHP can no longer execute from `uploads/`, `images/`,
+    `cache/`, `auth/`, `css/` or `js/`; `api/{lib,middleware,services,auth}/` and `api/**/*.md`
+    are not served; `*.txt`, the cron script and the unreferenced legacy `clock_handler.php`
+    (unauthenticated SQL injection) are blocked; HSTS added.
+*   A full security audit produced follow-up issues #39–#45 (PIN throttling, punch-time
+    integrity, XSS, CSRF, API hardening). They are not fixed in this release.
+
+### Build & CI
+
+*   New CI workflow: `php -l` on every file, `composer audit`, weekly scheduled audit.
+*   Dependabot security alerts and security updates enabled.
+
 ## v1.4.0 (August 25, 2026)
 
 ### External Write API (shipped reserved — not yet active)
