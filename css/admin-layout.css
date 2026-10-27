@@ -464,3 +464,18 @@ table { width: 100%; border-collapse: collapse; }
   background: rgba(127, 127, 127, 0.15);
   font-size: 0.95em;
 }
+
+/* Dashboard: two panels side by side, stacked on narrow screens */
+.dash-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.dash-split > .card { min-width: 0; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 720px) {
+  .dash-split { grid-template-columns: 1fr; }
+}
+
+/* Custom reports: two columns of cards, one on narrow screens */
+.report-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.report-cards > .card { min-width: 0; }
+@media (max-width: 720px) {
+  .report-cards { grid-template-columns: 1fr; }
+}

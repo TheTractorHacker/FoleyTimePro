@@ -192,7 +192,7 @@ $requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     </div>
 
     <!-- Requests History -->
-    <div class="u-card" style="padding:0;overflow:hidden">
+    <div class="u-card" style="padding:0;overflow-x:auto;-webkit-overflow-scrolling:touch">
         <table class="u-table">
             <thead>
                 <tr>

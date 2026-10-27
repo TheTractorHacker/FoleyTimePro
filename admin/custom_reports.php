@@ -16,7 +16,7 @@ include 'includes/header.php';
   <a href="export_history.php" class="btn btn-secondary">Export History</a>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="report-cards">
 
   <!-- Summary Report -->
   <div class="card">

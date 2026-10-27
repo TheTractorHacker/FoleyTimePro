@@ -78,7 +78,7 @@ include 'includes/header.php';
   </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+<div class="dash-split">
 
   <!-- Currently In -->
   <div class="card">
@@ -106,6 +106,7 @@ include 'includes/header.php';
     <?php if (empty($recent)): ?>
       <p style="color:#888;font-size:14px">No punches yet today.</p>
     <?php else: ?>
+    <div class="table-scroll">
     <table class="data-table">
       <thead><tr><th>Employee</th><th>Date</th><th>In</th><th>Out</th></tr></thead>
       <tbody>
@@ -119,6 +120,7 @@ include 'includes/header.php';
       <?php endforeach; ?>
       </tbody>
     </table>
+    </div>
     <?php endif; ?>
   </div>
 </div>
