@@ -45,10 +45,11 @@ $pathParts = explode('/', parse_url($requestUri, PHP_URL_PATH));
 $action = $_GET['action'] ?? end($pathParts);
 
 // Extract ID from URL if present (e.g., /timeoff/123/approve)
-$requestId = null;
-if (is_numeric($action)) {
-    $requestId = (int)$action;
-    $action = $pathParts[count($pathParts) - 1] ?? 'view';
+// Also accepted: ?action=cancel&id=123 (what the mobile app sends).
+$requestId = isset($_GET['id']) && is_numeric($_GET['id']) ? (int)$_GET['id'] : null;
+$previousSegment = $pathParts[count($pathParts) - 2] ?? null;
+if ($requestId === null && $previousSegment !== null && is_numeric($previousSegment)) {
+    $requestId = (int)$previousSegment;
 }
 
 // Route to appropriate handler
