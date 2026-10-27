@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   .al-brand { font-size: 20px; font-weight: 800; color: #073851; }
   .al-sub   { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
-  .al-card h1 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 6px; }
+  .al-card h1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 6px; }
   .al-card > p { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
   .al-alert {
     background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
@@ -247,16 +247,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     font-size: 10px; font-weight: 700;
     padding: 2px 8px; border-radius: 10px;
     text-transform: uppercase; letter-spacing: .06em;
-    margin-left: 6px; vertical-align: middle;
+    vertical-align: middle;
   }
   </style>
+  <script src="/js/img-fallback.js" defer></script>
 </head>
 <body>
 
 <div class="al-card">
   <div class="al-logo">
-    <img src="<?= $brandLogo ?>" alt="Logo"
-         onerror="this.onerror=null;this.src='/images/FoleyTimePro-logo.png'">
+    <img src="<?= $brandLogo ?>" alt="Logo" data-fallback="/images/FoleyTimePro-logo.png">
     <div>
       <div class="al-brand"><?= $brandCompany ?></div>
       <div class="al-sub">Admin Portal</div>
