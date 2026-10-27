@@ -222,12 +222,22 @@ function handleRefresh($input)
     // Generate new access token
     $accessToken = JWTHandler::generateAccessToken($userId, $email, $role);
 
-    // Return new access token
-    ApiResponse::success([
+    $response = [
         'access_token' => $accessToken,
         'token_type' => 'Bearer',
         'expires_in' => 900 // 15 minutes
-    ], 'Token refreshed successfully');
+    ];
+
+    // Sliding session: once the refresh token is past half its life, hand back a
+    // fresh one so anyone who keeps using the app is never logged out. The old
+    // token is deliberately NOT revoked -- concurrent refreshes (or a response
+    // lost on a bad connection) must not strand the client with a dead token.
+    $remaining = ($result['data']->exp ?? 0) - time();
+    if ($remaining < 7776000) { // < 90 days left
+        $response['refresh_token'] = JWTHandler::generateRefreshToken($userId, $email, $role);
+    }
+
+    ApiResponse::success($response, 'Token refreshed successfully');
 }
 
 /**

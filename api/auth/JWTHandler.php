@@ -18,7 +18,7 @@ class JWTHandler
     private static $refreshSecretKey;
     private static $algorithm = 'HS256';
     private static $accessTokenExpiry = 900; // 15 minutes
-    private static $refreshTokenExpiry = 2592000; // 30 days
+    private static $refreshTokenExpiry = 15552000; // 180 days, renewed on use (see handleRefresh)
 
     /**
      * Initialize secret keys from environment or generate them
