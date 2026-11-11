@@ -55,6 +55,9 @@ while ($row = $result->fetch_assoc()) {
 
     $punches[] = [
         'date'        => date("m/d/Y", strtotime($row['Date'])),
+        'dow'         => date("D", strtotime($row['Date'])),
+        'md'          => date("n/j", strtotime($row['Date'])),
+        'open'        => !$out,
         'in'          => $in ? date("g:i A", $in) : '-',
         'lunch_start' => $lS ? date("g:i A", $lS) : '-',
         'lunch_end'   => $lE ? date("g:i A", $lE) : '-',
@@ -66,9 +69,14 @@ while ($row = $result->fetch_assoc()) {
 $totalHours = round($totalSeconds / 3600, 2);
 
 // Last punch info
-$last = $conn->query("SELECT * FROM timepunches WHERE EmployeeID = '$empID' ORDER BY Date DESC, TimeIN DESC LIMIT 1")->fetch_assoc();
+// Explicit column names: SELECT * returns the table's own casing ("TimeOut"), but the code below reads "TimeOUT".
+$lastStmt = $conn->prepare("SELECT Date, TimeIN, LunchStart, LunchEnd, TimeOUT FROM timepunches WHERE EmployeeID = ? ORDER BY Date DESC, TimeIN DESC LIMIT 1");
+$lastStmt->bind_param("i", $empID);
+$lastStmt->execute();
+$last = $lastStmt->get_result()->fetch_assoc();
 $lastLabel = $lastTime = '-';
 $clockInUnix = null;
+$lunchUnix = null;
 
 if ($last) {
     // Last punch label — what was the most recent action
@@ -86,6 +94,11 @@ if ($last) {
         $lastTime  = date("g:i A", strtotime($last['TimeIN']));
     }
 
+    // Lunch break in progress: the timer counts the break, not the shift
+    if ($currentStatus === 'Lunch' && empty($last['TimeOUT']) && !empty($last['LunchStart']) && empty($last['LunchEnd'])) {
+        $lunchUnix = strtotime($last['Date'] . ' ' . $last['LunchStart']);
+    }
+
     // Timer — independent of last action; runs whenever status is In and punch is open today
     if ($currentStatus === 'In' && empty($last['TimeOUT']) && !empty($last['TimeIN']) && $last['Date'] === date('Y-m-d')) {
         $clockInUnix = strtotime($last['Date'] . ' ' . $last['TimeIN']);
@@ -96,6 +109,26 @@ if ($last) {
             if ($lunchSec > 0) $clockInUnix += $lunchSec;
         }
     }
+}
+
+// What the employee most likely wants to do next. Only this (plus an optional
+// secondary) is shown — the server still enforces every ordering rule.
+$openPunch   = $last && empty($last['TimeOUT']) && !empty($last['TimeIN']);
+$staleShift  = $openPunch && $last['Date'] !== date('Y-m-d');
+$lunchTaken  = $openPunch && !empty($last['LunchStart']);
+$primary = $secondary = null;
+if ($currentStatus === 'Lunch') {
+    $primary   = ['lunchend',   'End lunch',   'le'];
+    $secondary = ['clockout',   'Clock out',   'out'];
+} elseif ($currentStatus === 'In') {
+    if ($lunchTaken || $staleShift) {
+        $primary   = ['clockout',   'Clock out',   'out'];
+    } else {
+        $primary   = ['lunchstart', 'Start lunch', 'ls'];
+        $secondary = ['clockout',   'Clock out',   'out'];
+    }
+} else {
+    $primary = ['clockin', 'Clock in', 'in'];
 }
 
 // Edit requests
@@ -172,110 +205,96 @@ $statusLabel = match($currentStatus) {
 
 <div class="u-content">
 
-  <!-- ── Hero Banner ─────────────────────────────────────────── -->
-  <div class="db-hero db-hero-<?= $statusClass ?>">
-    <div class="db-hero-left">
-      <p class="db-hero-greeting">Welcome back</p>
-      <h1 class="db-hero-name"><?= htmlspecialchars($name) ?></h1>
+  <!-- ── Punch hero: status, live timer, the one next action ───── -->
+  <?php
+  $icons = [
+    'in' => '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>',
+    'ls' => '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
+    'le' => '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    'out' => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  ];
+  ?>
+  <section class="db-hero db-hero-<?= $statusClass ?>" aria-label="Your clock status">
+   <div class="db-hero-main">
+    <div class="db-hero-top">
+      <div class="db-hero-who">
+        <span class="db-hero-greeting">Welcome back,</span>
+        <span class="db-hero-name"><?= htmlspecialchars($name) ?></span>
+      </div>
       <div class="db-status-pill db-status-<?= $statusClass ?>">
         <span class="db-status-dot"></span>
         <?= htmlspecialchars($statusLabel) ?>
       </div>
     </div>
-    <div class="db-hero-right">
-      <?php if ($clockInUnix !== null): ?>
-      <div class="db-hero-timer-wrap">
-        <div class="db-hero-timer-label">Time Worked Today</div>
-        <div class="db-hero-timer" id="liveTimer">0:00:00</div>
-      </div>
-      <?php else: ?>
-      <div class="db-hero-stats">
-        <div class="db-hero-stat">
-          <div class="db-hero-stat-val"><?= number_format($totalHours, 1) ?></div>
-          <div class="db-hero-stat-lbl">Hrs This Week</div>
-        </div>
-        <?php if ($lastTime !== '-'): ?>
-        <div class="db-hero-stat-div"></div>
-        <div class="db-hero-stat">
-          <div class="db-hero-stat-val"><?= htmlspecialchars($lastTime) ?></div>
-          <div class="db-hero-stat-lbl">Last <?= htmlspecialchars($lastLabel) ?></div>
-        </div>
-        <?php endif; ?>
-      </div>
+
+    <?php if ($lunchUnix !== null): ?>
+      <div class="db-hero-timer-label">Lunch break</div>
+      <div class="db-hero-timer" id="liveTimer" role="timer">0:00:00</div>
+    <?php elseif ($clockInUnix !== null): ?>
+      <div class="db-hero-timer-label">Time worked today</div>
+      <div class="db-hero-timer" id="liveTimer" role="timer">0:00:00</div>
+    <?php else: ?>
+      <div class="db-hero-timer-label"><?= $staleShift ? 'Shift still open from ' . htmlspecialchars(date('n/j', strtotime($last['Date']))) : ($lastTime !== '-' ? 'Last: ' . htmlspecialchars($lastLabel) . ' ' . htmlspecialchars($lastTime) : 'Ready when you are') ?></div>
+      <div class="db-hero-timer db-hero-timer-idle"><?= number_format($totalHours, 1) ?><small> hrs this week</small></div>
+    <?php endif; ?>
+
+    <?php if ($lunchUnix === null && $clockInUnix !== null): ?>
+      <div class="db-hero-sub"><?= number_format($totalHours, 1) ?> hrs this week</div>
+    <?php endif; ?>
+
+   </div>
+
+   <div class="db-hero-side">
+    <div class="pn-actions">
+      <button type="button" class="pn-btn pn-primary pn-<?= $primary[2] ?>" onclick="submitAction('<?= $primary[0] ?>')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><?= $icons[$primary[2]] ?></svg>
+        <?= $primary[1] ?>
+      </button>
+      <?php if ($secondary): ?>
+      <button type="button" class="pn-btn pn-secondary" onclick="submitAction('<?= $secondary[0] ?>')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><?= $icons[$secondary[2]] ?></svg>
+        <?= $secondary[1] ?>
+      </button>
       <?php endif; ?>
     </div>
-  </div>
 
-  <!-- ── Main Grid (actions left, punches right) ────────────── -->
-  <div class="db-grid">
+    <button type="button" class="pn-note-toggle" id="noteToggle" aria-expanded="false" aria-controls="dashNote">+ Add a note to this punch</button>
+    <textarea class="db-note pn-note" id="dashNote" rows="2" placeholder="Note (optional)" hidden></textarea>
+   </div>
+  </section>
 
-    <!-- Clock Actions -->
-    <div class="u-card db-actions-card">
+  <!-- ── This week ───────────────────────────────────────────── -->
+  <section class="u-card db-week-card" style="padding:0;overflow:hidden">
+    <div class="db-card-header">
       <h2>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Clock Actions
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        This week
       </h2>
-      <textarea class="db-note" id="dashNote" placeholder="Optional note for this punch…"></textarea>
-      <div class="u-punch-grid">
-        <button class="u-punch-btn u-punch-in"  onclick="submitAction('clockin')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Clock In
-        </button>
-        <button class="u-punch-btn u-punch-ls" onclick="submitAction('lunchstart')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-          Lunch Start
-        </button>
-        <button class="u-punch-btn u-punch-le" onclick="submitAction('lunchend')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Lunch End
-        </button>
-        <button class="u-punch-btn u-punch-out" onclick="submitAction('clockout')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Clock Out
-        </button>
-      </div>
+      <a href="timesheet.php" class="u-btn u-btn-secondary u-btn-sm">Timesheet</a>
     </div>
-
-    <!-- This Week -->
-    <div class="u-card db-week-card" style="padding:0;overflow:hidden">
-      <div class="db-card-header">
-        <h2>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          This Week
-        </h2>
-        <a href="timesheet.php" class="u-btn u-btn-secondary u-btn-sm">View All</a>
-      </div>
-      <?php if (empty($punches)): ?>
-      <div class="db-empty-state">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <p>No punches this week.</p>
-      </div>
-      <?php else: ?>
-      <div class="u-table-wrap">
-        <table class="u-table">
-          <thead>
-            <tr><th>Date</th><th>In</th><th>Lunch</th><th>Out</th><th>Hrs</th></tr>
-          </thead>
-          <tbody>
-            <?php foreach ($punches as $p): ?>
-            <tr>
-              <td class="db-td-date"><?= htmlspecialchars($p['date']) ?></td>
-              <td><?= htmlspecialchars($p['in']) ?></td>
-              <td class="db-td-muted"><?= $p['lunch_start'] !== '-' ? htmlspecialchars($p['lunch_start']).'–'.htmlspecialchars($p['lunch_end']) : '—' ?></td>
-              <td><?= htmlspecialchars($p['out']) ?></td>
-              <td><strong><?= $p['hours'] !== '-' ? $p['hours'].' h' : '—' ?></strong></td>
-            </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-      <div class="db-week-total">
-        Total this period: <strong><?= $totalHours ?> hrs</strong>
-      </div>
-      <?php endif; ?>
+    <?php if (empty($punches)): ?>
+    <div class="db-empty-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <p>No punches this week.</p>
     </div>
-
-  </div><!-- /.db-grid -->
+    <?php else: ?>
+    <ul class="wk-list">
+      <?php foreach ($punches as $p): ?>
+      <li class="wk-row">
+        <div class="wk-day"><strong><?= htmlspecialchars($p['dow']) ?></strong><span><?= htmlspecialchars($p['md']) ?></span></div>
+        <div class="wk-times">
+          <span><?= htmlspecialchars($p['in']) ?> – <?= $p['out'] !== '-' ? htmlspecialchars($p['out']) : '<em class="wk-now">now</em>' ?></span>
+          <?php if ($p['lunch_start'] !== '-'): ?>
+          <span class="wk-lunch">Lunch <?= htmlspecialchars($p['lunch_start']) ?><?= $p['lunch_end'] !== '-' ? ' – ' . htmlspecialchars($p['lunch_end']) : '' ?></span>
+          <?php endif; ?>
+        </div>
+        <div class="wk-hours"><?= $p['hours'] !== '-' ? number_format((float)$p['hours'], 2) . '<small> h</small>' : '<span class="wk-dash">—</span>' ?></div>
+      </li>
+      <?php endforeach; ?>
+    </ul>
+    <div class="db-week-total">Total this period <strong><?= $totalHours ?> hrs</strong></div>
+    <?php endif; ?>
+  </section>
 
   <?php if (!empty($editRequests)): ?>
   <!-- Edit Requests -->
@@ -317,20 +336,32 @@ $statusLabel = match($currentStatus) {
   <span><a href="/docs/privacy.php">Privacy</a> <a href="/docs/terms.php">Terms</a></span>
 </footer>
 
-<?php if ($clockInUnix !== null): ?>
+<?php if ($clockInUnix !== null || $lunchUnix !== null): ?>
 <script>
 (function(){
-  var start = <?= $clockInUnix * 1000 ?>;
+  var start = <?= (($lunchUnix ?? $clockInUnix)) * 1000 ?>;
+  var el = document.getElementById('liveTimer');
   function tick(){
     var d = Math.max(0, Math.floor((Date.now()-start)/1000));
     var h = Math.floor(d/3600), m = Math.floor((d%3600)/60), s = d%60;
-    document.getElementById('liveTimer').textContent =
-      h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    el.textContent = h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
   }
   tick(); setInterval(tick,1000);
 })();
 </script>
 <?php endif; ?>
+<script>
+(function(){
+  var t = document.getElementById('noteToggle'), n = document.getElementById('dashNote');
+  t.addEventListener('click', function(){
+    var open = n.hidden;
+    n.hidden = !open;
+    t.setAttribute('aria-expanded', open ? 'true' : 'false');
+    t.textContent = open ? '− Hide note' : '+ Add a note to this punch';
+    if (open) n.focus();
+  });
+})();
+</script>
 
 <script src="../js/script.js"></script>
 <script>
