@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS `auto_clockout_log`;
 DROP TABLE IF EXISTS `notification_logs`;
 DROP TABLE IF EXISTS `notification_preferences`;
 DROP TABLE IF EXISTS `device_tokens`;
+DROP TABLE IF EXISTS `api_login_attempts`;
 DROP TABLE IF EXISTS `api_tokens`;
 DROP TABLE IF EXISTS `quickbooks_sync_log`;
 DROP TABLE IF EXISTS `quickbooks_employee_map`;
@@ -310,6 +311,14 @@ CREATE TABLE `api_tokens` (
   KEY `idx_expiry` (`ExpiresAt`),
   CONSTRAINT `api_tokens_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `users` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `api_login_attempts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `identifier` varchar(255) NOT NULL,
+  `attempted_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_identifier_time` (`identifier`, `attempted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `device_tokens` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
