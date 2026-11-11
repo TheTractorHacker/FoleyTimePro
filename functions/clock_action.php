@@ -660,7 +660,7 @@ switch ($action) {
         if (!$lastPunch || !empty($lastPunch['LunchStart'])) { send_json_response(false, "⚠️ No active punch, or lunch already started.", 400); }
         
         if (!empty($note)) {
-            $stmt = $conn->prepare("UPDATE timepunches SET LunchStart = ?, Note = CONCAT(Note, ?), LatitudeLunchStart = ?, LongitudeLunchStart = ?, AccuracyLunchStart = ?, IPAddressLunchStart = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchStart = ?, Note = CONCAT(COALESCE(Note, ''), ?), LatitudeLunchStart = ?, LongitudeLunchStart = ?, AccuracyLunchStart = ?, IPAddressLunchStart = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
             $full_note = "\nLunch Start Note: " . $note;
             $stmt->bind_param("ssdddsi", $now, $full_note, $lat, $lon, $accuracy, $ip, $empID);
         } else {
@@ -688,7 +688,7 @@ switch ($action) {
         if (!$lastPunch || empty($lastPunch['LunchStart']) || !empty($lastPunch['LunchEnd'])) { send_json_response(false, "⚠️ No active lunch punch found.", 400); }
 
         if (!empty($note)) {
-            $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd = ?, Note = CONCAT(Note, ?), LatitudeLunchEnd = ?, LongitudeLunchEnd = ?, AccuracyLunchEnd = ?, IPAddressLunchEnd = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $stmt = $conn->prepare("UPDATE timepunches SET LunchEnd = ?, Note = CONCAT(COALESCE(Note, ''), ?), LatitudeLunchEnd = ?, LongitudeLunchEnd = ?, AccuracyLunchEnd = ?, IPAddressLunchEnd = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
             $full_note = "\nLunch End Note: " . $note;
             $stmt->bind_param("ssdddsi", $now, $full_note, $lat, $lon, $accuracy, $ip, $empID);
         } else {
@@ -730,7 +730,7 @@ switch ($action) {
         $totalHours = calculateTotalHours($lastPunch['TimeIN'], $lastPunch['LunchStart'], $lastPunch['LunchEnd'], $now);
 
         if (!empty($note)) {
-            $stmt = $conn->prepare("UPDATE timepunches SET TimeOUT = ?, LunchEnd = ?, TotalHours = ?, Note = CONCAT(Note, ?), LatitudeOut = ?, LongitudeOut = ?, AccuracyOut = ?, IPAddressOut = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
+            $stmt = $conn->prepare("UPDATE timepunches SET TimeOUT = ?, LunchEnd = ?, TotalHours = ?, Note = CONCAT(COALESCE(Note, ''), ?), LatitudeOut = ?, LongitudeOut = ?, AccuracyOut = ?, IPAddressOut = INET_ATON(?) WHERE EmployeeID = ? AND TimeOUT IS NULL");
             $full_note = "\nClock Out Note: " . $note;
             $stmt->bind_param("ssdsdddsi", $now, $lastPunch['LunchEnd'], $totalHours, $full_note, $lat, $lon, $accuracy, $ip, $empID);
         } else {
