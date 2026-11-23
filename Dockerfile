@@ -2,7 +2,7 @@
 # Build:  docker build -t bfoley23/foleytimepro:latest .
 # Push:   docker push bfoley23/foleytimepro:latest
 
-FROM php:8.5-fpm
+FROM php:8.6-fpm
 
 COPY --from=mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
 
